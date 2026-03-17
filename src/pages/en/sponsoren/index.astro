@@ -110,7 +110,8 @@ const locale = 'en';
           if (!res.ok) throw new Error('HTTP ' + res.status);
           return res.json();
         })
-        .then(function(sponsors) {
+        .then(function(data) {
+          var sponsors = data && data.sponsors;
           if (!sponsors || !sponsors.length) { showError(); return; }
           container.textContent = '';
           var grid = document.createElement('div');
