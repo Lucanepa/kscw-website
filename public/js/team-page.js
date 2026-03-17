@@ -398,7 +398,7 @@
     var awayScore = scoreParts.length === 2 ? parseInt(scoreParts[1], 10) : 0;
     return {
       teamShort: TEAM,
-      sport: 'volleyball',
+      sport: g.sport || 'volleyball',
       date: g.date,
       time: g.time || '',
       homeTeam: g.home_team,
@@ -409,11 +409,14 @@
       homeScore: homeScore,
       awayScore: awayScore,
       status: g.score ? 'completed' : 'scheduled',
-      league: (teamData && teamData.league) || '',
-      season: (teamData && teamData.season) || '',
+      league: g.league || (teamData && teamData.league) || '',
+      season: g.season || (teamData && teamData.season) || '',
       id: g.game_id || '',
       hall: g.hall || null,
       setsJson: g.sets_json || null,
+      referees: g.referees || null,
+      scorerTeam: g.scorer_team || null,
+      bbOfficials: g.bb_officials || null,
       opponent: g.isHome ? g.away_team : g.home_team
     };
   }

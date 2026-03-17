@@ -413,6 +413,22 @@ window.KSCW = {
       hallObj = { name: ah.name || '', address: ah.address || '', city: ah.city || '', mapsUrl: mapsUrl };
     }
 
+    // Referees
+    var referees = Array.isArray(g.referees_json) ? g.referees_json : [];
+
+    // Scorer duty team (volleyball) — resolve name from teams map later
+    var scorerDutyTeam = g.scoreboard_duty_team || '';
+
+    // Basketball officials
+    var bbOfficials = null;
+    if (sport === 'basketball') {
+      var bo = {};
+      if (g.bb_scorer_duty_team) bo.scorer = g.bb_scorer_duty_team;
+      if (g.bb_timekeeper_duty_team) bo.timekeeper = g.bb_timekeeper_duty_team;
+      if (g.bb_24s_official) bo.shot_clock = g.bb_24s_official;
+      if (Object.keys(bo).length) bbOfficials = bo;
+    }
+
     return {
       id: g.game_id || g.id,
       date: date,
@@ -434,6 +450,9 @@ window.KSCW = {
       setsJson: Array.isArray(g.sets_json) ? g.sets_json : [],
       hall: hallObj,
       type: g.type || '',
+      referees: referees,
+      scorerDutyTeam: scorerDutyTeam,
+      bbOfficials: bbOfficials,
     };
   }
 
@@ -513,6 +532,15 @@ window.KSCW = {
     D.games = pbGames.map(mapGame).filter(function (g) {
       return g.teamShort !== ''; // skip games without a resolved KSCW team
     });
+
+    // Resolve scorer duty team IDs to names
+    for (var gi = 0; gi < D.games.length; gi++) {
+      var game = D.games[gi];
+      if (game.scorerDutyTeam && pbIdToShort[game.scorerDutyTeam]) {
+        game.scorerTeam = pbIdToShort[game.scorerDutyTeam];
+        delete game.scorerDutyTeam;
+      }
+    }
 
     // ── Build rankings ─────────────────────────────────
     D.rankings = mapRankings(pbRankings, teamPbIdSet);

@@ -179,22 +179,62 @@
       info.appendChild(infoRow(isDE ? 'Spielnr.' : 'Game #', String(game.id).replace(/^(vb_|bb_)/, '')));
     }
     if (game.season) {
-      info.appendChild(infoRow('Saison', game.season));
+      info.appendChild(infoRow(isDE ? 'Saison' : 'Season', game.season));
     }
     modal.appendChild(info);
 
+    // ── Officials section (referees, scorers, BB officials)
+    var hasOfficials = (game.referees && game.referees.length) || game.scorerTeam || game.bbOfficials;
+    if (hasOfficials) {
+      var officials = el('div', 'gm-section');
+      officials.appendChild(el('div', 'gm-section-title', isDE ? 'Offizielle' : 'Officials'));
+
+      // Referees
+      if (game.referees && game.referees.length) {
+        var refNames = game.referees.map(function (r) { return r.name || (r.first_name + ' ' + r.last_name); }).join(', ');
+        officials.appendChild(infoRow(
+          game.referees.length > 1 ? (isDE ? 'Schiedsrichter' : 'Referees') : (isDE ? 'Schiedsrichter' : 'Referee'),
+          refNames
+        ));
+      }
+
+      // Scorer team (volleyball)
+      if (game.scorerTeam) {
+        officials.appendChild(infoRow(isDE ? 'Schreiber' : 'Scorer', game.scorerTeam));
+      }
+
+      // Basketball officials
+      if (game.bbOfficials) {
+        if (game.bbOfficials.scorer) {
+          officials.appendChild(infoRow('Scorer', game.bbOfficials.scorer));
+        }
+        if (game.bbOfficials.timekeeper) {
+          officials.appendChild(infoRow('Timekeeper', game.bbOfficials.timekeeper));
+        }
+        if (game.bbOfficials.shot_clock) {
+          officials.appendChild(infoRow('24s Official', game.bbOfficials.shot_clock));
+        }
+      }
+
+      modal.appendChild(officials);
+    }
+
     // ── Venue section
-    if (game.hall && game.hall.name) {
+    var hallData = game.hall;
+    if (hallData && (hallData.name || hallData.address)) {
       var venue = el('div', 'gm-section');
       venue.appendChild(el('div', 'gm-section-title', isDE ? 'Spielort' : 'Venue'));
-      venue.appendChild(infoRow(isDE ? 'Halle' : 'Hall', game.hall.name));
-      var addr = [game.hall.address, game.hall.city].filter(Boolean).join(', ');
+      if (hallData.name) {
+        venue.appendChild(infoRow(isDE ? 'Halle' : 'Hall', hallData.name));
+      }
+      var addr = [hallData.address, hallData.city].filter(Boolean).join(', ');
       if (addr) {
         venue.appendChild(infoRow(isDE ? 'Adresse' : 'Address', addr));
       }
-      if (game.hall.mapsUrl) {
+      var mapsUrl = hallData.mapsUrl || hallData.maps_url;
+      if (mapsUrl) {
         var mapsLink = el('a', 'gm-link', 'Google Maps \u2197');
-        mapsLink.href = game.hall.mapsUrl;
+        mapsLink.href = mapsUrl;
         mapsLink.target = '_blank';
         mapsLink.rel = 'noopener noreferrer';
         venue.appendChild(infoRow(isDE ? 'Karte' : 'Map', mapsLink));
