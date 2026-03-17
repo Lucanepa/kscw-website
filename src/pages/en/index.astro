@@ -76,190 +76,242 @@ const locale = 'en';
   <script is:inline>
     (function () {
       'use strict';
-      var D = window.KSCW;
-      if (!D) return;
 
-      function createChip(teamShort) {
-        var t = D.getTeam(teamShort);
-        var chip = document.createElement('span');
-        chip.className = 'chip';
-        if (t) {
-          chip.style.background = t.bg;
-          chip.style.color = t.text;
-          chip.style.border = '1px solid ' + t.border;
-          chip.textContent = t.short;
-        } else {
-          chip.style.background = '#e2e8f0';
-          chip.style.color = '#475569';
-          chip.textContent = teamShort;
+      // Show loading placeholders (hardcoded strings, no user input)
+      var containers = ['upcoming-games-list', 'recent-results-list', 'news-grid'];
+      containers.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el && !el.children.length) {
+          var placeholder = document.createElement('div');
+          placeholder.style.textAlign = 'center';
+          placeholder.style.padding = '2rem';
+          placeholder.style.opacity = '0.5';
+          placeholder.textContent = 'Loading...';
+          el.appendChild(placeholder);
         }
-        return chip;
+      });
+
+      var VB_ICON_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15 15 0 0 1 0 20"/><path d="M2 12h20"/></svg>';
+      var BB_ICON_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2v20"/><path d="M4.93 4.93c4.08 2.35 8.06 2.35 14.14 0"/><path d="M4.93 19.07c4.08-2.35 8.06-2.35 14.14 0"/></svg>';
+
+      function getSportIcon(game) {
+        var sport = game.sport || (game.teamShort.indexOf('BB-') === 0 ? 'basketball' : 'volleyball');
+        return sport === 'basketball' ? BB_ICON_SVG : VB_ICON_SVG;
       }
 
-      function createBadge(isHome) {
-        var badge = document.createElement('span');
-        badge.className = 'game-badge ' + (isHome ? 'home' : 'away');
-        badge.textContent = isHome ? 'Home' : 'Away';
-        return badge;
+      function createSportIconEl(game) {
+        // Safe: SVG strings are hardcoded constants above, not user input
+        var icon = document.createElement('span');
+        icon.className = 'sport-icon';
+        var svgStr = getSportIcon(game);
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(svgStr, 'image/svg+xml');
+        icon.appendChild(doc.documentElement);
+        icon.style.opacity = '0.5';
+        icon.style.display = 'inline-flex';
+        icon.style.alignItems = 'center';
+        icon.style.marginRight = '8px';
+        icon.style.flexShrink = '0';
+        return icon;
       }
 
-      function createTeamsSpan(game) {
-        var span = document.createElement('span');
-        span.className = 'game-teams';
-        if (game.isHome) {
-          span.appendChild(document.createTextNode('KSCW ' + game.teamShort + ' '));
-          var vs1 = document.createElement('span');
-          vs1.className = 'vs';
-          vs1.textContent = 'vs';
-          span.appendChild(vs1);
-          span.appendChild(document.createTextNode(' ' + game.opponent));
-        } else {
-          span.appendChild(document.createTextNode(game.opponent + ' '));
-          var vs2 = document.createElement('span');
-          vs2.className = 'vs';
-          vs2.textContent = 'vs';
-          span.appendChild(vs2);
-          span.appendChild(document.createTextNode(' KSCW ' + game.teamShort));
+      function renderAll() {
+        var D = window.KSCW;
+        if (!D) return;
+
+        function createChip(teamShort) {
+          var t = D.getTeam(teamShort);
+          var chip = document.createElement('span');
+          chip.className = 'chip';
+          if (t) {
+            chip.style.background = t.bg;
+            chip.style.color = t.text;
+            chip.style.border = '1px solid ' + t.border;
+            chip.textContent = t.short;
+          } else {
+            chip.style.background = '#e2e8f0';
+            chip.style.color = '#475569';
+            chip.textContent = teamShort;
+          }
+          return chip;
         }
-        return span;
-      }
 
-      function createGameRow(game, showScore) {
-        var row = document.createElement('div');
-        row.className = 'game-row fade-in';
-        var dateEl = document.createElement('span');
-        dateEl.className = 'game-date';
-        dateEl.textContent = D.formatDate(game.date);
-        row.appendChild(dateEl);
-        row.appendChild(createChip(game.teamShort));
-        row.appendChild(createBadge(game.isHome));
-        row.appendChild(createTeamsSpan(game));
-        if (showScore && game.score) {
-          var scoreEl = document.createElement('span');
-          var win = D.isWin(game);
-          scoreEl.className = 'game-score';
-          if (win === true) scoreEl.className += ' win';
-          else if (win === false) scoreEl.className += ' loss';
-          scoreEl.textContent = game.score;
-          row.appendChild(scoreEl);
-        } else {
-          var timeEl = document.createElement('span');
-          timeEl.className = 'game-date';
-          timeEl.textContent = game.time;
-          row.appendChild(timeEl);
+        function createBadge(isHome) {
+          var badge = document.createElement('span');
+          badge.className = 'game-badge ' + (isHome ? 'home' : 'away');
+          badge.textContent = isHome ? 'Home' : 'Away';
+          return badge;
         }
-        return row;
-      }
 
-      // News Cards
-      var newsGrid = document.getElementById('news-grid');
-      if (newsGrid && D.news) {
-        var articles = D.news.slice(0, 6);
-        var fragment = document.createDocumentFragment();
-        for (var i = 0; i < articles.length; i++) {
-          var n = articles[i];
-          var article = document.createElement('article');
-          article.className = 'card news-card fade-in';
-          var imgPlaceholder = document.createElement('div');
-          imgPlaceholder.className = 'card-img-placeholder';
-          var iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-          iconSvg.setAttribute('viewBox', '0 0 24 24');
-          iconSvg.setAttribute('fill', 'none');
-          iconSvg.setAttribute('stroke', 'currentColor');
-          iconSvg.setAttribute('stroke-width', '1.5');
-          iconSvg.style.width = '48px';
-          iconSvg.style.height = '48px';
-          iconSvg.style.opacity = '0.3';
-          var path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-          path1.setAttribute('d', 'M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2');
-          iconSvg.appendChild(path1);
-          imgPlaceholder.appendChild(iconSvg);
-          article.appendChild(imgPlaceholder);
-          var body = document.createElement('div');
-          body.className = 'card-body';
-          var meta = document.createElement('div');
-          meta.className = 'flex items-center gap-sm mb-md';
-          var dateSpan = document.createElement('span');
-          dateSpan.className = 'news-date';
-          dateSpan.textContent = D.formatDate(n.date);
-          meta.appendChild(dateSpan);
-          var catBadge = document.createElement('span');
-          catBadge.className = 'badge';
-          if (n.category === 'volleyball') { catBadge.className += ' badge-blue'; catBadge.textContent = 'Volleyball'; }
-          else if (n.category === 'basketball') { catBadge.className += ' badge-gold'; catBadge.textContent = 'Basketball'; }
-          else { catBadge.textContent = 'Club'; }
-          meta.appendChild(catBadge);
-          body.appendChild(meta);
-          var title = document.createElement('h3');
-          title.textContent = n.title;
-          body.appendChild(title);
-          var excerpt = document.createElement('p');
-          excerpt.className = 'news-excerpt';
-          excerpt.textContent = n.excerpt;
-          body.appendChild(excerpt);
-          article.appendChild(body);
-          fragment.appendChild(article);
+        function createTeamsSpan(game) {
+          var span = document.createElement('span');
+          span.className = 'game-teams';
+          if (game.isHome) {
+            span.appendChild(document.createTextNode('KSCW ' + game.teamShort + ' '));
+            var vs1 = document.createElement('span');
+            vs1.className = 'vs';
+            vs1.textContent = 'vs';
+            span.appendChild(vs1);
+            span.appendChild(document.createTextNode(' ' + game.opponent));
+          } else {
+            span.appendChild(document.createTextNode(game.opponent + ' '));
+            var vs2 = document.createElement('span');
+            vs2.className = 'vs';
+            vs2.textContent = 'vs';
+            span.appendChild(vs2);
+            span.appendChild(document.createTextNode(' KSCW ' + game.teamShort));
+          }
+          return span;
         }
-        newsGrid.appendChild(fragment);
-      }
 
-      // Upcoming Games
-      var upcomingList = document.getElementById('upcoming-games-list');
-      if (upcomingList) {
-        var upcoming = D.getUpcomingGames().slice(0, 5);
-        var upFrag = document.createDocumentFragment();
-        for (var u = 0; u < upcoming.length; u++) {
-          upFrag.appendChild(createGameRow(upcoming[u], false));
+        function createGameRow(game, showScore) {
+          var row = document.createElement('div');
+          row.className = 'game-row fade-in';
+          row.appendChild(createSportIconEl(game));
+          var dateEl = document.createElement('span');
+          dateEl.className = 'game-date';
+          dateEl.textContent = D.formatDate(game.date);
+          row.appendChild(dateEl);
+          row.appendChild(createChip(game.teamShort));
+          row.appendChild(createBadge(game.isHome));
+          row.appendChild(createTeamsSpan(game));
+          if (showScore && game.score) {
+            var scoreEl = document.createElement('span');
+            var win = D.isWin(game);
+            scoreEl.className = 'game-score';
+            if (win === true) scoreEl.className += ' win';
+            else if (win === false) scoreEl.className += ' loss';
+            scoreEl.textContent = game.score;
+            row.appendChild(scoreEl);
+          } else {
+            var timeEl = document.createElement('span');
+            timeEl.className = 'game-date';
+            timeEl.textContent = game.time;
+            row.appendChild(timeEl);
+          }
+          return row;
         }
-        upcomingList.appendChild(upFrag);
-      }
 
-      // Recent Results
-      var resultsList = document.getElementById('recent-results-list');
-      if (resultsList) {
-        var completed = D.getCompletedGames().slice(0, 5);
-        var resFrag = document.createDocumentFragment();
-        for (var r = 0; r < completed.length; r++) {
-          resFrag.appendChild(createGameRow(completed[r], true));
+        // News Cards
+        var newsGrid = document.getElementById('news-grid');
+        if (newsGrid && D.news) {
+          while (newsGrid.firstChild) newsGrid.removeChild(newsGrid.firstChild);
+          var articles = D.news.slice(0, 6);
+          var fragment = document.createDocumentFragment();
+          for (var i = 0; i < articles.length; i++) {
+            var n = articles[i];
+            var article = document.createElement('article');
+            article.className = 'card news-card fade-in';
+            var imgPlaceholder = document.createElement('div');
+            imgPlaceholder.className = 'card-img-placeholder';
+            var iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            iconSvg.setAttribute('viewBox', '0 0 24 24');
+            iconSvg.setAttribute('fill', 'none');
+            iconSvg.setAttribute('stroke', 'currentColor');
+            iconSvg.setAttribute('stroke-width', '1.5');
+            iconSvg.style.width = '48px';
+            iconSvg.style.height = '48px';
+            iconSvg.style.opacity = '0.3';
+            var path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path1.setAttribute('d', 'M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2');
+            iconSvg.appendChild(path1);
+            imgPlaceholder.appendChild(iconSvg);
+            article.appendChild(imgPlaceholder);
+            var body = document.createElement('div');
+            body.className = 'card-body';
+            var meta = document.createElement('div');
+            meta.className = 'flex items-center gap-sm mb-md';
+            var dateSpan = document.createElement('span');
+            dateSpan.className = 'news-date';
+            dateSpan.textContent = D.formatDate(n.date);
+            meta.appendChild(dateSpan);
+            var catBadge = document.createElement('span');
+            catBadge.className = 'badge';
+            if (n.category === 'volleyball') { catBadge.className += ' badge-blue'; catBadge.textContent = 'Volleyball'; }
+            else if (n.category === 'basketball') { catBadge.className += ' badge-gold'; catBadge.textContent = 'Basketball'; }
+            else { catBadge.textContent = 'Club'; }
+            meta.appendChild(catBadge);
+            body.appendChild(meta);
+            var title = document.createElement('h3');
+            title.textContent = n.title;
+            body.appendChild(title);
+            var excerpt = document.createElement('p');
+            excerpt.className = 'news-excerpt';
+            excerpt.textContent = n.excerpt;
+            body.appendChild(excerpt);
+            article.appendChild(body);
+            fragment.appendChild(article);
+          }
+          newsGrid.appendChild(fragment);
         }
-        resultsList.appendChild(resFrag);
-      }
 
-      // Sponsor Carousel
-      var sponsorTrack = document.getElementById('sponsor-track');
-      if (sponsorTrack) {
-        fetch('https://kscw-api.lucanepa.com/api/public/sponsors')
-          .then(function (res) { return res.json(); })
-          .then(function (data) {
-            var allSponsors = data.sponsors || [];
-            if (!allSponsors.length) return;
-            var spFrag = document.createDocumentFragment();
-            for (var pass = 0; pass < 2; pass++) {
-              for (var s = 0; s < allSponsors.length; s++) {
-                var sp = allSponsors[s];
-                var link = document.createElement('a');
-                link.href = sp.website_url || '#';
-                link.className = 'sponsor-item';
-                if (sp.website_url) { link.target = '_blank'; link.rel = 'noopener noreferrer'; }
-                link.title = sp.name;
-                if (sp.logo_url) {
-                  var img = document.createElement('img');
-                  img.src = sp.logo_url;
-                  img.alt = sp.name;
-                  img.style.maxHeight = '40px';
-                  img.style.objectFit = 'contain';
-                  link.appendChild(img);
-                } else {
-                  var label = document.createElement('span');
-                  label.textContent = sp.name;
-                  link.appendChild(label);
+        // Upcoming Games
+        var upcomingList = document.getElementById('upcoming-games-list');
+        if (upcomingList) {
+          while (upcomingList.firstChild) upcomingList.removeChild(upcomingList.firstChild);
+          var upcoming = D.getUpcomingGames().slice(0, 5);
+          var upFrag = document.createDocumentFragment();
+          for (var u = 0; u < upcoming.length; u++) {
+            upFrag.appendChild(createGameRow(upcoming[u], false));
+          }
+          upcomingList.appendChild(upFrag);
+        }
+
+        // Recent Results
+        var resultsList = document.getElementById('recent-results-list');
+        if (resultsList) {
+          while (resultsList.firstChild) resultsList.removeChild(resultsList.firstChild);
+          var completed = D.getCompletedGames().slice(0, 5);
+          var resFrag = document.createDocumentFragment();
+          for (var r = 0; r < completed.length; r++) {
+            resFrag.appendChild(createGameRow(completed[r], true));
+          }
+          resultsList.appendChild(resFrag);
+        }
+
+        // Sponsor Carousel
+        var sponsorTrack = document.getElementById('sponsor-track');
+        if (sponsorTrack) {
+          fetch('https://kscw-api.lucanepa.com/api/public/sponsors')
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+              var allSponsors = data.sponsors || [];
+              if (!allSponsors.length) return;
+              var spFrag = document.createDocumentFragment();
+              for (var pass = 0; pass < 2; pass++) {
+                for (var s = 0; s < allSponsors.length; s++) {
+                  var sp = allSponsors[s];
+                  var link = document.createElement('a');
+                  link.href = sp.website_url || '#';
+                  link.className = 'sponsor-item';
+                  if (sp.website_url) { link.target = '_blank'; link.rel = 'noopener noreferrer'; }
+                  link.title = sp.name;
+                  if (sp.logo_url) {
+                    var img = document.createElement('img');
+                    img.src = sp.logo_url;
+                    img.alt = sp.name;
+                    img.style.maxHeight = '40px';
+                    img.style.objectFit = 'contain';
+                    link.appendChild(img);
+                  } else {
+                    var label = document.createElement('span');
+                    label.textContent = sp.name;
+                    link.appendChild(label);
+                  }
+                  spFrag.appendChild(link);
                 }
-                spFrag.appendChild(link);
               }
-            }
-            sponsorTrack.appendChild(spFrag);
-          })
-          .catch(function () {});
+              sponsorTrack.appendChild(spFrag);
+            })
+            .catch(function () {});
+        }
+      }
+
+      // Wait for PB data before rendering
+      if (window.KSCW && window.KSCW.ready) {
+        renderAll();
+      } else {
+        document.addEventListener('kscw-data-ready', renderAll);
       }
     })();
   </script>

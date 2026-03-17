@@ -1,8 +1,7 @@
 /**
  * KSCW Data Layer — KSC Wiedikon (Volleyball & Basketball)
  *
- * Fetches REAL data from the PocketBase API at kscw-api.lucanepa.com.
- * Falls back to hardcoded mock data if the API is unreachable.
+ * Fetches data from the PocketBase API at kscw-api.lucanepa.com.
  * Locale-aware via window.i18n (DE/EN). Colors from src/utils/teamColors.ts.
  *
  * The same `window.KSCW` interface is preserved so all HTML pages work unchanged.
@@ -135,138 +134,13 @@ function detectGender(name, sport) {
   return 'men';
 }
 
-// ─── Fallback Mock Data ─────────────────────────────────────────────
-var MOCK_TEAMS = {
-  H1: { name: 'Herren 1', short: 'H1', league: '2. Liga', sport: 'volleyball', gender: 'men', bg: '#1e40af', text: '#ffffff', border: '#1e3a8a', training: 'Di 20:00–21:30, Do 19:30–21:30', venue: 'Turnhalle Küngenmatt' },
-  H2: { name: 'Herren 2', short: 'H2', league: '3. Liga', sport: 'volleyball', gender: 'men', bg: '#2563eb', text: '#ffffff', border: '#1d4ed8', training: 'Mo 20:00–21:30, Mi 20:00–21:30', venue: 'Turnhalle Küngenmatt' },
-  H3: { name: 'Herren 3', short: 'H3', league: '3. Liga', sport: 'volleyball', gender: 'men', bg: '#3b82f6', text: '#ffffff', border: '#2563eb', training: 'Di 20:00–21:30, Do 20:00–21:30', venue: 'Turnhalle Küngenmatt' },
-  Legends: { name: 'Legends', short: 'Legends', league: '4. Liga', sport: 'volleyball', gender: 'men', bg: '#1e3a5f', text: '#ffffff', border: '#162d4d', training: 'Mi 20:30–22:00', venue: 'Turnhalle Küngenmatt' },
-  D1: { name: 'Damen 1', short: 'D1', league: '3. Liga', sport: 'volleyball', gender: 'women', bg: '#be123c', text: '#ffffff', border: '#9f1239', training: 'Di 20:00–21:30, Do 19:30–21:30', venue: 'Turnhalle Küngenmatt' },
-  D2: { name: 'Damen 2', short: 'D2', league: '3. Liga', sport: 'volleyball', gender: 'women', bg: '#e11d48', text: '#ffffff', border: '#be123c', training: 'Di 20:00–21:30, Do 20:00–21:30', venue: 'Turnhalle Küngenmatt' },
-  D3: { name: 'Damen 3', short: 'D3', league: '4. Liga', sport: 'volleyball', gender: 'women', bg: '#f43f5e', text: '#881337', border: '#e11d48', training: 'Mo 20:00–21:30, Mi 20:00–21:30', venue: 'Turnhalle Küngenmatt' },
-  D4: { name: 'Damen 4', short: 'D4', league: '5. Liga', sport: 'volleyball', gender: 'women', bg: '#fb7185', text: '#881337', border: '#f43f5e', training: 'Di 20:00–21:30', venue: 'Turnhalle Küngenmatt' },
-  DU23: { name: 'Damen U23', short: 'DU23', league: 'U23', sport: 'volleyball', gender: 'women', bg: '#fda4af', text: '#881337', border: '#fb7185', training: 'Mo 19:00–20:30', venue: 'Turnhalle Küngenmatt' },
-  HU23: { name: 'Herren U23', short: 'HU23', league: 'U23', sport: 'volleyball', gender: 'men', bg: '#60a5fa', text: '#1e3a8a', border: '#3b82f6', training: 'Di 18:00–19:30', venue: 'Turnhalle Küngenmatt' },
-  HU20: { name: 'Herren U20', short: 'HU20', league: 'U20', sport: 'volleyball', gender: 'men', bg: '#93c5fd', text: '#1e3a8a', border: '#60a5fa', training: 'Mi 18:00–19:30', venue: 'Turnhalle Küngenmatt' },
-  'BB-H1': { name: 'Herren 1', short: 'BB-H1', league: '1. Liga', sport: 'basketball', gender: 'men', bg: '#9a3412', text: '#ffffff', border: '#7c2d12', training: 'Mo 20:00–21:30, Mi 20:00–21:30', venue: 'Turnhalle Küngenmatt' },
-  'BB-H3': { name: 'Herren 3', short: 'BB-H3', league: '3. Liga', sport: 'basketball', gender: 'men', bg: '#c2410c', text: '#ffffff', border: '#9a3412', training: 'Di 20:00–21:30, Do 20:00–21:30', venue: 'Turnhalle Küngenmatt' },
-  'BB-H4': { name: 'Herren 4', short: 'BB-H4', league: '4. Liga', sport: 'basketball', gender: 'men', bg: '#ea580c', text: '#ffffff', border: '#c2410c', training: 'Mi 20:00–21:30', venue: 'Turnhalle Küngenmatt' },
-  'BB-H-Classics': { name: 'H-Classics', short: 'BB-H-Classics', league: 'Plausch', sport: 'basketball', gender: 'men', bg: '#78350f', text: '#ffffff', border: '#451a03', training: 'Fr 20:00–21:30', venue: 'Turnhalle Küngenmatt' },
-  'BB-HU18': { name: 'Herren U18', short: 'BB-HU18', league: 'U18', sport: 'basketball', gender: 'men', bg: '#f97316', text: '#ffffff', border: '#ea580c', training: 'Mo 18:00–19:30, Mi 18:00–19:30', venue: 'Turnhalle Küngenmatt' },
-  'BB-HU16': { name: 'Herren U16', short: 'BB-HU16', league: 'U16', sport: 'basketball', gender: 'men', bg: '#fb923c', text: '#7c2d12', border: '#f97316', training: 'Di 17:30–19:00, Do 17:30–19:00', venue: 'Turnhalle Küngenmatt' },
-  'BB-HU14': { name: 'Herren U14', short: 'BB-HU14', league: 'U14', sport: 'basketball', gender: 'men', bg: '#fdba74', text: '#7c2d12', border: '#fb923c', training: 'Mo 17:00–18:30, Mi 17:00–18:30', venue: 'Turnhalle Küngenmatt' },
-  'BB-HU12': { name: 'Herren U12', short: 'BB-HU12', league: 'U12', sport: 'basketball', gender: 'men', bg: '#fed7aa', text: '#7c2d12', border: '#fdba74', training: 'Di 16:00–17:30', venue: 'Turnhalle Küngenmatt' },
-  'BB-Lions': { name: 'Lions', short: 'Lions', league: '1. Liga', sport: 'basketball', gender: 'women', bg: '#6d28d9', text: '#ffffff', border: '#5b21b6', training: 'Mo 20:00–21:30, Do 19:30–21:30', venue: 'Turnhalle Küngenmatt' },
-  'BB-Rhinos': { name: 'Rhinos', short: 'Rhinos', league: '2. Liga', sport: 'basketball', gender: 'women', bg: '#059669', text: '#ffffff', border: '#047857', training: 'Di 20:00–21:30, Do 20:00–21:30', venue: 'Turnhalle Küngenmatt' },
-  'BB-D1': { name: 'Damen 1', short: 'BB-D1', league: '1. Liga', sport: 'basketball', gender: 'women', bg: '#7e22ce', text: '#ffffff', border: '#6b21a8', training: 'Mo 20:00–21:30, Mi 20:00–21:30', venue: 'Turnhalle Küngenmatt' },
-  'BB-D3': { name: 'Damen 3', short: 'BB-D3', league: '3. Liga', sport: 'basketball', gender: 'women', bg: '#a855f7', text: '#ffffff', border: '#9333ea', training: 'Di 19:00–20:30', venue: 'Turnhalle Küngenmatt' },
-  'BB-D-Classics': { name: 'D-Classics', short: 'BB-D-Classics', league: 'Plausch', sport: 'basketball', gender: 'women', bg: '#581c87', text: '#ffffff', border: '#3b0764', training: 'Fr 19:00–20:30', venue: 'Turnhalle Küngenmatt' },
-  'BB-DU18': { name: 'Damen U18', short: 'BB-DU18', league: 'U18', sport: 'basketball', gender: 'women', bg: '#c084fc', text: '#581c87', border: '#a855f7', training: 'Mo 17:30–19:00, Mi 17:30–19:00', venue: 'Turnhalle Küngenmatt' },
-  'BB-DU16': { name: 'Damen U16', short: 'BB-DU16', league: 'U16', sport: 'basketball', gender: 'women', bg: '#d8b4fe', text: '#581c87', border: '#c084fc', training: 'Di 17:00–18:30, Do 17:00–18:30', venue: 'Turnhalle Küngenmatt' },
-  'BB-DU14': { name: 'Damen U14', short: 'BB-DU14', league: 'U14', sport: 'basketball', gender: 'women', bg: '#e9d5ff', text: '#581c87', border: '#d8b4fe', training: 'Mo 16:00–17:30, Mi 16:00–17:30', venue: 'Turnhalle Küngenmatt' },
-  'BB-DU12': { name: 'Damen U12', short: 'BB-DU12', league: 'U12', sport: 'basketball', gender: 'women', bg: '#f3e8ff', text: '#581c87', border: '#e9d5ff', training: 'Di 16:00–17:30', venue: 'Turnhalle Küngenmatt' },
-  'BB-DU10': { name: 'Damen U10', short: 'BB-DU10', league: 'U10', sport: 'basketball', gender: 'women', bg: '#faf5ff', text: '#581c87', border: '#f3e8ff', training: 'Sa 10:00–11:30', venue: 'Turnhalle Küngenmatt' },
-  'BB-MU10': { name: 'Mixed U10', short: 'BB-MU10', league: 'U10', sport: 'basketball', gender: 'mixed', bg: '#14b8a6', text: '#042f2e', border: '#0d9488', training: 'Sa 09:00–10:30', venue: 'Turnhalle Küngenmatt' },
-  'BB-MU8': { name: 'Mixed U8', short: 'BB-MU8', league: 'U8', sport: 'basketball', gender: 'mixed', bg: '#0d9488', text: '#ffffff', border: '#0f766e', training: 'Sa 10:30–12:00', venue: 'Turnhalle Küngenmatt' },
-};
 
-var MOCK_GAMES = [
-  { id: 'vb-001', date: '2026-03-01', time: '17:00', teamShort: 'H1', opponent: 'VBC Oerlikon', isHome: true,  score: '3:1', setScore: '25:20, 22:25, 25:18, 25:21', sport: 'volleyball' },
-  { id: 'vb-002', date: '2026-03-01', time: '15:00', teamShort: 'D1', opponent: 'TV Unterstrass', isHome: true,  score: '3:0', setScore: '25:17, 25:22, 25:19', sport: 'volleyball' },
-  { id: 'vb-003', date: '2026-03-02', time: '14:00', teamShort: 'H2', opponent: 'VBC Züri Unterland', isHome: false, score: '1:3', setScore: '19:25, 25:23, 18:25, 20:25', sport: 'volleyball' },
-  { id: 'vb-004', date: '2026-03-02', time: '16:00', teamShort: 'D2', opponent: 'VBC Adliswil', isHome: true,  score: '3:2', setScore: '25:22, 20:25, 25:27, 25:19, 15:12', sport: 'volleyball' },
-  { id: 'vb-005', date: '2026-03-05', time: '20:00', teamShort: 'H3', opponent: 'VC Zug', isHome: false, score: '0:3', setScore: '18:25, 21:25, 19:25', sport: 'volleyball' },
-  { id: 'vb-006', date: '2026-03-08', time: '17:00', teamShort: 'D3', opponent: 'STV Willisau', isHome: true,  score: '3:1', setScore: '25:18, 23:25, 25:20, 25:22', sport: 'volleyball' },
-  { id: 'vb-007', date: '2026-03-08', time: '15:00', teamShort: 'Legends', opponent: 'TV Wohlen', isHome: false, score: '2:3', setScore: '25:21, 20:25, 25:23, 19:25, 12:15', sport: 'volleyball' },
-  { id: 'vb-008', date: '2026-03-09', time: '14:00', teamShort: 'D4', opponent: 'VBC Winterthur', isHome: true,  score: '3:0', setScore: '25:15, 25:19, 25:17', sport: 'volleyball' },
-  { id: 'vb-009', date: '2026-03-09', time: '16:00', teamShort: 'HU23', opponent: 'VBC Luzern', isHome: false, score: '2:3', setScore: '25:20, 18:25, 25:22, 21:25, 13:15', sport: 'volleyball' },
-  { id: 'vb-010', date: '2026-03-12', time: '20:00', teamShort: 'DU23', opponent: 'VBC Oerlikon', isHome: true,  score: '3:1', setScore: '25:18, 22:25, 25:20, 25:17', sport: 'volleyball' },
-  { id: 'bb-001', date: '2026-03-01', time: '19:30', teamShort: 'BB-Lions', opponent: 'BC Zürich Lions', isHome: true,  score: '78:65', setScore: null, sport: 'basketball' },
-  { id: 'bb-002', date: '2026-03-02', time: '16:00', teamShort: 'BB-H1', opponent: 'BC Winterthur', isHome: false, score: '72:81', setScore: null, sport: 'basketball' },
-  { id: 'bb-003', date: '2026-03-05', time: '20:00', teamShort: 'BB-Rhinos', opponent: 'Puma Zürich', isHome: true,  score: '68:55', setScore: null, sport: 'basketball' },
-  { id: 'bb-004', date: '2026-03-07', time: '18:00', teamShort: 'BB-H3', opponent: 'Goldcoast Sharks', isHome: false, score: '59:63', setScore: null, sport: 'basketball' },
-  { id: 'bb-005', date: '2026-03-08', time: '17:00', teamShort: 'BB-H4', opponent: 'BC Bülach', isHome: true,  score: '85:72', setScore: null, sport: 'basketball' },
-  { id: 'bb-006', date: '2026-03-09', time: '15:00', teamShort: 'BB-H1', opponent: 'Lakers Rapperswil', isHome: true,  score: '88:79', setScore: null, sport: 'basketball' },
-  { id: 'vb-011', date: '2026-03-18', time: '20:00', teamShort: 'H1', opponent: 'VBC Winterthur', isHome: false, score: null, setScore: null, sport: 'volleyball' },
-  { id: 'vb-012', date: '2026-03-19', time: '20:00', teamShort: 'D1', opponent: 'VBC Adliswil', isHome: false, score: null, setScore: null, sport: 'volleyball' },
-  { id: 'vb-013', date: '2026-03-21', time: '17:00', teamShort: 'H2', opponent: 'TV Unterstrass', isHome: true,  score: null, setScore: null, sport: 'volleyball' },
-  { id: 'vb-014', date: '2026-03-21', time: '15:00', teamShort: 'D2', opponent: 'VBC Luzern', isHome: true,  score: null, setScore: null, sport: 'volleyball' },
-  { id: 'vb-015', date: '2026-03-22', time: '14:00', teamShort: 'H3', opponent: 'VBC Züri Unterland', isHome: true,  score: null, setScore: null, sport: 'volleyball' },
-  { id: 'vb-016', date: '2026-03-22', time: '16:00', teamShort: 'D3', opponent: 'VBC Oerlikon', isHome: false, score: null, setScore: null, sport: 'volleyball' },
-  { id: 'vb-017', date: '2026-03-25', time: '20:00', teamShort: 'Legends', opponent: 'STV Willisau', isHome: true,  score: null, setScore: null, sport: 'volleyball' },
-  { id: 'vb-018', date: '2026-03-28', time: '17:00', teamShort: 'HU20', opponent: 'TV Wohlen', isHome: false, score: null, setScore: null, sport: 'volleyball' },
-  { id: 'bb-007', date: '2026-03-17', time: '20:00', teamShort: 'BB-Lions', opponent: 'Vipers Zürich', isHome: false, score: null, setScore: null, sport: 'basketball' },
-  { id: 'bb-008', date: '2026-03-19', time: '20:00', teamShort: 'BB-H1', opponent: 'Goldcoast Sharks', isHome: true,  score: null, setScore: null, sport: 'basketball' },
-  { id: 'bb-009', date: '2026-03-21', time: '18:00', teamShort: 'BB-Rhinos', opponent: 'BBC Monthey', isHome: false, score: null, setScore: null, sport: 'basketball' },
-  { id: 'bb-010', date: '2026-03-22', time: '16:00', teamShort: 'BB-H3', opponent: 'BC Bülach', isHome: true,  score: null, setScore: null, sport: 'basketball' },
-  { id: 'bb-011', date: '2026-03-25', time: '19:30', teamShort: 'BB-H4', opponent: 'BC Winterthur', isHome: false, score: null, setScore: null, sport: 'basketball' },
-  { id: 'bb-012', date: '2026-03-28', time: '17:00', teamShort: 'BB-Lions', opponent: 'Puma Zürich', isHome: true,  score: null, setScore: null, sport: 'basketball' },
-];
-
-var MOCK_RANKINGS = {
-  'VB Herren 2. Liga': {
-    sport: 'volleyball', league: '2. Liga',
-    teams: [
-      { rank: 1, team: 'VBC Oerlikon',       played: 14, wins: 12, losses: 2,  setsWon: 39, setsLost: 12, points: 34 },
-      { rank: 2, team: 'KSC Wiedikon H1',     played: 14, wins: 10, losses: 4,  setsWon: 35, setsLost: 18, points: 28, isKSCW: true },
-      { rank: 3, team: 'VBC Winterthur',      played: 14, wins: 9,  losses: 5,  setsWon: 32, setsLost: 22, points: 26 },
-      { rank: 4, team: 'TV Unterstrass',      played: 14, wins: 8,  losses: 6,  setsWon: 29, setsLost: 24, points: 23 },
-      { rank: 5, team: 'VBC Züri Unterland',  played: 14, wins: 7,  losses: 7,  setsWon: 27, setsLost: 26, points: 21 },
-      { rank: 6, team: 'VC Zug',              played: 14, wins: 5,  losses: 9,  setsWon: 22, setsLost: 30, points: 16 },
-      { rank: 7, team: 'VBC Adliswil',        played: 14, wins: 3,  losses: 11, setsWon: 16, setsLost: 35, points: 11 },
-      { rank: 8, team: 'STV Willisau',        played: 14, wins: 2,  losses: 12, setsWon: 12, setsLost: 38, points: 8 },
-    ],
-  },
-  'VB Damen 3. Liga': {
-    sport: 'volleyball', league: '3. Liga',
-    teams: [
-      { rank: 1, team: 'VBC Adliswil',        played: 14, wins: 13, losses: 1,  setsWon: 40, setsLost: 8,  points: 38 },
-      { rank: 2, team: 'KSC Wiedikon D1',     played: 14, wins: 11, losses: 3,  setsWon: 36, setsLost: 15, points: 31, isKSCW: true },
-      { rank: 3, team: 'TV Unterstrass',      played: 14, wins: 9,  losses: 5,  setsWon: 31, setsLost: 21, points: 26 },
-      { rank: 4, team: 'KSC Wiedikon D2',     played: 14, wins: 8,  losses: 6,  setsWon: 28, setsLost: 24, points: 23, isKSCW: true },
-      { rank: 5, team: 'VBC Oerlikon',        played: 14, wins: 7,  losses: 7,  setsWon: 26, setsLost: 25, points: 20 },
-      { rank: 6, team: 'VBC Luzern',          played: 14, wins: 5,  losses: 9,  setsWon: 21, setsLost: 30, points: 15 },
-      { rank: 7, team: 'VBC Züri Unterland',  played: 14, wins: 2,  losses: 12, setsWon: 13, setsLost: 37, points: 8 },
-      { rank: 8, team: 'TV Wohlen',           played: 14, wins: 1,  losses: 13, setsWon: 9,  setsLost: 40, points: 5 },
-    ],
-  },
-  'BB Lions 1. Liga': {
-    sport: 'basketball', league: '1. Liga Damen',
-    teams: [
-      { rank: 1, team: 'BC Zürich Lions',     played: 18, wins: 15, losses: 3,  setsWon: null, setsLost: null, points: 33 },
-      { rank: 2, team: 'KSCW Lions',          played: 18, wins: 13, losses: 5,  setsWon: null, setsLost: null, points: 31, isKSCW: true },
-      { rank: 3, team: 'Vipers Zürich',       played: 18, wins: 12, losses: 6,  setsWon: null, setsLost: null, points: 30 },
-      { rank: 4, team: 'Puma Zürich',         played: 18, wins: 10, losses: 8,  setsWon: null, setsLost: null, points: 28 },
-      { rank: 5, team: 'BBC Monthey',         played: 18, wins: 9,  losses: 9,  setsWon: null, setsLost: null, points: 27 },
-      { rank: 6, team: 'Lakers Rapperswil',   played: 18, wins: 7,  losses: 11, setsWon: null, setsLost: null, points: 25 },
-      { rank: 7, team: 'BC Winterthur',       played: 18, wins: 5,  losses: 13, setsWon: null, setsLost: null, points: 23 },
-      { rank: 8, team: 'Goldcoast Sharks',    played: 18, wins: 4,  losses: 14, setsWon: null, setsLost: null, points: 22 },
-      { rank: 9, team: 'BC Bülach',           played: 18, wins: 3,  losses: 15, setsWon: null, setsLost: null, points: 21 },
-      { rank: 10, team: 'Starwings Basket',   played: 18, wins: 2,  losses: 16, setsWon: null, setsLost: null, points: 20 },
-    ],
-  },
-  'BB Herren 1. Liga': {
-    sport: 'basketball', league: '1. Liga Herren',
-    teams: [
-      { rank: 1, team: 'Lakers Rapperswil',   played: 18, wins: 16, losses: 2,  setsWon: null, setsLost: null, points: 34 },
-      { rank: 2, team: 'BC Winterthur',       played: 18, wins: 13, losses: 5,  setsWon: null, setsLost: null, points: 31 },
-      { rank: 3, team: 'KSCW BB-H1',          played: 18, wins: 11, losses: 7,  setsWon: null, setsLost: null, points: 29, isKSCW: true },
-      { rank: 4, team: 'Goldcoast Sharks',    played: 18, wins: 10, losses: 8,  setsWon: null, setsLost: null, points: 28 },
-      { rank: 5, team: 'Puma Zürich',         played: 18, wins: 9,  losses: 9,  setsWon: null, setsLost: null, points: 27 },
-      { rank: 6, team: 'BC Zürich Lions',     played: 18, wins: 8,  losses: 10, setsWon: null, setsLost: null, points: 26 },
-      { rank: 7, team: 'Vipers Zürich',       played: 18, wins: 6,  losses: 12, setsWon: null, setsLost: null, points: 24 },
-      { rank: 8, team: 'BC Bülach',           played: 18, wins: 5,  losses: 13, setsWon: null, setsLost: null, points: 23 },
-      { rank: 9, team: 'BBC Monthey',         played: 18, wins: 3,  losses: 15, setsWon: null, setsLost: null, points: 21 },
-    ],
-  },
-};
-
-// ─── Initialize window.KSCW with mock data (synchronous) ───────────
+// ─── Initialize window.KSCW ─────────────────────────────────────────
 window.KSCW = {
 
-  // Status flag: false while loading, true after PB fetch (or immediately if using mock)
+  // Status flag: false while loading, true after PB fetch completes
   ready: false,
-  dataSource: 'mock', // 'mock' | 'pocketbase'
+  dataSource: 'loading', // 'loading' | 'pocketbase' | 'error'
 
   // ─── Club Info ──────────────────────────────────────────────
   club: {
@@ -283,313 +157,26 @@ window.KSCW = {
     },
   },
 
-  // ─── Teams (keyed by short name) ───────────────────────────
-  teams: MOCK_TEAMS,
+  // ─── Teams (keyed by short name, populated from PB) ────────
+  teams: {},
 
-  // ─── Games ─────────────────────────────────────────────────
-  games: MOCK_GAMES,
+  // ─── Games (populated from PB) ────────────────────────────
+  games: [],
 
-  // ─── Rankings ──────────────────────────────────────────────
-  rankings: MOCK_RANKINGS,
+  // ─── Rankings (populated from PB) ─────────────────────────
+  rankings: {},
 
-  // ─── News (mock only — no PB collection yet) ──────────────
-  news: [
-    {
-      id: 'n-001',
-      title: 'Endlich! Das D3 darf den ersten Sieg der Saison feiern!',
-      date: '2025-03-09',
-      excerpt: 'Nach einer langen Durststrecke hat das Damen 3 endlich den ersten Sieg der Saison eingefahren. Mit einem überzeugenden 3:1 gegen STV Willisau zeigten die Spielerinnen, dass sich das harte Training auszahlt. Die Stimmung in der Halle war fantastisch und das Team feierte ausgelassen.',
-      category: 'volleyball',
-      image: 'images/news/d3-sieg.jpg',
-    },
-    {
-      id: 'n-002',
-      title: 'Das Damen 2 sieht rot, ZUZU am Ende aber auch',
-      date: '2025-03-04',
-      excerpt: 'Ein packendes Derby zwischen KSC Wiedikon D2 und VBC Züri Unterland endete mit einem dramatischen 3:2 Sieg für unsere Damen. Nach einem schwierigen Start mit zwei verlorenen Sätzen kämpfte sich das Team zurück und sicherte sich den Sieg im Tiebreak.',
-      category: 'volleyball',
-      image: 'images/news/d2-zuzu.jpg',
-    },
-    {
-      id: 'n-003',
-      title: 'D2: Auswärtsspiel gegen bisher ungeschlagenen Tabellenführer',
-      date: '2024-11-26',
-      excerpt: 'Am kommenden Samstag trifft das Damen 2 auswärts auf den bisher ungeschlagenen Tabellenführer VBC Adliswil. Die Mannschaft gibt sich kämpferisch und will dem Spitzenreiter das Leben so schwer wie möglich machen. Anpfiff ist um 15:00 Uhr.',
-      category: 'volleyball',
-      image: 'images/news/d2-auswaerts.jpg',
-    },
-    {
-      id: 'n-004',
-      title: 'Trainingsweekend in Näfels',
-      date: '2024-11-06',
-      excerpt: 'Über 40 Spielerinnen und Spieler aus verschiedenen Teams verbrachten ein intensives Trainingsweekend in Näfels. Neben Technik- und Taktikeinheiten standen auch Teambuilding-Aktivitäten auf dem Programm. Ein gelungenes Wochenende, das den Zusammenhalt im Verein gestärkt hat.',
-      category: 'club',
-      image: 'images/news/trainingsweekend.jpg',
-    },
-    {
-      id: 'n-005',
-      title: 'Erster Heimsieg für das Damen 1',
-      date: '2024-10-31',
-      excerpt: 'Das Damen 1 konnte endlich den ersten Heimsieg der Saison verbuchen. Vor begeisterten Fans in der Turnhalle Küngenmatt setzte sich das Team mit 3:0 gegen TV Unterstrass durch. Besonders die Aufschlagserie im zweiten Satz war beeindruckend.',
-      category: 'volleyball',
-      image: 'images/news/d1-heimsieg.jpg',
-    },
-    {
-      id: 'n-006',
-      title: 'VB D 2 gegen VB D 1: Drei Punkte für das Damen 2',
-      date: '2023-12-26',
-      excerpt: 'Das vereinsinterne Duell zwischen dem Damen 2 und dem Damen 1 ging an das D2. In einem spannenden und von Fairness geprägten Match setzten sich die Zweitligadamen mit 3:1 durch. Beide Teams zeigten guten Volleyball und sorgten für beste Unterhaltung.',
-      category: 'volleyball',
-      image: 'images/news/d2-vs-d1.jpg',
-    },
-  ],
+  // ─── News (populated from PB) ─────────────────────────────
+  news: [],
 
-  // ─── Board Members (mock only — not in PB) ────────────────
-  board: [
-    { name: 'Michelle Howald',          role: 'Präsidentin',       email: 'praesidium@kscw.ch' },
-    { name: 'Anja Jiménez',             role: 'Vize-Präsidentin',  email: 'vize@kscw.ch' },
-    { name: 'Dario Kaufmann',           role: 'Kassier',           email: 'finanzen@kscw.ch' },
-    { name: 'Radomir Radovanovic',      role: 'Kassier',           email: 'finanzen@kscw.ch' },
-    { name: 'Roger Rübsam',             role: 'Aktuar',            email: 'aktuar@kscw.ch' },
-    { name: 'Anne Grimshaw',            role: 'Beisitzerin',       email: 'info@kscw.ch' },
-    { name: 'Rachel Moser',             role: 'TK Basketball',     email: 'basketball@kscw.ch' },
-    { name: 'Thamayanth Kanagalingam',  role: 'TK Volleyball',     email: 'volleyball@kscw.ch' },
-  ],
+  // ─── Board Members ────────────────────────────────────────
+  board: [],
 
   // ─── Sponsors (fetched from PB /api/public/sponsors) ──────
   sponsors: [],
 
-  // ─── Rosters (mock only — members not public in PB) ───────
-  rosters: {
-    H1: [
-      { name: 'Luca Meier',       position: 'Zuspieler',  number: 1 },
-      { name: 'Fabian Keller',    position: 'Aussen',     number: 3 },
-      { name: 'Marco Brunner',    position: 'Aussen',     number: 4 },
-      { name: 'David Steiner',    position: 'Mitte',      number: 5 },
-      { name: 'Nico Huber',       position: 'Mitte',      number: 7 },
-      { name: 'Simon Müller',     position: 'Diagonal',   number: 8 },
-      { name: 'Jan Schmid',       position: 'Libero',     number: 9 },
-      { name: 'Patrick Baumann',  position: 'Aussen',     number: 10 },
-      { name: 'Reto Frei',        position: 'Zuspieler',  number: 11 },
-      { name: 'Stefan Zimmermann',position: 'Mitte',      number: 12 },
-      { name: 'Tobias Gerber',    position: 'Diagonal',   number: 14 },
-      { name: 'Adrian Bühler',    position: 'Libero',     number: 15 },
-    ],
-    H2: [
-      { name: 'Thomas Weber',     position: 'Zuspieler',  number: 1 },
-      { name: 'Marcel Fischer',   position: 'Aussen',     number: 2 },
-      { name: 'Remo Widmer',      position: 'Aussen',     number: 4 },
-      { name: 'Daniel Kunz',      position: 'Mitte',      number: 5 },
-      { name: 'Florian Maurer',   position: 'Mitte',      number: 6 },
-      { name: 'Sandro Roth',      position: 'Diagonal',   number: 7 },
-      { name: 'Kevin Bachmann',   position: 'Libero',     number: 8 },
-      { name: 'Tim Hartmann',     position: 'Aussen',     number: 9 },
-      { name: 'Michael Stucki',   position: 'Zuspieler',  number: 10 },
-      { name: 'Oliver Wyss',      position: 'Mitte',      number: 11 },
-      { name: 'Pascal Berger',    position: 'Diagonal',   number: 13 },
-      { name: 'Christian Hauser', position: 'Libero',     number: 14 },
-    ],
-    H3: [
-      { name: 'Raphael Suter',    position: 'Zuspieler',  number: 1 },
-      { name: 'Jonas Bosshard',   position: 'Aussen',     number: 2 },
-      { name: 'Lukas Ammann',     position: 'Aussen',     number: 3 },
-      { name: 'Dominik Pfister',  position: 'Mitte',      number: 5 },
-      { name: 'Yannick Lehmann',  position: 'Mitte',      number: 6 },
-      { name: 'Robin Egli',       position: 'Diagonal',   number: 7 },
-      { name: 'Silvan Graf',      position: 'Libero',     number: 8 },
-      { name: 'Nils Kuster',      position: 'Aussen',     number: 9 },
-      { name: 'Severin Blaser',   position: 'Zuspieler',  number: 10 },
-      { name: 'Manuel Zürcher',   position: 'Mitte',      number: 11 },
-      { name: 'Andri Wirth',      position: 'Diagonal',   number: 12 },
-      { name: 'Cedric Kuhn',      position: 'Libero',     number: 14 },
-      { name: 'Timo Scherer',     position: 'Aussen',     number: 15 },
-    ],
-    Legends: [
-      { name: 'Peter Zollinger',  position: 'Zuspieler',  number: 1 },
-      { name: 'Martin Kramer',    position: 'Aussen',     number: 2 },
-      { name: 'Urs Schlatter',    position: 'Aussen',     number: 4 },
-      { name: 'Heinz Oberholzer', position: 'Mitte',      number: 5 },
-      { name: 'Kurt Stalder',     position: 'Mitte',      number: 6 },
-      { name: 'Fritz Hofmann',    position: 'Diagonal',   number: 7 },
-      { name: 'Walter Egger',     position: 'Libero',     number: 8 },
-      { name: 'Beat Grob',        position: 'Aussen',     number: 9 },
-      { name: 'Rolf Wenger',      position: 'Zuspieler',  number: 10 },
-      { name: 'Hansruedi Schwarz',position: 'Diagonal',   number: 11 },
-      { name: 'Jürg Emmenegger',  position: 'Mitte',      number: 12 },
-      { name: 'Markus Brändli',   position: 'Libero',     number: 13 },
-    ],
-    D1: [
-      { name: 'Laura Fischer',    position: 'Zuspielerin', number: 1 },
-      { name: 'Sarah Keller',     position: 'Aussen',      number: 2 },
-      { name: 'Nina Brunner',     position: 'Aussen',      number: 3 },
-      { name: 'Lea Steiner',      position: 'Mitte',       number: 5 },
-      { name: 'Anna Huber',       position: 'Mitte',       number: 6 },
-      { name: 'Julia Müller',     position: 'Diagonal',    number: 7 },
-      { name: 'Rahel Schmid',     position: 'Libero',      number: 8 },
-      { name: 'Corinne Baumann',  position: 'Aussen',      number: 9 },
-      { name: 'Stefanie Frei',    position: 'Zuspielerin', number: 10 },
-      { name: 'Nadja Zimmermann', position: 'Mitte',       number: 11 },
-      { name: 'Miriam Gerber',    position: 'Diagonal',    number: 12 },
-      { name: 'Fabienne Bühler',  position: 'Libero',      number: 14 },
-      { name: 'Christina Roth',   position: 'Aussen',      number: 15 },
-    ],
-    D2: [
-      { name: 'Vanessa Weber',    position: 'Zuspielerin', number: 1 },
-      { name: 'Tamara Fischer',   position: 'Aussen',      number: 2 },
-      { name: 'Sandra Widmer',    position: 'Aussen',      number: 3 },
-      { name: 'Monika Kunz',      position: 'Mitte',       number: 4 },
-      { name: 'Patrizia Maurer',  position: 'Mitte',       number: 6 },
-      { name: 'Claudia Bachmann', position: 'Diagonal',    number: 7 },
-      { name: 'Sabrina Hartmann', position: 'Libero',      number: 8 },
-      { name: 'Denise Stucki',    position: 'Aussen',      number: 9 },
-      { name: 'Martina Wyss',     position: 'Zuspielerin', number: 10 },
-      { name: 'Simone Berger',    position: 'Mitte',       number: 11 },
-      { name: 'Eveline Hauser',   position: 'Diagonal',    number: 12 },
-      { name: 'Katrin Suter',     position: 'Libero',      number: 13 },
-    ],
-    D3: [
-      { name: 'Michelle Bosshard',position: 'Zuspielerin', number: 1 },
-      { name: 'Jasmin Ammann',    position: 'Aussen',      number: 2 },
-      { name: 'Noemi Pfister',    position: 'Aussen',      number: 3 },
-      { name: 'Seraina Lehmann',  position: 'Mitte',       number: 5 },
-      { name: 'Aline Egli',       position: 'Mitte',       number: 6 },
-      { name: 'Flurina Graf',     position: 'Diagonal',    number: 7 },
-      { name: 'Larissa Kuster',   position: 'Libero',      number: 8 },
-      { name: 'Tanja Blaser',     position: 'Aussen',      number: 9 },
-      { name: 'Dominique Zürcher',position: 'Zuspielerin', number: 10 },
-      { name: 'Nathalie Wirth',   position: 'Mitte',       number: 11 },
-      { name: 'Fiona Kuhn',       position: 'Diagonal',    number: 12 },
-      { name: 'Samira Scherer',   position: 'Libero',      number: 14 },
-    ],
-    D4: [
-      { name: 'Melanie Hofer',    position: 'Zuspielerin', number: 1 },
-      { name: 'Daniela Aebersold',position: 'Aussen',      number: 2 },
-      { name: 'Andrea Stettler',  position: 'Aussen',      number: 3 },
-      { name: 'Carmen Siegrist',   position: 'Mitte',       number: 4 },
-      { name: 'Petra Käser',      position: 'Mitte',       number: 5 },
-      { name: 'Sonja Lanz',       position: 'Diagonal',    number: 7 },
-      { name: 'Helena Bärtschi',  position: 'Libero',      number: 8 },
-      { name: 'Isabelle Gasser',  position: 'Aussen',      number: 9 },
-      { name: 'Nicole Liechti',   position: 'Zuspielerin', number: 10 },
-      { name: 'Regula Flückiger', position: 'Mitte',       number: 11 },
-      { name: 'Vera Schwab',      position: 'Diagonal',    number: 12 },
-      { name: 'Susanne Tschanz',  position: 'Libero',      number: 13 },
-    ],
-    DU23: [
-      { name: 'Lena Bieri',       position: 'Zuspielerin', number: 1 },
-      { name: 'Alina Rüegg',      position: 'Aussen',      number: 2 },
-      { name: 'Jana Moser',       position: 'Aussen',      number: 3 },
-      { name: 'Zoe Schaffner',    position: 'Mitte',       number: 5 },
-      { name: 'Mia Ochsner',      position: 'Mitte',       number: 6 },
-      { name: 'Emma Häfliger',    position: 'Diagonal',    number: 7 },
-      { name: 'Leonie Brun',      position: 'Libero',      number: 8 },
-      { name: 'Sofia Ritschard',  position: 'Aussen',      number: 9 },
-      { name: 'Nora Bättig',      position: 'Zuspielerin', number: 10 },
-      { name: 'Lara Vonlanthen',  position: 'Mitte',       number: 11 },
-      { name: 'Chiara Rentsch',   position: 'Diagonal',    number: 12 },
-      { name: 'Anja Würsch',      position: 'Libero',      number: 14 },
-    ],
-    HU23: [
-      { name: 'Noah Leuthold',    position: 'Zuspieler',  number: 1 },
-      { name: 'Elias Friedli',    position: 'Aussen',     number: 2 },
-      { name: 'Levin Imhof',      position: 'Aussen',     number: 3 },
-      { name: 'Finn Graber',      position: 'Mitte',      number: 5 },
-      { name: 'Loris Wälti',      position: 'Mitte',      number: 6 },
-      { name: 'Elia Baumgartner', position: 'Diagonal',   number: 7 },
-      { name: 'Jannis Bärlocher', position: 'Libero',     number: 8 },
-      { name: 'Matteo Scherrer',  position: 'Aussen',     number: 9 },
-      { name: 'Dario Flury',      position: 'Zuspieler',  number: 10 },
-      { name: 'Ben Kuratli',      position: 'Mitte',      number: 11 },
-      { name: 'Jan Blattner',     position: 'Diagonal',   number: 12 },
-      { name: 'Samuel Stutz',     position: 'Libero',     number: 14 },
-    ],
-    HU20: [
-      { name: 'Leon Eggli',       position: 'Zuspieler',  number: 1 },
-      { name: 'Tim Dietrich',     position: 'Aussen',     number: 2 },
-      { name: 'Lio Schär',        position: 'Aussen',     number: 3 },
-      { name: 'Milo Reinhard',    position: 'Mitte',      number: 5 },
-      { name: 'Nicola Thommen',   position: 'Mitte',      number: 6 },
-      { name: 'Joel Portmann',    position: 'Diagonal',   number: 7 },
-      { name: 'Rafael Nussbaum',  position: 'Libero',     number: 8 },
-      { name: 'Livio Benz',       position: 'Aussen',     number: 9 },
-      { name: 'Sven Zaugg',       position: 'Zuspieler',  number: 10 },
-      { name: 'Aaron Kneubühl',   position: 'Mitte',      number: 11 },
-      { name: 'Robin Aebi',       position: 'Diagonal',   number: 12 },
-      { name: 'Yanik Stadelmann', position: 'Libero',     number: 13 },
-    ],
-    'BB-Lions': [
-      { name: 'Alisha Meier',     position: 'Point Guard',    number: 1 },
-      { name: 'Yara Schneider',   position: 'Shooting Guard', number: 3 },
-      { name: 'Selina Fankhauser',position: 'Small Forward',  number: 5 },
-      { name: 'Tamina Bühler',    position: 'Power Forward',  number: 7 },
-      { name: 'Nadia Senn',       position: 'Center',         number: 9 },
-      { name: 'Olivia Burkart',   position: 'Point Guard',    number: 10 },
-      { name: 'Céline Ackermann', position: 'Shooting Guard', number: 11 },
-      { name: 'Nora Hediger',     position: 'Small Forward',  number: 12 },
-      { name: 'Rahel Studer',     position: 'Power Forward',  number: 14 },
-      { name: 'Svenja Wüthrich',  position: 'Center',         number: 15 },
-      { name: 'Leandra Eigenmann',position: 'Shooting Guard', number: 20 },
-      { name: 'Pia Thalmann',     position: 'Small Forward',  number: 21 },
-      { name: 'Seraina Küng',     position: 'Point Guard',    number: 23 },
-    ],
-    'BB-Rhinos': [
-      { name: 'Martina Guyer',    position: 'Point Guard',    number: 2 },
-      { name: 'Angela Rüfenacht', position: 'Shooting Guard', number: 4 },
-      { name: 'Beatrice Krähenbühl', position: 'Small Forward', number: 6 },
-      { name: 'Dominique Lüscher',position: 'Power Forward',  number: 8 },
-      { name: 'Carla Siegenthaler',position: 'Center',         number: 10 },
-      { name: 'Fabienne Mathys',  position: 'Point Guard',    number: 11 },
-      { name: 'Irene Salzmann',   position: 'Shooting Guard', number: 12 },
-      { name: 'Nadine Grunder',   position: 'Small Forward',  number: 14 },
-      { name: 'Regula Ziegler',   position: 'Power Forward',  number: 15 },
-      { name: 'Vera Neuhaus',     position: 'Center',         number: 21 },
-      { name: 'Ladina Tschudi',   position: 'Shooting Guard', number: 22 },
-      { name: 'Tabea Flückiger',  position: 'Small Forward',  number: 24 },
-    ],
-    'BB-H1': [
-      { name: 'Remo Kaufmann',    position: 'Point Guard',    number: 1 },
-      { name: 'Sandro Gygax',     position: 'Shooting Guard', number: 3 },
-      { name: 'Dario Aeschbacher',position: 'Small Forward',  number: 5 },
-      { name: 'Yannick Moser',    position: 'Power Forward',  number: 7 },
-      { name: 'Marc Rohner',      position: 'Center',         number: 9 },
-      { name: 'Nicolas Bischof',  position: 'Point Guard',    number: 10 },
-      { name: 'Fabian Tanner',    position: 'Shooting Guard', number: 11 },
-      { name: 'Christoph Geiger', position: 'Small Forward',  number: 13 },
-      { name: 'Lukas Eichenberger',position: 'Power Forward', number: 14 },
-      { name: 'Benjamin Nef',     position: 'Center',         number: 15 },
-      { name: 'Mischa Steiger',   position: 'Shooting Guard', number: 21 },
-      { name: 'Valentin Fehr',    position: 'Small Forward',  number: 23 },
-      { name: 'Patrick Rüegsegger',position: 'Point Guard',   number: 25 },
-    ],
-    'BB-H3': [
-      { name: 'André Brügger',    position: 'Point Guard',    number: 2 },
-      { name: 'Mike Schüpbach',   position: 'Shooting Guard', number: 4 },
-      { name: 'Claudio Zulauf',   position: 'Small Forward',  number: 6 },
-      { name: 'Kevin Aeberhard',  position: 'Power Forward',  number: 8 },
-      { name: 'Philip Staub',     position: 'Center',         number: 10 },
-      { name: 'Diego Reber',      position: 'Point Guard',    number: 11 },
-      { name: 'Silvio Gfeller',   position: 'Shooting Guard', number: 12 },
-      { name: 'Raphael Burri',    position: 'Small Forward',  number: 14 },
-      { name: 'Dominic Schneider',position: 'Power Forward',  number: 15 },
-      { name: 'Ivo Gerber',       position: 'Center',         number: 20 },
-      { name: 'Stefan Herrmann',  position: 'Shooting Guard', number: 22 },
-      { name: 'Curdin Caduff',    position: 'Small Forward',  number: 24 },
-    ],
-    'BB-H4': [
-      { name: 'Roger Lüthy',      position: 'Point Guard',    number: 1 },
-      { name: 'Bruno Badertscher',position: 'Shooting Guard', number: 3 },
-      { name: 'Matthias Zwahlen', position: 'Small Forward',  number: 5 },
-      { name: 'René Isler',       position: 'Power Forward',  number: 7 },
-      { name: 'Thomas Anderegg',  position: 'Center',         number: 9 },
-      { name: 'Pirmin Blaser',    position: 'Point Guard',    number: 10 },
-      { name: 'Ueli Rüegg',       position: 'Shooting Guard', number: 12 },
-      { name: 'Linus Pfiffner',   position: 'Small Forward',  number: 14 },
-      { name: 'Mario Haldemann',  position: 'Power Forward',  number: 15 },
-      { name: 'Gregor Schilter',  position: 'Center',         number: 20 },
-      { name: 'Hans Schwyter',    position: 'Shooting Guard', number: 22 },
-      { name: 'Armin Hess',       position: 'Small Forward',  number: 23 },
-    ],
-  },
+  // ─── Rosters (populated from PB) ──────────────────────────
+  rosters: {},
 
   // ─── Helpers ────────────────────────────────────────────────
 
@@ -733,19 +320,17 @@ window.KSCW = {
     var c = getColor(colorKey);
     // For BB teams, short name uses "BB-" prefix unless the name already has it
     var short = colorKey; // colorKey is the canonical short name
-    // Preserve existing mock data fields when available
-    var existing = MOCK_TEAMS[short];
     return [short, {
       name: t.full_name || t.name,
       short: short,
       league: t.league || '',
       sport: sport,
-      gender: existing ? existing.gender : detectGender(t.name, sport),
+      gender: detectGender(t.name, sport),
       bg: c.bg,
       text: c.text,
       border: c.border,
-      training: existing ? existing.training : '',
-      venue: existing ? existing.venue : 'Turnhalle Küngenmatt',
+      training: '',
+      venue: 'Turnhalle Küngenmatt',
       // Extra fields from PB
       teamId: t.team_id || '',
       pbId: t.id,
@@ -895,42 +480,18 @@ window.KSCW = {
       teamPbIdSet[pbTeams[i].id] = true;
     }
 
-    // Merge: keep mock teams that weren't in PB (preserves training info etc.)
-    var mockKeys = Object.keys(MOCK_TEAMS);
-    for (var m = 0; m < mockKeys.length; m++) {
-      var mk = mockKeys[m];
-      if (!teamsMap[mk]) {
-        teamsMap[mk] = MOCK_TEAMS[mk];
-      } else {
-        // Merge training/venue from mock if PB team doesn't have it
-        if (!teamsMap[mk].training && MOCK_TEAMS[mk].training) {
-          teamsMap[mk].training = MOCK_TEAMS[mk].training;
-        }
-        if (!teamsMap[mk].venue && MOCK_TEAMS[mk].venue) {
-          teamsMap[mk].venue = MOCK_TEAMS[mk].venue;
-        }
-      }
-    }
-
     D.teams = teamsMap;
 
     // ── Build games array ──────────────────────────────
-    if (pbGames.length > 0) {
-      D.games = pbGames.map(mapGame).filter(function (g) {
-        return g.teamShort !== ''; // skip games without a resolved KSCW team
-      });
-    }
-    // If PB returned zero games, keep mock games as fallback
+    D.games = pbGames.map(mapGame).filter(function (g) {
+      return g.teamShort !== ''; // skip games without a resolved KSCW team
+    });
 
     // ── Build rankings ─────────────────────────────────
-    if (pbRankings.length > 0) {
-      D.rankings = mapRankings(pbRankings, teamPbIdSet);
-    }
-    // If PB returned zero rankings, keep mock rankings as fallback
+    D.rankings = mapRankings(pbRankings, teamPbIdSet);
 
     // ── Map news ──────────────────────────────────────────
-    if (pbNews && pbNews.length > 0) {
-      D.news = pbNews.map(function (n) {
+    D.news = pbNews.map(function (n) {
         return {
           id: n.id,
           title: n.title,
@@ -943,7 +504,6 @@ window.KSCW = {
           image: n.image ? PB + '/api/files/news/' + n.id + '/' + n.image : null,
         };
       });
-    }
 
     D.ready = true;
     D.dataSource = 'pocketbase';
@@ -953,9 +513,9 @@ window.KSCW = {
     document.dispatchEvent(new Event('kscw-data-ready'));
 
   }).catch(function (err) {
-    console.warn('[KSCW] PocketBase fetch failed, using fallback mock data:', err);
+    console.warn('[KSCW] PocketBase fetch failed:', err);
     D.ready = true;
-    D.dataSource = 'mock';
+    D.dataSource = 'error';
     document.dispatchEvent(new Event('kscw-data-ready'));
   });
 
