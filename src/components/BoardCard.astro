@@ -1,0 +1,21 @@
+---
+interface Props {
+  name: string;
+  initials: string;
+  role: string;
+  photoUrl?: string;
+}
+
+const { name, initials, role, photoUrl } = Astro.props;
+---
+<div class="card fade-in" style="text-align:center;padding:var(--space-lg);">
+  {photoUrl ? (
+    <img src={photoUrl} alt={name} style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin:0 auto var(--space-sm);">
+  ) : (
+    <div style="width:80px;height:80px;border-radius:50%;background:var(--kscw-blue);color:white;display:flex;align-items:center;justify-content:center;margin:0 auto var(--space-sm);font-size:1.5rem;font-weight:700;">
+      {initials}
+    </div>
+  )}
+  <h3 style="margin-bottom:0.25rem;">{name}</h3>
+  <p class="text-muted text-sm">{role}</p>
+</div>

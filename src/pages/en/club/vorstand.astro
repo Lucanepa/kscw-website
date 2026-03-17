@@ -1,0 +1,131 @@
+---
+import PageLayout from '../../../layouts/PageLayout.astro';
+import CTA from '../../../components/CTA.astro';
+import { t } from '../../../lib/i18n';
+
+const locale = 'en';
+---
+<PageLayout
+  title="Board — KSC Wiedikon"
+  description="The board of KSC Wiedikon — the people behind the club."
+  locale={locale}
+  pageTitle={t(locale, 'boardTitle')}
+  pageSubtitle={t(locale, 'boardSubtitle')}
+>
+  <section class="section">
+    <div class="container">
+      <div class="board-grid">
+
+        <div class="card board-card">
+          <div class="board-avatar">MH</div>
+          <div class="board-name">Michelle Howald</div>
+          <div class="board-role">{t(locale, 'boardRolePresident')}</div>
+        </div>
+
+        <div class="card board-card">
+          <div class="board-avatar">AJ</div>
+          <div class="board-name">Anja Jimenez</div>
+          <div class="board-role">{t(locale, 'boardRoleVicePresident')}</div>
+        </div>
+
+        <div class="card board-card">
+          <div class="board-avatar">DK</div>
+          <div class="board-name">Dario Kaufmann</div>
+          <div class="board-role">{t(locale, 'boardRoleTreasurer')}</div>
+        </div>
+
+        <div class="card board-card">
+          <div class="board-avatar">RR</div>
+          <div class="board-name">Radomir Radovanovic</div>
+          <div class="board-role">{t(locale, 'boardRoleTreasurer')}</div>
+        </div>
+
+        <div class="card board-card">
+          <div class="board-avatar">RR</div>
+          <div class="board-name">Roger Ruebsam</div>
+          <div class="board-role">{t(locale, 'boardRoleSecretary')}</div>
+        </div>
+
+        <div class="card board-card">
+          <div class="board-avatar">AG</div>
+          <div class="board-name">Anne Grimshaw</div>
+          <div class="board-role">{t(locale, 'boardRoleAssessor')}</div>
+        </div>
+
+        <div class="card board-card">
+          <div class="board-avatar">RM</div>
+          <div class="board-name">Rachel Moser</div>
+          <div class="board-role">{t(locale, 'boardRoleTKBasketball')}</div>
+        </div>
+
+        <div class="card board-card">
+          <div class="board-avatar">TK</div>
+          <div class="board-name">Thamayanth Kanagalingam</div>
+          <div class="board-role">{t(locale, 'boardRoleTKVolleyball')}</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <CTA
+    title={t(locale, 'boardCTA')}
+    text={t(locale, 'boardCTAText')}
+    buttonLabel={t(locale, 'boardCTAButton')}
+    buttonHref={`/${locale}/club/kontakt`}
+  />
+</PageLayout>
+
+<style>
+  .board-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-xl);
+  }
+  @media (max-width: 1024px) {
+    .board-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .board-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .board-grid { grid-template-columns: 1fr; }
+  }
+  .board-card {
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    text-align: center;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .board-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    transform: translateY(-4px);
+  }
+  .board-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--kscw-blue, #4A55A2), var(--kscw-gold, #FFC832));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-md);
+    color: #ffffff;
+    font-size: var(--text-xl);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .board-name {
+    font-size: var(--text-lg);
+    font-weight: 700;
+    margin-bottom: var(--space-xs);
+    color: var(--text-primary);
+  }
+  .board-role {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+</style>

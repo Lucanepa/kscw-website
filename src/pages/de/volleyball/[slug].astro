@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { volleyballTeams } from '../../../data/team-routes';
+import { t } from '../../../lib/i18n';
+
+const locale = 'de';
+
+export function getStaticPaths() {
+  return volleyballTeams.map((team) => ({
+    params: { slug: team.slug },
+    props: { pbId: team.pbId, short: team.short },
+  }));
+}
+
+const { pbId, short } = Astro.props;
+---
+<BaseLayout title={`${short} — KSC Wiedikon`} locale={locale}>
+  <!-- Hero: rendered by JS -->
+  <section id="team-hero-container"></section>
+
+  <!-- Team photo: rendered by JS -->
+  <div id="team-photo-container"></div>
+
+  <!-- Content tabs -->
+  <section class="section">
+    <div class="container">
+      <div class="tab-bar" role="tablist">
+        <button class="tab-btn active" data-tab="kader" role="tab" aria-selected="true">{t(locale, 'teamTabRoster')}</button>
+        <button class="tab-btn" data-tab="spiele" role="tab" aria-selected="false">{t(locale, 'teamTabGames')}</button>
+        <button class="tab-btn" data-tab="rangliste" role="tab" aria-selected="false">{t(locale, 'teamTabRankings')}</button>
+        <button class="tab-btn" data-tab="training" role="tab" aria-selected="false">{t(locale, 'teamTabTraining')}</button>
+      </div>
+
+      <div class="tab-panel active" data-tab-panel="kader" role="tabpanel">
+        <div id="roster-grid" class="roster-grid">
+          <p class="text-muted text-sm">{t(locale, 'teamLoadingRoster')}</p>
+        </div>
+        <div id="roster-meta" class="mt-lg"></div>
+      </div>
+
+      <div class="tab-panel" data-tab-panel="spiele" role="tabpanel">
+        <h2 style="font-size: var(--text-2xl); margin-bottom: var(--space-lg);">{t(locale, 'teamUpcoming')}</h2>
+        <div id="upcoming-games">
+          <p class="text-muted text-sm">{t(locale, 'teamLoadingGames')}</p>
+        </div>
+        <h2 style="font-size: var(--text-2xl); margin-top: var(--space-2xl); margin-bottom: var(--space-lg);">{t(locale, 'teamResults')}</h2>
+        <div id="recent-results">
+          <p class="text-muted text-sm">{t(locale, 'teamLoadingResults')}</p>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-tab-panel="rangliste" role="tabpanel">
+        <div id="rankings-table">
+          <p class="text-muted text-sm">{t(locale, 'teamLoadingRankings')}</p>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-tab-panel="training" role="tabpanel">
+        <div id="training-list">
+          <p class="text-muted text-sm">{t(locale, 'teamLoadingTrainings')}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Instagram embed: rendered by JS when team has social_url -->
+  <section id="instagram-embed-container" class="section" style="display:none;">
+    <div class="container">
+      <h2 id="instagram-heading" style="font-size: var(--text-2xl); margin-bottom: var(--space-lg);">Instagram</h2>
+      <div id="instagram-embed" class="instagram-embed-wrapper"></div>
+    </div>
+  </section>
+
+  <!-- CTA: rendered by JS -->
+  <div id="cta-container"></div>
+
+  <script is:inline define:vars={{ pbId, short }}>
+    window.TEAM_CONFIG = { short: short, pbId: pbId };
+  </script>
+  <script is:inline src="/js/data.js"></script>
+  <script is:inline src="/js/team-page.js"></script>
+</BaseLayout>

@@ -1,0 +1,23 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import type { Locale } from '../lib/i18n';
+
+interface Props {
+  title: string;
+  description?: string;
+  locale: Locale;
+  pageTitle: string;
+  pageSubtitle?: string;
+}
+
+const { title, description, locale, pageTitle, pageSubtitle } = Astro.props;
+---
+<BaseLayout title={title} description={description} locale={locale}>
+  <section class="page-header">
+    <div class="container">
+      <h1>{pageTitle}</h1>
+      {pageSubtitle && <p class="page-subtitle">{pageSubtitle}</p>}
+    </div>
+  </section>
+  <slot />
+</BaseLayout>

@@ -1,0 +1,18 @@
+---
+interface Props {
+  title: string;
+  actionHref?: string;
+  actionLabel?: string;
+}
+
+const { title, actionHref, actionLabel } = Astro.props;
+---
+<div class="section-header">
+  <div>
+    <h2>{title}</h2>
+    <div class="gold-bar"></div>
+  </div>
+  {actionHref && actionLabel && (
+    <a href={actionHref} class="btn btn-sm btn-outline" set:html={actionLabel} />
+  )}
+</div>

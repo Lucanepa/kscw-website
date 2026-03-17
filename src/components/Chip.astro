@@ -1,0 +1,16 @@
+---
+import { getTeamColor } from '../data/team-colors';
+
+interface Props {
+  short: string;
+}
+
+const { short } = Astro.props;
+const color = getTeamColor(short);
+---
+<span
+  class="chip"
+  style={`background:${color.bg};color:${color.text};border:1px solid ${color.border};`}
+>
+  {short}
+</span>

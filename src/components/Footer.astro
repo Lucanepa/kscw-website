@@ -1,0 +1,88 @@
+---
+import { t } from '../lib/i18n';
+import type { Locale } from '../lib/i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const l = (path: string) => `/${locale}${path}`;
+---
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-grid">
+
+          <!-- Brand -->
+          <div class="footer-brand">
+            <a href={l('/')} class="nav-logo" style="margin-bottom: var(--space-sm);">
+              <img src="/images/kscw_weiss.png" alt="KSC Wiedikon" style="height: 40px;">
+              <span style="color: white;">KSC Wiedikon</span>
+            </a>
+            <p>{t(locale, 'footerDescription')}</p>
+            <div class="footer-social">
+              <a href="https://facebook.com/kscwiedikon" aria-label="Facebook" target="_blank" rel="noopener noreferrer">
+                <i data-lucide="facebook"></i>
+              </a>
+              <a href="https://instagram.com/kscwiedikon" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+                <i data-lucide="instagram"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Club -->
+          <div>
+            <div class="footer-heading">{t(locale, 'footerClub')}</div>
+            <div class="footer-links">
+              <a href={l('/club/ueber-uns')}>{t(locale, 'footerAbout')}</a>
+              <a href={l('/club/vorstand')}>{t(locale, 'footerBoard')}</a>
+              <a href={l('/club/kontakt')}>{t(locale, 'footerContact')}</a>
+            </div>
+          </div>
+
+          <!-- Sport -->
+          <div>
+            <div class="footer-heading">{t(locale, 'footerSport')}</div>
+            <div class="footer-links">
+              <a href={l('/volleyball/')}>{t(locale, 'footerVolleyball')}</a>
+              <a href={l('/basketball/')}>{t(locale, 'footerBasketball')}</a>
+            </div>
+          </div>
+
+          <!-- Mehr -->
+          <div>
+            <div class="footer-heading">{t(locale, 'footerMore')}</div>
+            <div class="footer-links">
+              <a href={l('/weiteres/kalender')}>{t(locale, 'footerCalendar')}</a>
+              <a href={l('/weiteres/mitgliedschaft')}>{t(locale, 'footerMembership')}</a>
+              <a href={l('/weiteres/spielplanung')}>{t(locale, 'footerScheduling')}</a>
+              <a href={l('/weiteres/schreiberkurse')}>{t(locale, 'footerScorerCourses')}</a>
+              <a href={l('/weiteres/logos')}>{t(locale, 'footerLogos')}</a>
+              <a href={l('/weiteres/partner')}>{t(locale, 'footerPartner')}</a>
+              <a href={l('/weiteres/datenschutz')}>{t(locale, 'footerPrivacy')}</a>
+              <a href={l('/weiteres/impressum')}>{t(locale, 'footerImprint')}</a>
+            </div>
+          </div>
+
+          <!-- Verbände -->
+          <div>
+            <div class="footer-heading">{t(locale, 'footerAssociations')}</div>
+            <div class="footer-links">
+              <a href="https://www.svrz.ch" target="_blank" rel="noopener noreferrer">SVRZ</a>
+              <a href="https://www.volleyball.ch" target="_blank" rel="noopener noreferrer">Swiss Volley</a>
+              <a href="https://www.probasket.ch" target="_blank" rel="noopener noreferrer">ProBasket</a>
+              <a href="https://www.swissbasketball.ch" target="_blank" rel="noopener noreferrer">Swiss Basketball</a>
+              <a href="https://www.kwi.ch" target="_blank" rel="noopener noreferrer">KWI Turnhallen</a>
+              <a href="https://www.jugendundsport.ch" target="_blank" rel="noopener noreferrer">J+S</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="footer-bottom" style="display:flex;align-items:center;justify-content:center;gap:1.5rem;flex-wrap:wrap;">
+        <button class="theme-toggle" aria-label={t(locale, 'themeToggle')}><i data-lucide="sun" style="width:16px;height:16px;"></i> <span class="theme-label">{t(locale, 'themeLight')}</span></button>
+        <p>{t(locale, 'footerCopyright')}</p>
+      </div>
+    </div>
+  </footer>

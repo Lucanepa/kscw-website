@@ -1,0 +1,51 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+import { t, getAlternateUrl } from '../lib/i18n';
+import type { Locale } from '../lib/i18n';
+
+interface Props {
+  title: string;
+  description?: string;
+  locale: Locale;
+}
+
+const { title, description, locale } = Astro.props;
+const altUrl = getAlternateUrl(Astro.url);
+const altLocale = locale === 'de' ? 'en' : 'de';
+---
+<!DOCTYPE html>
+<html lang={locale}>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
+  <meta name="supported-color-schemes" content="dark light">
+  {description && <meta name="description" content={description}>}
+  <title>{title}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="/images/kscw_trio.png" type="image/png">
+  <link rel="alternate" hreflang={locale} href={Astro.url.pathname}>
+  <link rel="alternate" hreflang={altLocale} href={altUrl}>
+  <script is:inline>
+    // Theme: dark by default, light if saved
+    (function() {
+      if (localStorage.getItem('kscw-theme') === 'light') {
+        document.documentElement.classList.add('light');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <Header locale={locale} />
+  <main>
+    <slot />
+  </main>
+  <Footer locale={locale} />
+  <script is:inline src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script is:inline>lucide.createIcons();</script>
+</body>
+</html>

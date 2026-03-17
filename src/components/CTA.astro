@@ -1,0 +1,17 @@
+---
+interface Props {
+  title: string;
+  text: string;
+  buttonLabel: string;
+  buttonHref: string;
+}
+
+const { title, text, buttonLabel, buttonHref } = Astro.props;
+---
+<section class="section cta-section">
+  <div class="container" style="text-align:center;">
+    <h2>{title}</h2>
+    <p style="margin-bottom: var(--space-lg); max-width: 600px; margin-left: auto; margin-right: auto;">{text}</p>
+    <a href={buttonHref} class="btn btn-gold">{buttonLabel}</a>
+  </div>
+</section>

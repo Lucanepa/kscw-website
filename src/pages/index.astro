@@ -1,0 +1,20 @@
+---
+// Root page: detect browser language and redirect to /de/ or /en/
+---
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>KSC Wiedikon</title>
+  <script is:inline>
+    (function() {
+      var lang = navigator.language || '';
+      var locale = lang.startsWith('en') ? 'en' : 'de';
+      window.location.replace('/' + locale + '/');
+    })();
+  </script>
+  <meta http-equiv="refresh" content="0;url=/de/">
+</head>
+<body>
+  <p>Redirecting...</p>
+</body>
+</html>

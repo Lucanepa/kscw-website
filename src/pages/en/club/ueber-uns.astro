@@ -1,0 +1,218 @@
+---
+import PageLayout from '../../../layouts/PageLayout.astro';
+import CTA from '../../../components/CTA.astro';
+import { t } from '../../../lib/i18n';
+
+const locale = 'en';
+---
+<PageLayout
+  title="About Us — KSC Wiedikon"
+  description="KSC Wiedikon — Basketball and Volleyball since 1982 in Zurich-Wiedikon."
+  locale={locale}
+  pageTitle={t(locale, 'aboutTitle')}
+  pageSubtitle={t(locale, 'aboutSubtitle')}
+>
+  <!-- Geschichte -->
+  <section class="section">
+    <div class="container">
+      <div class="history-content" style="text-align: justify; max-width: 720px;">
+        <h2 style="font-size: var(--text-2xl); margin-bottom: var(--space-lg); text-align: left;">{t(locale, 'aboutHistory')}</h2>
+        <p>{t(locale, 'aboutHistoryText1')}</p>
+        <p style="margin-top: var(--space-lg);">{t(locale, 'aboutHistoryText2')}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats-section">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-number" data-value="1982">1982</span>
+          <span class="stat-label">{t(locale, 'aboutStatFounded')}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" data-value="300+">300+</span>
+          <span class="stat-label">{t(locale, 'aboutStatMembers')}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" data-value="20+">20+</span>
+          <span class="stat-label">{t(locale, 'aboutStatTeams')}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" data-value="2">2</span>
+          <span class="stat-label">{t(locale, 'aboutStatSports')}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Werte -->
+  <section class="section">
+    <div class="container">
+      <h2 style="font-size: var(--text-2xl); margin-bottom: var(--space-xl); text-align: center;">{t(locale, 'aboutValues')}</h2>
+      <div class="values-grid">
+        <div class="value-card">
+          <div class="value-icon">
+            <i data-lucide="users" style="width: 28px; height: 28px;"></i>
+          </div>
+          <h3>{t(locale, 'aboutCommunity')}</h3>
+          <p>{t(locale, 'aboutCommunityText')}</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">
+            <i data-lucide="handshake" style="width: 28px; height: 28px;"></i>
+          </div>
+          <h3>{t(locale, 'aboutFairplay')}</h3>
+          <p>{t(locale, 'aboutFairplayText')}</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">
+            <i data-lucide="trending-up" style="width: 28px; height: 28px;"></i>
+          </div>
+          <h3>{t(locale, 'aboutDevelopment')}</h3>
+          <p>{t(locale, 'aboutDevelopmentText')}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hallen -->
+  <section class="section" style="background: var(--bg-muted, #f9fafb);">
+    <div class="container">
+      <h2 style="font-size: var(--text-2xl); margin-bottom: var(--space-xl); text-align: center;">{t(locale, 'aboutHalls')}</h2>
+      <div class="halls-list">
+        <div class="hall-card">
+          <h3>{t(locale, 'aboutHallUtogrund')}</h3>
+          <p>{t(locale, 'aboutHallUtogrundText')}</p>
+        </div>
+        <div class="hall-card">
+          <h3>{t(locale, 'aboutHallLavater')}</h3>
+          <p>{t(locale, 'aboutHallLavaterText')}</p>
+        </div>
+        <div class="hall-card">
+          <h3>{t(locale, 'aboutHallSihlfeld')}</h3>
+          <p>{t(locale, 'aboutHallSihlfeldText')}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <CTA
+    title={t(locale, 'aboutCTA')}
+    text={t(locale, 'aboutCTAText')}
+    buttonLabel={t(locale, 'aboutCTAButton')}
+    buttonHref={`/${locale}/club/kontakt`}
+  />
+
+  <script src="../../../islands/stat-counters.ts"></script>
+  <script src="../../../islands/scroll-animations.ts"></script>
+</PageLayout>
+
+<style>
+  .stats-section {
+    background: var(--bg-dark, #111827);
+    color: #ffffff;
+    padding: var(--space-3xl) 0;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-xl);
+    text-align: center;
+  }
+  @media (max-width: 640px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+  .stat-number {
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--kscw-gold, #FFC832);
+  }
+  .stat-label {
+    font-size: var(--text-sm);
+    color: rgba(255,255,255,0.7);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .values-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-xl);
+  }
+  @media (max-width: 768px) {
+    .values-grid { grid-template-columns: 1fr; }
+  }
+  .value-card {
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    text-align: center;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .value-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    transform: translateY(-4px);
+  }
+  .value-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--kscw-blue, #4A55A2), var(--kscw-gold, #FFC832));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-md);
+    color: #ffffff;
+  }
+  .value-card h3 {
+    font-size: var(--text-lg);
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+  }
+  .value-card p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  .history-content p {
+    font-size: var(--text-base);
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-lg);
+  }
+  .halls-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg);
+  }
+  @media (max-width: 768px) {
+    .halls-list { grid-template-columns: 1fr; }
+  }
+  .hall-card {
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    text-align: center;
+  }
+  .hall-card h3 {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+  }
+  .hall-card p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+</style>
