@@ -4,7 +4,7 @@ const branch =
   process.env.GITHUB_BRANCH ||
   process.env.CF_PAGES_BRANCH ||
   process.env.HEAD ||
-  'main';
+  'master';
 
 export default defineConfig({
   branch,
