@@ -18,6 +18,9 @@
   /* ── Language Detection ───────────────────────────────────── */
 
   function detectLang() {
+    // Astro uses /de/ and /en/ directory routing — derive locale from URL path
+    var pathLang = window.location.pathname.split('/')[1];
+    if (pathLang === 'en' || pathLang === 'de') return pathLang;
     var stored = localStorage.getItem('lang');
     if (stored) return stored;
     if (navigator.language && navigator.language.startsWith('en')) return 'en';

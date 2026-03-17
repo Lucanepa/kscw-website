@@ -15,20 +15,28 @@
   var PB = 'https://kscw-api.lucanepa.com';
   var TEAM = CFG.short || '';
   var TEAM_PB_ID = CFG.pbId;
+  var IS_WOMEN = false; // set after team data loads
 
   function getPosLabel(key) {
     var map = {
-      setter: 'posSetter', opposite: 'posOpposite', outside_hitter: 'posOutsideHitter',
-      middle_blocker: 'posMiddleBlocker', libero: 'posLibero', other: 'posPlayer',
+      setter: 'posSetter', opposite: 'posOpposite',
+      outside_hitter: 'posOutsideHitter', outside: 'posOutsideHitter',
+      middle_blocker: 'posMiddleBlocker', middle: 'posMiddleBlocker',
+      libero: 'posLibero', coach: 'posCoach',
       point_guard: 'posPointGuard', shooting_guard: 'posShootingGuard',
       small_forward: 'posSmallForward', power_forward: 'posPowerForward', center: 'posCenter'
     };
-    return i18n.t(map[key] || 'posPlayer');
+    // Feminine forms for women's teams (not for coach — could be male)
+    var femMap = { setter: 'posSetterF' };
+    var i18nKey = (IS_WOMEN && femMap[key]) ? femMap[key] : (map[key] || 'posPlayer');
+    return i18n.t(i18nKey);
   }
 
   function positionText(positions) {
     if (!positions || !positions.length) return '';
-    return positions.map(function (p) { return getPosLabel(p); }).join(', ');
+    var filtered = positions.filter(function (p) { return p !== 'other'; });
+    if (!filtered.length) return '';
+    return filtered.map(function (p) { return getPosLabel(p); }).join(', ');
   }
 
   function esc(s) { var d = document.createElement('span'); d.textContent = s; return d.innerHTML; }
@@ -194,6 +202,11 @@
       .then(function (data) {
         var teamData = data.team || {};
 
+        // Detect women's team for gendered translations
+        var name = (teamData.name || '').toLowerCase();
+        var league = (teamData.league || '').toLowerCase();
+        IS_WOMEN = /^d\d|^du\d|damen|frauen/.test(name) || /damen|frauen/.test(league);
+
         // Derive TEAM short name from API if not set
         if (!TEAM && teamData.name) {
           TEAM = teamData.name;
@@ -212,7 +225,7 @@
         // Render tab content
         renderRoster(data.roster || [], data.coach || [], data.captain || []);
         renderTrainings(data.trainings || []);
-        renderHookGames(data.upcoming || [], data.results || []);
+        renderHookGames(data.upcoming || [], data.results || [], teamData);
         renderHookRankings(data.rankings || [], teamData);
 
         // Update static tab labels and headings with i18n
@@ -307,7 +320,8 @@
       metaEl.textContent = '';
       var lines = [];
       if (captain.length) {
-        lines.push(i18n.t('teamCaptain') + ': ' + captain.map(function (c) { return c.first_name + ' ' + c.last_name; }).join(', '));
+        var captainKey = IS_WOMEN ? 'teamCaptainF' : 'teamCaptain';
+        lines.push(i18n.t(captainKey) + ': ' + captain.map(function (c) { return c.first_name + ' ' + c.last_name; }).join(', '));
       }
       if (coach.length) {
         lines.push(i18n.t('teamCoach') + ': ' + coach.map(function (c) { return c.first_name + ' ' + c.last_name; }).join(', '));
@@ -353,103 +367,137 @@
     el.appendChild(frag);
   }
 
-  // ── Render Games from hook response ─────────────────────────────────
-  function renderHookGames(upcoming, results) {
-    var D = window.KSCW;
-    var teamInfo = (D && D.getTeam) ? D.getTeam(TEAM) || {} : {};
-    var chipBg = teamInfo.bg || '#6b7280';
-    var chipText = teamInfo.text || '#fff';
+  // ── Game table helpers (matches homepage format) ────────────────────
 
-    var upEl = document.getElementById('upcoming-games');
-    if (upEl) {
-      upEl.textContent = '';
-      if (upcoming.length) {
-        var frag = document.createDocumentFragment();
-        for (var u = 0; u < upcoming.length; u++) {
-          frag.appendChild(makeHookGameRow(upcoming[u], chipBg, chipText, false));
-        }
-        upEl.appendChild(frag);
-      } else {
-        var p = document.createElement('p');
-        p.className = 'text-muted text-sm';
-        p.textContent = i18n.t('teamNoGames');
-        upEl.appendChild(p);
-      }
-    }
-
-    var resEl = document.getElementById('recent-results');
-    if (resEl) {
-      resEl.textContent = '';
-      if (results.length) {
-        var frag2 = document.createDocumentFragment();
-        for (var r = 0; r < results.length; r++) {
-          frag2.appendChild(makeHookGameRow(results[r], chipBg, chipText, true));
-        }
-        resEl.appendChild(frag2);
-      } else {
-        var p2 = document.createElement('p');
-        p2.className = 'text-muted text-sm';
-        p2.textContent = i18n.t('teamNoResults');
-        resEl.appendChild(p2);
-      }
-    }
+  function makeCell(content, className) {
+    var td = document.createElement('td');
+    if (className) td.className = className;
+    if (typeof content === 'string') td.textContent = content;
+    else if (content) td.appendChild(content);
+    return td;
   }
 
-  function makeHookGameRow(g, chipBg, chipText, showScore) {
-    var row = document.createElement('div');
-    row.className = 'game-row';
-
-    // Date
-    var dateEl = document.createElement('span');
-    dateEl.className = 'game-date';
-    var parts = g.date.split('-');
-    dateEl.textContent = parts[2] + '.' + parts[1] + '.' + parts[0];
-    row.appendChild(dateEl);
-
-    // Chip
+  function createChip(teamShort) {
+    var D = window.KSCW;
+    var t = (D && D.getTeam) ? D.getTeam(teamShort) : null;
     var chip = document.createElement('span');
     chip.className = 'chip';
-    chip.style.background = chipBg;
-    chip.style.color = chipText;
-    chip.textContent = TEAM;
-    row.appendChild(chip);
+    if (t) {
+      chip.style.background = t.bg; chip.style.color = t.text;
+      chip.style.border = '1px solid ' + t.border; chip.textContent = t.short;
+    } else {
+      chip.style.background = '#6b7280'; chip.style.color = '#fff'; chip.textContent = teamShort;
+    }
+    return chip;
+  }
 
-    // Badge
+  /** Map hook game data to the modal-compatible format */
+  function toModalGame(g, teamData) {
+    var scoreParts = g.score ? g.score.split(':') : [];
+    var homeScore = scoreParts.length === 2 ? parseInt(scoreParts[0], 10) : 0;
+    var awayScore = scoreParts.length === 2 ? parseInt(scoreParts[1], 10) : 0;
+    return {
+      teamShort: TEAM,
+      sport: 'volleyball',
+      date: g.date,
+      time: g.time || '',
+      homeTeam: g.home_team,
+      awayTeam: g.away_team,
+      isHome: g.isHome,
+      type: g.isHome ? 'home' : 'away',
+      score: g.score || null,
+      homeScore: homeScore,
+      awayScore: awayScore,
+      status: g.score ? 'completed' : 'scheduled',
+      league: (teamData && teamData.league) || '',
+      season: (teamData && teamData.season) || '',
+      id: g.game_id || '',
+      hall: g.hall || null,
+      setsJson: g.sets_json || null,
+      opponent: g.isHome ? g.away_team : g.home_team
+    };
+  }
+
+  function buildGameRow(g, showScore, teamData) {
+    var D = window.KSCW;
+    var tr = document.createElement('tr');
+    var modalGame = toModalGame(g, teamData);
+    tr._gameData = modalGame;
+
+    // Date
+    tr.appendChild(makeCell(D && D.formatDate ? D.formatDate(g.date) : g.date, 'gt-date'));
+
+    // Time
+    tr.appendChild(makeCell(g.time || '', 'gt-time'));
+
+    // Home/Away badge
     var badge = document.createElement('span');
     badge.className = 'game-badge ' + (g.isHome ? 'home' : 'away');
     badge.textContent = g.isHome ? i18n.t('teamBadgeHome') : i18n.t('teamBadgeAway');
-    row.appendChild(badge);
+    tr.appendChild(makeCell(badge, 'gt-loc'));
 
-    // Teams
-    var teams = document.createElement('span');
-    teams.className = 'game-teams';
-    teams.appendChild(document.createTextNode(g.home_team + ' '));
-    var vs = document.createElement('span');
-    vs.className = 'vs';
-    vs.textContent = 'vs';
-    teams.appendChild(vs);
-    teams.appendChild(document.createTextNode(' ' + g.away_team));
-    row.appendChild(teams);
+    // Matchup
+    var matchup = g.isHome
+      ? ('KSCW vs ' + (g.away_team || ''))
+      : ((g.home_team || '') + ' vs KSCW');
+    tr.appendChild(makeCell(matchup, 'gt-matchup'));
 
-    // Score or time
+    // Score or empty
     if (showScore && g.score) {
+      var scoreSpan = document.createElement('span');
+      scoreSpan.className = 'game-score';
       var scoreParts = g.score.split(':');
-      var homeScore = parseInt(scoreParts[0], 10);
-      var awayScore = parseInt(scoreParts[1], 10);
-      var win = g.isHome ? homeScore > awayScore : awayScore > homeScore;
-      var loss = g.isHome ? homeScore < awayScore : awayScore < homeScore;
-      var scoreEl = document.createElement('span');
-      scoreEl.className = 'game-score' + (win ? ' win' : loss ? ' loss' : '');
-      scoreEl.textContent = g.score;
-      row.appendChild(scoreEl);
+      var homeS = parseInt(scoreParts[0], 10);
+      var awayS = parseInt(scoreParts[1], 10);
+      var win = g.isHome ? homeS > awayS : awayS > homeS;
+      var loss = g.isHome ? homeS < awayS : awayS < homeS;
+      if (win) scoreSpan.className += ' win';
+      else if (loss) scoreSpan.className += ' loss';
+      scoreSpan.textContent = g.score;
+      tr.appendChild(makeCell(scoreSpan, 'gt-score'));
     } else {
-      var timeEl = document.createElement('span');
-      timeEl.className = 'game-date';
-      timeEl.textContent = g.time || '';
-      row.appendChild(timeEl);
+      tr.appendChild(makeCell('', 'gt-score'));
     }
 
-    return row;
+    return tr;
+  }
+
+  function renderGameTable(containerId, games, showScore, teamData) {
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    container.textContent = '';
+
+    if (!games.length) {
+      var p = document.createElement('p');
+      p.className = 'text-muted text-sm';
+      p.textContent = showScore ? i18n.t('teamNoResults') : i18n.t('teamNoGames');
+      container.appendChild(p);
+      return;
+    }
+
+    var table = document.createElement('table');
+    table.className = 'game-table';
+    var tbody = document.createElement('tbody');
+    for (var i = 0; i < games.length; i++) {
+      tbody.appendChild(buildGameRow(games[i], showScore, teamData));
+    }
+    table.appendChild(tbody);
+    container.appendChild(table);
+
+    // Click → modal
+    table.addEventListener('click', function (e) {
+      var tr = e.target.closest('tr');
+      if (tr && tr._gameData && window.showGameModal) {
+        var locale = (i18n.getLang && i18n.getLang()) || 'de';
+        window.showGameModal(tr._gameData, locale);
+      }
+    });
+  }
+
+  // ── Render Games from hook response ─────────────────────────────────
+  function renderHookGames(upcoming, results, teamData) {
+    renderGameTable('upcoming-games', upcoming, false, teamData);
+    renderGameTable('recent-results', results, true, teamData);
   }
 
   // ── Render Rankings from hook response ─────────────────────────────
@@ -614,8 +662,36 @@
     }
   }
 
+  // ── Tab switching ────────────────────────────────────────────────
+  var tabBar = document.querySelector('.tab-bar');
+  if (tabBar) {
+    tabBar.addEventListener('click', function (e) {
+      var btn = e.target.closest('.tab-btn');
+      if (!btn) return;
+      var tab = btn.getAttribute('data-tab');
+      // Update buttons
+      tabBar.querySelectorAll('.tab-btn').forEach(function (b) {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+      // Update panels
+      document.querySelectorAll('.tab-panel').forEach(function (p) {
+        p.classList.remove('active');
+      });
+      var panel = document.querySelector('[data-tab-panel="' + tab + '"]');
+      if (panel) panel.classList.add('active');
+    });
+  }
+
   // ── Init ──────────────────────────────────────────────────────────
-  fetchTeamData();
+  // Wait for i18n translations to load before rendering
+  if (window.i18nReady) {
+    window.i18nReady.then(fetchTeamData);
+  } else {
+    fetchTeamData();
+  }
 
   // ── Re-render on language change ──────────────────────────────────
   document.addEventListener('langChanged', function () {

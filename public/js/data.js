@@ -398,6 +398,21 @@ window.KSCW = {
       time = time.substring(0, 5);
     }
 
+    // Hall info from expand or away_hall_json
+    var hallObj = null;
+    if (g.expand && g.expand.hall) {
+      var h = g.expand.hall;
+      hallObj = { name: h.name || '', address: h.address || '', city: h.city || '', mapsUrl: h.maps_url || '' };
+    } else if (g.away_hall_json) {
+      var ah = g.away_hall_json;
+      var mapsUrl = ah.plus_code
+        ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(ah.plus_code)
+        : (ah.address && ah.city)
+          ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(ah.address + ', ' + ah.city)
+          : '';
+      hallObj = { name: ah.name || '', address: ah.address || '', city: ah.city || '', mapsUrl: mapsUrl };
+    }
+
     return {
       id: g.game_id || g.id,
       date: date,
@@ -408,11 +423,17 @@ window.KSCW = {
       score: score,
       setScore: setScore,
       sport: sport,
-      // Extra PB fields
+      // Extra PB fields for detail modal
       status: g.status || 'scheduled',
       league: g.league || '',
       season: g.season || '',
-      hall: g.hall || '',
+      homeTeam: g.home_team || '',
+      awayTeam: g.away_team || '',
+      homeScore: g.home_score || 0,
+      awayScore: g.away_score || 0,
+      setsJson: Array.isArray(g.sets_json) ? g.sets_json : [],
+      hall: hallObj,
+      type: g.type || '',
     };
   }
 
@@ -465,7 +486,7 @@ window.KSCW = {
   // ─── Execute the fetch ──────────────────────────────────────
   Promise.all([
     fetchAll('teams', 'filter=(active=true)'),
-    fetchAll('games', 'sort=-date&expand=kscw_team'),
+    fetchAll('games', 'sort=-date&expand=kscw_team,hall'),
     fetchAll('rankings', 'sort=rank'),
     fetchAll('news', 'sort=-published_at&filter=(is_published=true)'),
   ]).then(function (results) {

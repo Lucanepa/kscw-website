@@ -77,22 +77,75 @@ const locale = 'en';
     </div>
   </section>
 
-  <!-- Hallen -->
+  <!-- Halls -->
   <section class="section" style="background: var(--bg-muted, #f9fafb);">
     <div class="container">
       <h2 style="font-size: var(--text-2xl); margin-bottom: var(--space-xl); text-align: center;">{t(locale, 'aboutHalls')}</h2>
-      <div class="halls-list">
-        <div class="hall-card">
-          <h3>{t(locale, 'aboutHallUtogrund')}</h3>
-          <p>{t(locale, 'aboutHallUtogrundText')}</p>
+      <div class="halls-grid">
+        <div class="hall-card hall-card--main">
+          <div class="hall-badge">Main Venue</div>
+          <h3>Kantonsschule Wiedikon</h3>
+          <p class="hall-names">KWI A · KWI B · KWI C</p>
+          <a href="https://maps.app.goo.gl/8ia1QiaZYZg1qUEU8" target="_blank" rel="noopener" class="hall-address">
+            <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+            Schrennengasse 7, Zürich
+          </a>
         </div>
         <div class="hall-card">
-          <h3>{t(locale, 'aboutHallLavater')}</h3>
-          <p>{t(locale, 'aboutHallLavaterText')}</p>
+          <h3>Döltschi</h3>
+          <p class="hall-names">Döltschi 1 · Döltschi 2</p>
+          <a href="https://maps.app.goo.gl/GQzKo8vDLes53C9J7" target="_blank" rel="noopener" class="hall-address">
+            <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+            Döltschiweg 184, Zürich
+          </a>
         </div>
         <div class="hall-card">
-          <h3>{t(locale, 'aboutHallSihlfeld')}</h3>
-          <p>{t(locale, 'aboutHallSihlfeldText')}</p>
+          <h3>Borrweg</h3>
+          <p class="hall-names">Borrweg 1 · Borrweg 2</p>
+          <a href="https://maps.app.goo.gl/sYTZunyhNpMkk7i56" target="_blank" rel="noopener" class="hall-address">
+            <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+            Borrweg 81, Zürich
+          </a>
+        </div>
+        <div class="hall-card">
+          <h3>Rebhügel</h3>
+          <p class="hall-names">Schulhaus Rebhügel</p>
+          <a href="https://maps.app.goo.gl/dYCbeP8vb4vjf8Aq9" target="_blank" rel="noopener" class="hall-address">
+            <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+            Haldenstrasse 70, Zürich
+          </a>
+        </div>
+        <div class="hall-card">
+          <h3>Manegg</h3>
+          <p class="hall-names">Temporärhalle Zwirnerstrasse</p>
+          <a href="https://maps.app.goo.gl/YvPLBekcK3z5mV1a6" target="_blank" rel="noopener" class="hall-address">
+            <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+            Zwirnerstrasse 60, Zürich
+          </a>
+        </div>
+        <div class="hall-card">
+          <h3>Entlisberg</h3>
+          <p class="hall-names">Schulhaus Entlisberg</p>
+          <a href="https://maps.app.goo.gl/Hwh8LoDU3rztdzM96" target="_blank" rel="noopener" class="hall-address">
+            <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+            Balberstrasse 71, Zürich
+          </a>
+        </div>
+        <div class="hall-card">
+          <h3>Zurlinden</h3>
+          <p class="hall-names">Kindergartenhaus Wiedikon</p>
+          <a href="https://maps.app.goo.gl/8TKdiUbAsWEkJGti8" target="_blank" rel="noopener" class="hall-address">
+            <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+            Zentralstrasse 105, Zürich
+          </a>
+        </div>
+        <div class="hall-card">
+          <h3>Fronwald</h3>
+          <p class="hall-names">Sportzentrum Fronwald</p>
+          <a href="https://maps.app.goo.gl/QuWG2ExLVQM3q3baA" target="_blank" rel="noopener" class="hall-address">
+            <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+            Fronwaldstrasse 115, Zürich
+          </a>
         </div>
       </div>
     </div>
@@ -153,7 +206,8 @@ const locale = 'en';
     .values-grid { grid-template-columns: 1fr; }
   }
   .value-card {
-    background: var(--card-bg, #ffffff);
+    background: #ffffff;
+    color: #1e293b;
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     padding: var(--space-xl);
@@ -179,10 +233,11 @@ const locale = 'en';
     font-size: var(--text-lg);
     font-weight: 700;
     margin-bottom: var(--space-sm);
+    color: var(--kscw-blue, #4A55A2);
   }
   .value-card p {
     font-size: var(--text-sm);
-    color: var(--text-secondary);
+    color: #475569;
     line-height: 1.6;
   }
   .history-content p {
@@ -191,28 +246,70 @@ const locale = 'en';
     color: var(--text-secondary);
     margin-bottom: var(--space-lg);
   }
-  .halls-list {
+  .halls-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: var(--space-lg);
   }
-  @media (max-width: 768px) {
-    .halls-list { grid-template-columns: 1fr; }
+  @media (max-width: 1024px) {
+    .halls-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 640px) {
+    .halls-grid { grid-template-columns: 1fr; }
   }
   .hall-card {
-    background: var(--card-bg, #ffffff);
+    background: #ffffff;
+    color: #1e293b;
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     padding: var(--space-lg);
     text-align: center;
+    position: relative;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .hall-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
+  }
+  .hall-card--main {
+    border-color: var(--kscw-gold, #FFC832);
+    border-width: 2px;
+  }
+  .hall-badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--kscw-gold, #FFC832);
+    color: #1e293b;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 10px;
+    border-radius: var(--radius-sm, 4px);
   }
   .hall-card h3 {
-    font-size: var(--text-lg);
-    font-weight: 600;
+    font-size: var(--text-base);
+    font-weight: 700;
     margin-bottom: var(--space-xs);
+    color: #1e293b;
   }
-  .hall-card p {
+  .hall-names {
     font-size: var(--text-sm);
-    color: var(--text-secondary);
+    color: #475569;
+    margin-bottom: var(--space-sm);
+  }
+  .hall-address {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: var(--kscw-blue, #4A55A2);
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+  }
+  .hall-address:hover {
+    opacity: 0.7;
   }
 </style>

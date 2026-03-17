@@ -39,9 +39,14 @@ const locale = 'en';
   <section class="section-alt" id="upcoming-games">
     <div class="container">
       <SectionHeader title={t(locale, 'homeUpcomingGames')} />
-      <div id="upcoming-games-list">
-        <!-- Populated by client-side JS -->
+      <div class="sport-tabs" data-target="upcoming-games-list">
+        <button class="sport-tab active" data-filter="all">All</button>
+        <button class="sport-tab" data-filter="volleyball">Volleyball</button>
+        <button class="sport-tab" data-filter="basketball">Basketball</button>
       </div>
+      <table class="game-table" id="upcoming-games-list">
+        <tbody><!-- Populated by client-side JS --></tbody>
+      </table>
     </div>
   </section>
 
@@ -49,9 +54,14 @@ const locale = 'en';
   <section class="section" id="recent-results">
     <div class="container">
       <SectionHeader title={t(locale, 'homeRecentResults')} />
-      <div id="recent-results-list">
-        <!-- Populated by client-side JS -->
+      <div class="sport-tabs" data-target="recent-results-list">
+        <button class="sport-tab active" data-filter="all">All</button>
+        <button class="sport-tab" data-filter="volleyball">Volleyball</button>
+        <button class="sport-tab" data-filter="basketball">Basketball</button>
       </div>
+      <table class="game-table" id="recent-results-list">
+        <tbody><!-- Populated by client-side JS --></tbody>
+      </table>
     </div>
   </section>
 
@@ -73,124 +83,127 @@ const locale = 'en';
 
   <!-- Client-side data loading (same as current site) -->
   <script is:inline src="/js/data.js"></script>
+  <script is:inline src="/js/game-modal.js"></script>
   <script is:inline>
     (function () {
       'use strict';
 
-      // Show loading placeholders (hardcoded strings, no user input)
-      var containers = ['upcoming-games-list', 'recent-results-list', 'news-grid'];
-      containers.forEach(function(id) {
+      // Loading placeholders
+      ['news-grid'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el && !el.children.length) {
-          var placeholder = document.createElement('div');
-          placeholder.style.textAlign = 'center';
-          placeholder.style.padding = '2rem';
-          placeholder.style.opacity = '0.5';
-          placeholder.textContent = 'Loading...';
-          el.appendChild(placeholder);
+          var p = document.createElement('div');
+          p.style.textAlign = 'center'; p.style.padding = '2rem'; p.style.opacity = '0.5';
+          p.textContent = 'Loading...';
+          el.appendChild(p);
+        }
+      });
+      ['upcoming-games-list', 'recent-results-list'].forEach(function(id) {
+        var tbl = document.getElementById(id);
+        if (tbl) {
+          var tbody = tbl.querySelector('tbody') || tbl;
+          if (!tbody.children.length) {
+            var tr = document.createElement('tr');
+            var td = document.createElement('td');
+            td.setAttribute('colspan', '6');
+            td.style.textAlign = 'center'; td.style.padding = '2rem'; td.style.opacity = '0.5';
+            td.textContent = 'Loading...';
+            tr.appendChild(td); tbody.appendChild(tr);
+          }
         }
       });
 
-      var VB_ICON_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15 15 0 0 1 0 20"/><path d="M2 12h20"/></svg>';
-      var BB_ICON_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2v20"/><path d="M4.93 4.93c4.08 2.35 8.06 2.35 14.14 0"/><path d="M4.93 19.07c4.08-2.35 8.06-2.35 14.14 0"/></svg>';
+      // Sport icons — filled versions matching Wiedisync (hardcoded SVG, safe)
+      var VB_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#FFC832" stroke="#4A55A2" stroke-width="1.5"/><path d="M11.1 7.1a16.55 16.55 0 0 1 10.9 4" stroke="#4A55A2" stroke-width="1.5"/><path d="M12 12a12.6 12.6 0 0 1-8.7 5" stroke="#4A55A2" stroke-width="1.5"/><path d="M16.8 13.6a16.55 16.55 0 0 1-9 7.5" stroke="#4A55A2" stroke-width="1.5"/><path d="M20.7 17a12.8 12.8 0 0 0-8.7-5 13.3 13.3 0 0 1 0-10" stroke="#4A55A2" stroke-width="1.5"/><path d="M6.3 3.8a16.55 16.55 0 0 0 1.9 11.5" stroke="#4A55A2" stroke-width="1.5"/></svg>';
+      var BB_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(90deg)"><circle cx="12" cy="12" r="10" fill="#F97316"/><path d="M4.93 4.93c4.08 2.64 8.74 3.2 14.14 0"/><path d="M4.93 19.07c4.08-2.64 8.74-3.2 14.14 0"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>';
 
-      function getSportIcon(game) {
-        var sport = game.sport || (game.teamShort.indexOf('BB-') === 0 ? 'basketball' : 'volleyball');
-        return sport === 'basketball' ? BB_ICON_SVG : VB_ICON_SVG;
+      function sportSvg(game) {
+        return (game.sport === 'basketball' || game.teamShort.indexOf('BB-') === 0) ? BB_SVG : VB_SVG;
+      }
+      function createIconEl(game) {
+        var span = document.createElement('span');
+        span.className = 'game-sport-icon';
+        // SAFE: sportSvg() only returns hardcoded VB_SVG or BB_SVG constants.
+        // No user input. innerHTML needed for SVG namespace compatibility in HTML.
+        span.innerHTML = sportSvg(game); // eslint-disable-line no-unsanitized/property
+        return span;
+      }
+      function createChip(D, teamShort) {
+        var t = D.getTeam(teamShort);
+        var chip = document.createElement('span');
+        chip.className = 'chip';
+        if (t) {
+          chip.style.background = t.bg; chip.style.color = t.text;
+          chip.style.border = '1px solid ' + t.border; chip.textContent = t.short;
+        } else {
+          chip.style.background = '#e2e8f0'; chip.style.color = '#475569'; chip.textContent = teamShort;
+        }
+        return chip;
       }
 
-      function createSportIconEl(game) {
-        // Safe: SVG strings are hardcoded constants above, not user input
-        var icon = document.createElement('span');
-        icon.className = 'sport-icon';
-        var svgStr = getSportIcon(game);
-        var parser = new DOMParser();
-        var doc = parser.parseFromString(svgStr, 'image/svg+xml');
-        icon.appendChild(doc.documentElement);
-        icon.style.opacity = '0.5';
-        icon.style.display = 'inline-flex';
-        icon.style.alignItems = 'center';
-        icon.style.marginRight = '8px';
-        icon.style.flexShrink = '0';
-        return icon;
+      var cachedUpcoming = [];
+      var cachedCompleted = [];
+
+      function makeCell(content, className) {
+        var td = document.createElement('td');
+        if (className) td.className = className;
+        if (typeof content === 'string') td.textContent = content;
+        else if (content) td.appendChild(content);
+        return td;
+      }
+
+      function buildGameRow(D, game, showScore) {
+        var tr = document.createElement('tr');
+        tr.className = 'fade-in';
+        tr._gameData = game; // store for click handler
+        tr.appendChild(makeCell(createIconEl(game), 'gt-icon'));
+        tr.appendChild(makeCell(D.formatDate(game.date), 'gt-date'));
+        tr.appendChild(makeCell(game.time || '', 'gt-time'));
+        tr.appendChild(makeCell(createChip(D, game.teamShort), 'gt-team'));
+        var badge = document.createElement('span');
+        badge.className = 'game-badge ' + (game.isHome ? 'home' : 'away');
+        badge.textContent = game.isHome ? 'Home' : 'Away';
+        tr.appendChild(makeCell(badge, 'gt-loc'));
+        tr.appendChild(makeCell(game.isHome ? ('KSCW vs ' + game.opponent) : (game.opponent + ' vs KSCW'), 'gt-matchup'));
+        if (showScore && game.score) {
+          var scoreSpan = document.createElement('span');
+          var win = D.isWin(game);
+          scoreSpan.className = 'game-score';
+          if (win === true) scoreSpan.className += ' win';
+          else if (win === false) scoreSpan.className += ' loss';
+          scoreSpan.textContent = game.score;
+          tr.appendChild(makeCell(scoreSpan, 'gt-score'));
+        } else {
+          tr.appendChild(makeCell('', 'gt-score'));
+        }
+        return tr;
+      }
+
+      function renderGameTable(tableId, games, showScore) {
+        var tbl = document.getElementById(tableId);
+        if (!tbl) return;
+        var tbody = tbl.querySelector('tbody') || tbl;
+        var D = window.KSCW;
+        while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+        if (!games.length) {
+          var tr = document.createElement('tr');
+          var td = document.createElement('td');
+          td.setAttribute('colspan', '7'); td.className = 'game-empty';
+          td.textContent = 'No games found.';
+          tr.appendChild(td); tbody.appendChild(tr); return;
+        }
+        var frag = document.createDocumentFragment();
+        for (var i = 0; i < games.length; i++) frag.appendChild(buildGameRow(D, games[i], showScore));
+        tbody.appendChild(frag);
       }
 
       function renderAll() {
         var D = window.KSCW;
         if (!D) return;
-
-        function createChip(teamShort) {
-          var t = D.getTeam(teamShort);
-          var chip = document.createElement('span');
-          chip.className = 'chip';
-          if (t) {
-            chip.style.background = t.bg;
-            chip.style.color = t.text;
-            chip.style.border = '1px solid ' + t.border;
-            chip.textContent = t.short;
-          } else {
-            chip.style.background = '#e2e8f0';
-            chip.style.color = '#475569';
-            chip.textContent = teamShort;
-          }
-          return chip;
-        }
-
-        function createBadge(isHome) {
-          var badge = document.createElement('span');
-          badge.className = 'game-badge ' + (isHome ? 'home' : 'away');
-          badge.textContent = isHome ? 'Home' : 'Away';
-          return badge;
-        }
-
-        function createTeamsSpan(game) {
-          var span = document.createElement('span');
-          span.className = 'game-teams';
-          if (game.isHome) {
-            span.appendChild(document.createTextNode('KSCW ' + game.teamShort + ' '));
-            var vs1 = document.createElement('span');
-            vs1.className = 'vs';
-            vs1.textContent = 'vs';
-            span.appendChild(vs1);
-            span.appendChild(document.createTextNode(' ' + game.opponent));
-          } else {
-            span.appendChild(document.createTextNode(game.opponent + ' '));
-            var vs2 = document.createElement('span');
-            vs2.className = 'vs';
-            vs2.textContent = 'vs';
-            span.appendChild(vs2);
-            span.appendChild(document.createTextNode(' KSCW ' + game.teamShort));
-          }
-          return span;
-        }
-
-        function createGameRow(game, showScore) {
-          var row = document.createElement('div');
-          row.className = 'game-row fade-in';
-          row.appendChild(createSportIconEl(game));
-          var dateEl = document.createElement('span');
-          dateEl.className = 'game-date';
-          dateEl.textContent = D.formatDate(game.date);
-          row.appendChild(dateEl);
-          row.appendChild(createChip(game.teamShort));
-          row.appendChild(createBadge(game.isHome));
-          row.appendChild(createTeamsSpan(game));
-          if (showScore && game.score) {
-            var scoreEl = document.createElement('span');
-            var win = D.isWin(game);
-            scoreEl.className = 'game-score';
-            if (win === true) scoreEl.className += ' win';
-            else if (win === false) scoreEl.className += ' loss';
-            scoreEl.textContent = game.score;
-            row.appendChild(scoreEl);
-          } else {
-            var timeEl = document.createElement('span');
-            timeEl.className = 'game-date';
-            timeEl.textContent = game.time;
-            row.appendChild(timeEl);
-          }
-          return row;
-        }
+        cachedUpcoming = D.getUpcomingGames().slice(0, 10);
+        cachedCompleted = D.getCompletedGames().slice(0, 10);
+        renderGameTable('upcoming-games-list', cachedUpcoming.slice(0, 5), false);
+        renderGameTable('recent-results-list', cachedCompleted.slice(0, 5), true);
 
         // News Cards
         var newsGrid = document.getElementById('news-grid');
@@ -205,68 +218,28 @@ const locale = 'en';
             var imgPlaceholder = document.createElement('div');
             imgPlaceholder.className = 'card-img-placeholder';
             var iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            iconSvg.setAttribute('viewBox', '0 0 24 24');
-            iconSvg.setAttribute('fill', 'none');
-            iconSvg.setAttribute('stroke', 'currentColor');
-            iconSvg.setAttribute('stroke-width', '1.5');
-            iconSvg.style.width = '48px';
-            iconSvg.style.height = '48px';
-            iconSvg.style.opacity = '0.3';
+            iconSvg.setAttribute('viewBox', '0 0 24 24'); iconSvg.setAttribute('fill', 'none');
+            iconSvg.setAttribute('stroke', 'currentColor'); iconSvg.setAttribute('stroke-width', '1.5');
+            iconSvg.style.width = '48px'; iconSvg.style.height = '48px'; iconSvg.style.opacity = '0.3';
             var path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path1.setAttribute('d', 'M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2');
-            iconSvg.appendChild(path1);
-            imgPlaceholder.appendChild(iconSvg);
+            iconSvg.appendChild(path1); imgPlaceholder.appendChild(iconSvg);
             article.appendChild(imgPlaceholder);
-            var body = document.createElement('div');
-            body.className = 'card-body';
-            var meta = document.createElement('div');
-            meta.className = 'flex items-center gap-sm mb-md';
-            var dateSpan = document.createElement('span');
-            dateSpan.className = 'news-date';
-            dateSpan.textContent = D.formatDate(n.date);
-            meta.appendChild(dateSpan);
-            var catBadge = document.createElement('span');
-            catBadge.className = 'badge';
+            var body = document.createElement('div'); body.className = 'card-body';
+            var meta = document.createElement('div'); meta.className = 'flex items-center gap-sm mb-md';
+            var dateSpan = document.createElement('span'); dateSpan.className = 'news-date';
+            dateSpan.textContent = D.formatDate(n.date); meta.appendChild(dateSpan);
+            var catBadge = document.createElement('span'); catBadge.className = 'badge';
             if (n.category === 'volleyball') { catBadge.className += ' badge-blue'; catBadge.textContent = 'Volleyball'; }
             else if (n.category === 'basketball') { catBadge.className += ' badge-gold'; catBadge.textContent = 'Basketball'; }
             else { catBadge.textContent = 'Club'; }
-            meta.appendChild(catBadge);
-            body.appendChild(meta);
-            var title = document.createElement('h3');
-            title.textContent = n.title;
-            body.appendChild(title);
-            var excerpt = document.createElement('p');
-            excerpt.className = 'news-excerpt';
-            excerpt.textContent = n.excerpt;
-            body.appendChild(excerpt);
-            article.appendChild(body);
-            fragment.appendChild(article);
+            meta.appendChild(catBadge); body.appendChild(meta);
+            var title = document.createElement('h3'); title.textContent = n.title; body.appendChild(title);
+            var excerpt = document.createElement('p'); excerpt.className = 'news-excerpt';
+            excerpt.textContent = n.excerpt; body.appendChild(excerpt);
+            article.appendChild(body); fragment.appendChild(article);
           }
           newsGrid.appendChild(fragment);
-        }
-
-        // Upcoming Games
-        var upcomingList = document.getElementById('upcoming-games-list');
-        if (upcomingList) {
-          while (upcomingList.firstChild) upcomingList.removeChild(upcomingList.firstChild);
-          var upcoming = D.getUpcomingGames().slice(0, 5);
-          var upFrag = document.createDocumentFragment();
-          for (var u = 0; u < upcoming.length; u++) {
-            upFrag.appendChild(createGameRow(upcoming[u], false));
-          }
-          upcomingList.appendChild(upFrag);
-        }
-
-        // Recent Results
-        var resultsList = document.getElementById('recent-results-list');
-        if (resultsList) {
-          while (resultsList.firstChild) resultsList.removeChild(resultsList.firstChild);
-          var completed = D.getCompletedGames().slice(0, 5);
-          var resFrag = document.createDocumentFragment();
-          for (var r = 0; r < completed.length; r++) {
-            resFrag.appendChild(createGameRow(completed[r], true));
-          }
-          resultsList.appendChild(resFrag);
         }
 
         // Sponsor Carousel
@@ -290,29 +263,45 @@ const locale = 'en';
                     var img = document.createElement('img');
                     img.src = sp.logo_url;
                     img.alt = sp.name;
-                    img.style.maxHeight = '40px';
-                    img.style.objectFit = 'contain';
+                    img.style.maxHeight = '40px'; img.style.objectFit = 'contain';
                     link.appendChild(img);
                   } else {
                     var label = document.createElement('span');
-                    label.textContent = sp.name;
-                    link.appendChild(label);
+                    label.textContent = sp.name; link.appendChild(label);
                   }
                   spFrag.appendChild(link);
                 }
               }
               sponsorTrack.appendChild(spFrag);
-            })
-            .catch(function () {});
+            }).catch(function () {});
         }
       }
+
+      // ── Sport filter tabs ──
+      function filterBySport(source, sport) {
+        if (sport === 'all') return source.slice(0, 5);
+        return source.filter(function (g) { return g.sport === sport; }).slice(0, 5);
+      }
+
+      document.querySelectorAll('.sport-tabs').forEach(function (tabGroup) {
+        tabGroup.addEventListener('click', function (e) {
+          var btn = e.target.closest('.sport-tab');
+          if (!btn) return;
+          var filter = btn.getAttribute('data-filter');
+          var targetId = tabGroup.getAttribute('data-target');
+          tabGroup.querySelectorAll('.sport-tab').forEach(function (b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+          var isUpcoming = targetId === 'upcoming-games-list';
+          renderGameTable(targetId, filterBySport(isUpcoming ? cachedUpcoming : cachedCompleted, filter), !isUpcoming);
+          requestAnimationFrame(observeNewFadeIns);
+        });
+      });
 
       function observeNewFadeIns() {
         var els = document.querySelectorAll('.fade-in:not(.visible)');
         if (!els.length) return;
         if (!('IntersectionObserver' in window)) {
-          els.forEach(function(el) { el.classList.add('visible'); });
-          return;
+          els.forEach(function(el) { el.classList.add('visible'); }); return;
         }
         var obs = new IntersectionObserver(function(entries, o) {
           entries.forEach(function(entry) {
@@ -324,12 +313,24 @@ const locale = 'en';
 
       function renderAndAnimate() { renderAll(); requestAnimationFrame(observeNewFadeIns); }
 
-      // Wait for PB data before rendering
       if (window.KSCW && window.KSCW.ready) {
         renderAndAnimate();
       } else {
         document.addEventListener('kscw-data-ready', renderAndAnimate);
+        var poll = setInterval(function () {
+          if (window.KSCW && window.KSCW.ready) { clearInterval(poll); renderAndAnimate(); }
+        }, 100);
       }
+
+      // ── Game row click → modal ──
+      document.querySelectorAll('.game-table').forEach(function (tbl) {
+        tbl.addEventListener('click', function (e) {
+          var tr = e.target.closest('tr');
+          if (tr && tr._gameData && window.showGameModal) {
+            window.showGameModal(tr._gameData, 'en');
+          }
+        });
+      });
     })();
   </script>
   <script src="../../islands/scroll-animations.ts"></script>

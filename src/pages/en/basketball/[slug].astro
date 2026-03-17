@@ -77,6 +77,9 @@ const { pbId, short } = Astro.props;
   <script is:inline define:vars={{ pbId, short }}>
     window.TEAM_CONFIG = { short: short, pbId: pbId };
   </script>
+  <script is:inline src="/js/i18n.js"></script>
+  <script is:inline>i18n.init();</script>
   <script is:inline src="/js/data.js"></script>
+  <script is:inline src="/js/game-modal.js"></script>
   <script is:inline src="/js/team-page.js"></script>
 </BaseLayout>
