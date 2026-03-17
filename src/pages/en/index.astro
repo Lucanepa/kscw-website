@@ -307,11 +307,28 @@ const locale = 'en';
         }
       }
 
+      function observeNewFadeIns() {
+        var els = document.querySelectorAll('.fade-in:not(.visible)');
+        if (!els.length) return;
+        if (!('IntersectionObserver' in window)) {
+          els.forEach(function(el) { el.classList.add('visible'); });
+          return;
+        }
+        var obs = new IntersectionObserver(function(entries, o) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) { entry.target.classList.add('visible'); o.unobserve(entry.target); }
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px -20px 0px' });
+        els.forEach(function(el) { obs.observe(el); });
+      }
+
+      function renderAndAnimate() { renderAll(); requestAnimationFrame(observeNewFadeIns); }
+
       // Wait for PB data before rendering
       if (window.KSCW && window.KSCW.ready) {
-        renderAll();
+        renderAndAnimate();
       } else {
-        document.addEventListener('kscw-data-ready', renderAll);
+        document.addEventListener('kscw-data-ready', renderAndAnimate);
       }
     })();
   </script>

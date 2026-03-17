@@ -192,15 +192,16 @@ window.KSCW = {
 
   /** Get upcoming games (score === null) */
   getUpcomingGames: function () {
+    var today = new Date().toISOString().slice(0, 10);
     return this.games
-      .filter(function (g) { return g.score === null; })
+      .filter(function (g) { return g.score === null && g.date && g.date >= today; })
       .sort(function (a, b) { return a.date.localeCompare(b.date) || a.time.localeCompare(b.time); });
   },
 
   /** Get completed games (score !== null), most recent first */
   getCompletedGames: function () {
     return this.games
-      .filter(function (g) { return g.score !== null; })
+      .filter(function (g) { return g.score !== null && g.date; })
       .sort(function (a, b) { return b.date.localeCompare(a.date) || b.time.localeCompare(a.time); });
   },
 
@@ -226,6 +227,7 @@ window.KSCW = {
 
   /** Format date as "DD.MM.YYYY" (Swiss) or "MM/DD/YYYY" (English) */
   formatDate: function (isoDate) {
+    if (!isoDate) return '–';
     var parts = isoDate.split('-');
     if (window.i18n && i18n.getLang() === 'en') {
       return parts[1] + '/' + parts[2] + '/' + parts[0];
@@ -389,8 +391,12 @@ window.KSCW = {
     // Date formatting: PB stores as "2026-03-01 17:00:00.000Z" or ISO
     var date = (g.date || '').substring(0, 10);
     var time = g.time || '';
-    // If time looks like "HH:MM:SS", trim to "HH:MM"
-    if (time.length > 5) time = time.substring(0, 5);
+    // PB stores time as full datetime "YYYY-MM-DD HH:MM:SS" — extract HH:MM
+    if (time.indexOf(' ') !== -1) {
+      time = time.split(' ')[1].substring(0, 5);
+    } else if (time.length > 5) {
+      time = time.substring(0, 5);
+    }
 
     return {
       id: g.game_id || g.id,
