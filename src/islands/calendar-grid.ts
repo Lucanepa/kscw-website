@@ -20,6 +20,16 @@ interface PBGame {
   }
 }
 
+interface CalendarEvent {
+  title: string
+  date: string
+  endDate?: string
+  time?: string
+  location?: string
+  category: string
+  body?: string
+}
+
 const container = document.getElementById('calendar-grid')
 if (container) {
   const lang = container.dataset.lang || 'de'
@@ -44,6 +54,15 @@ if (container) {
   let games: PBGame[] = []
   let fetchedRange = ''
   let activeTooltip: HTMLElement | null = null
+
+  // Load build-time events
+  let calEvents: CalendarEvent[] = []
+  const evDataEl = document.getElementById('events-data')
+  if (evDataEl) {
+    try {
+      calEvents = JSON.parse(evDataEl.textContent || '[]')
+    } catch { /* ignore */ }
+  }
 
   // -- Date helpers --
   function startOfMonth(d: Date): Date {
@@ -143,6 +162,26 @@ if (container) {
     return btn
   }
 
+  // -- Event chip --
+  function eventChip(ev: CalendarEvent): HTMLElement {
+    const btn = document.createElement('button')
+    btn.type = 'button'
+    btn.className = 'cal-entry cal-entry--event'
+
+    if (ev.time) {
+      btn.appendChild(el('span', 'cal-entry-time', ev.time))
+    }
+
+    btn.appendChild(el('span', 'cal-entry-title', ev.title))
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      showEventTooltip(ev, btn)
+    })
+
+    return btn
+  }
+
   // -- Tooltip --
   function showTooltip(g: PBGame, anchor: HTMLElement): void {
     closeTooltip()
@@ -211,6 +250,49 @@ if (container) {
     }
   }
 
+  // -- Event tooltip --
+  function showEventTooltip(ev: CalendarEvent, anchor: HTMLElement): void {
+    closeTooltip()
+    const tip = document.createElement('div')
+    tip.className = 'cal-tooltip'
+
+    const hdr = el('div', 'cal-tooltip-header')
+    const catLabel = ev.category.charAt(0).toUpperCase() + ev.category.slice(1)
+    hdr.appendChild(el('span', 'cal-tooltip-sport cal-tooltip-sport--event', catLabel))
+    tip.appendChild(hdr)
+
+    tip.appendChild(el('div', 'cal-tooltip-teams', ev.title))
+
+    const dateObj = new Date(ev.date)
+    const dateStr = dateObj.toLocaleDateString(lang === 'de' ? 'de-CH' : 'en-GB', {
+      weekday: 'short', day: 'numeric', month: 'long',
+    })
+    const meta = el('div', 'cal-tooltip-meta')
+    meta.appendChild(el('span', undefined, `${dateStr}${ev.time ? ', ' + ev.time : ''}`))
+    tip.appendChild(meta)
+
+    if (ev.location) {
+      tip.appendChild(el('div', 'cal-tooltip-hall', ev.location))
+    }
+
+    document.body.appendChild(tip)
+    activeTooltip = tip
+
+    const rect = anchor.getBoundingClientRect()
+    const tipRect = tip.getBoundingClientRect()
+    let top = rect.bottom + 4
+    let left = rect.left + rect.width / 2 - tipRect.width / 2
+    if (left < 8) left = 8
+    if (left + tipRect.width > window.innerWidth - 8) left = window.innerWidth - tipRect.width - 8
+    if (top + tipRect.height > window.innerHeight - 8) top = rect.top - tipRect.height - 4
+    tip.style.top = `${top + window.scrollY}px`
+    tip.style.left = `${left + window.scrollX}px`
+
+    setTimeout(() => {
+      document.addEventListener('click', closeTooltip, { once: true })
+    }, 0)
+  }
+
   // -- Render calendar --
   async function render(): Promise<void> {
     container!.textContent = ''
@@ -230,6 +312,14 @@ if (container) {
       const key = g.date.slice(0, 10)
       if (!gamesByDate.has(key)) gamesByDate.set(key, [])
       gamesByDate.get(key)!.push(g)
+    }
+
+    // Group events by date key
+    const eventsByDate = new Map<string, CalendarEvent[]>()
+    for (const ev of calEvents) {
+      const key = ev.date.slice(0, 10)
+      if (!eventsByDate.has(key)) eventsByDate.set(key, [])
+      eventsByDate.get(key)!.push(ev)
     }
 
     container!.textContent = ''
@@ -323,16 +413,27 @@ if (container) {
       if (isToday_) num.classList.add('cal-day-num--today')
       cell.appendChild(num)
 
-      if (inMonth && dayGames.length > 0) {
+      const dayEvents = eventsByDate.get(key) || []
+      const allEntries = dayGames.length + dayEvents.length
+
+      if (inMonth && allEntries > 0) {
         const entriesDiv = el('div', 'cal-entries')
         const maxVisible = window.innerWidth < 640 ? 2 : 3
-        const visible = dayGames.slice(0, maxVisible)
-        const overflow = dayGames.length - maxVisible
+        let count = 0
 
-        for (const g of visible) {
+        for (const g of dayGames) {
+          if (count >= maxVisible) break
           entriesDiv.appendChild(gameChip(g))
+          count++
         }
 
+        for (const ev of dayEvents) {
+          if (count >= maxVisible) break
+          entriesDiv.appendChild(eventChip(ev))
+          count++
+        }
+
+        const overflow = allEntries - maxVisible
         if (overflow > 0) {
           const more = document.createElement('button')
           more.type = 'button'
@@ -340,7 +441,7 @@ if (container) {
           more.textContent = `+${overflow}`
           more.addEventListener('click', (e) => {
             e.stopPropagation()
-            showDayModal(date, dayGames)
+            showDayModal(date, dayGames, dayEvents)
           })
           entriesDiv.appendChild(more)
         }
@@ -355,7 +456,7 @@ if (container) {
   }
 
   // -- Day overflow modal --
-  function showDayModal(date: Date, dayGames: PBGame[]): void {
+  function showDayModal(date: Date, dayGames: PBGame[], dayEvents: CalendarEvent[] = []): void {
     closeTooltip()
     const overlay = el('div', 'cal-modal-overlay')
     overlay.addEventListener('click', () => overlay.remove())
@@ -398,6 +499,24 @@ if (container) {
       const hall = g.expand?.hall
       if (hall) {
         row.appendChild(el('div', 'cal-modal-hall', [hall.name, hall.city].filter(Boolean).join(', ')))
+      }
+
+      modal.appendChild(row)
+    }
+
+    for (const ev of dayEvents) {
+      const row = el('div', 'cal-modal-row cal-modal-row--event')
+
+      const rowHdr = el('div', 'cal-modal-row-header')
+      const catLabel = ev.category.charAt(0).toUpperCase() + ev.category.slice(1)
+      rowHdr.appendChild(el('span', 'cal-tooltip-sport cal-tooltip-sport--event', catLabel))
+      if (ev.time) rowHdr.appendChild(el('span', 'cal-modal-time', ev.time))
+      row.appendChild(rowHdr)
+
+      row.appendChild(el('div', 'cal-modal-teams', ev.title))
+
+      if (ev.location) {
+        row.appendChild(el('div', 'cal-modal-hall', ev.location))
       }
 
       modal.appendChild(row)
