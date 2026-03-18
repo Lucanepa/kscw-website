@@ -369,5 +369,12 @@
   "regFIVBDesc": "Official volleyball game rules and casebook — interactive reference.",
   "regFIVBOpen": "Open in new tab",
   "regDownload": "Download",
-  "regOpenLink": "Open"
+  "regOpenLink": "Open",
+  "homeEvents": "Events",
+  "calendarEvents": "Upcoming Events",
+  "eventCategorySocial": "Social",
+  "eventCategoryAssembly": "Assembly",
+  "eventCategoryVolunteer": "Volunteer",
+  "eventCategoryOther": "Other",
+  "noUpcomingEvents": "No upcoming events"
 }
