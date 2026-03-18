@@ -134,7 +134,7 @@ Confirm `team_invites` collection is visible with all fields. Confirm `members` 
 
 **Reference files to read first:**
 - `pb_hooks/team_permissions_lib.js` — for `arrayContains()`, `getAuth()`, `getRoles()` helpers
-- `pb_hooks/contact_form_api.pb.js` — for `routerAdd` pattern and `$apis.requestInfo(e).body`
+- `pb_hooks/contact_form_api.pb.js` — for `routerAdd` pattern and `e.requestInfo().body`
 - `pb_hooks/notifications_lib.js` — for `getCurrentSeason()` helper
 
 - [ ] **Step 1: Write the complete hook file**
@@ -145,7 +145,15 @@ Confirm `team_invites` collection is visible with all fields. Confirm `members` 
 
 /// <reference path="../pb_data/types.d.ts" />
 
-var permLib = require(__hooks + "/team_permissions_lib.js")
+// Local helper: array contains check (same as team_permissions_lib.js but
+// arrayContains is not exported from the shared lib, so we copy it here)
+function arrayContains(arr, value) {
+  if (!arr || !arr.length) return false
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i] === value) return true
+  }
+  return false
+}
 
 // Helper: get current season string (e.g., "2025/26")
 // Matches pattern from notifications_lib.js
@@ -165,17 +173,17 @@ function hasInvitePermission(auth, team) {
   var sport = team.getString("sport")
 
   // Superuser can do anything
-  if (permLib.arrayContains(roles, "superuser")) return true
+  if (arrayContains(roles, "superuser")) return true
 
   // Sport admin
-  if (sport === "volleyball" && permLib.arrayContains(roles, "vb_admin")) return true
-  if (sport === "basketball" && permLib.arrayContains(roles, "bb_admin")) return true
+  if (sport === "volleyball" && arrayContains(roles, "vb_admin")) return true
+  if (sport === "basketball" && arrayContains(roles, "bb_admin")) return true
 
   // Coach or team_responsible
   var coaches = team.get("coach") || []
   var teamResp = team.get("team_responsible") || []
-  if (permLib.arrayContains(coaches, authId)) return true
-  if (permLib.arrayContains(teamResp, authId)) return true
+  if (arrayContains(coaches, authId)) return true
+  if (arrayContains(teamResp, authId)) return true
 
   return false
 }
@@ -190,7 +198,7 @@ routerAdd("POST", "/api/team-invites/create", function(e) {
     throw new ForbiddenError("Authentication required.")
   }
 
-  var body = $apis.requestInfo(e).body
+  var body = e.requestInfo().body
   var teamId = (body.team || "").trim()
   var guestLevel = parseInt(body.guest_level || "0", 10)
 
@@ -255,7 +263,7 @@ routerAdd("POST", "/api/team-invites/create", function(e) {
 // Body: { token, first_name, last_name, email }
 // Creates shell member + member_teams record
 routerAdd("POST", "/api/team-invites/claim", function(e) {
-  var body = $apis.requestInfo(e).body
+  var body = e.requestInfo().body
   var token = (body.token || "").trim()
   var firstName = (body.first_name || "").trim()
   var lastName = (body.last_name || "").trim()
@@ -387,7 +395,7 @@ routerAdd("POST", "/api/team-invites/extend", function(e) {
     throw new ForbiddenError("Authentication required.")
   }
 
-  var body = $apis.requestInfo(e).body
+  var body = e.requestInfo().body
   var memberId = (body.member_id || "").trim()
 
   if (!memberId) {
