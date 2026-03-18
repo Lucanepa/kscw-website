@@ -1,10 +1,11 @@
-name: Translate News (DE → EN)
+name: Translate Content (DE → EN)
 
 on:
   push:
     branches: [master, dev]
     paths:
       - 'content/news/**'
+      - 'content/events/**'
 
 permissions:
   contents: write
@@ -24,16 +25,16 @@ jobs:
       - name: Run translation script
         env:
           DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
-        run: node .github/scripts/translate-news.mjs
+        run: node .github/scripts/translate-content.mjs
 
       - name: Commit translations
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add content/news-en/
+          git add content/news-en/ content/events-en/
           if git diff --staged --quiet; then
             echo "No translation changes to commit."
           else
-            git commit -m "chore: translate news to English [skip ci]"
+            git commit -m "chore: translate content to English [skip ci]"
             git push
           fi
