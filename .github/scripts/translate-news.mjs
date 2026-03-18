@@ -7,7 +7,7 @@
  */
 
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'fs';
-import { join, basename } from 'path';
+import { join } from 'path';
 import { createHash } from 'crypto';
 
 const DE_DIR = 'content/news';
@@ -77,27 +77,22 @@ async function translateTexts(texts) {
   params.append('source_lang', 'DE');
   params.append('target_lang', 'EN-GB');
 
-  let response = await fetch(DEEPL_URL, {
+  const fetchOptions = {
     method: 'POST',
     headers: {
       'Authorization': `DeepL-Auth-Key ${API_KEY}`,
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: params.toString(),
-  });
+  };
+
+  let response = await fetch(DEEPL_URL, fetchOptions);
 
   // Single retry on 429
   if (response.status === 429) {
     console.warn('Rate limited by DeepL, retrying in 5s...');
     await new Promise(r => setTimeout(r, 5000));
-    response = await fetch(DEEPL_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `DeepL-Auth-Key ${API_KEY}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: params.toString(),
-    });
+    response = await fetch(DEEPL_URL, fetchOptions);
   }
 
   if (!response.ok) {
