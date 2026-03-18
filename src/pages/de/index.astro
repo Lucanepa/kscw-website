@@ -16,6 +16,19 @@ try {
 } catch (e) {
   console.warn('Failed to fetch news from Tina:', e.message);
 }
+
+let upcomingEvents = [];
+try {
+  const evRes = await client.queries.eventConnection({ first: 20 });
+  const now = new Date();
+  upcomingEvents = (evRes.data.eventConnection.edges ?? [])
+    .map(e => e.node)
+    .filter(e => new Date(e.date) >= now)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 3);
+} catch (e) {
+  console.warn('Failed to fetch events from Tina:', e.message);
+}
 ---
 <BaseLayout
   title="KSC Wiedikon — Basketball & Volleyball"
@@ -70,6 +83,35 @@ try {
       </div>
     </div>
   </section>
+
+  <!-- Events -->
+  {upcomingEvents.length > 0 && (
+    <section class="section-alt" id="events">
+      <div class="container">
+        <SectionHeader title={t(locale, 'homeEvents')} />
+        <div class="grid grid-3">
+          {upcomingEvents.map(ev => (
+            <article class="card event-card fade-in">
+              <div class="card-body">
+                <div class="flex items-center gap-sm mb-md">
+                  <span class="news-date">{new Date(ev.date).toLocaleDateString('de-CH')}</span>
+                  <span class="badge badge-green">
+                    {ev.category === 'social' ? t(locale, 'eventCategorySocial')
+                      : ev.category === 'assembly' ? t(locale, 'eventCategoryAssembly')
+                      : ev.category === 'volunteer' ? t(locale, 'eventCategoryVolunteer')
+                      : t(locale, 'eventCategoryOther')}
+                  </span>
+                </div>
+                <h3>{ev.title}</h3>
+                {ev.time && <p class="event-location">{ev.time}</p>}
+                {ev.location && <p class="event-location">{ev.location}</p>}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
 
   <!-- Upcoming Games -->
   <section class="section-alt" id="upcoming-games">

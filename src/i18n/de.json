@@ -371,5 +371,12 @@
   "regFIVBDesc": "Offizielle Volleyball-Spielregeln und Casebook — interaktive Referenz.",
   "regFIVBOpen": "In neuem Tab öffnen",
   "regDownload": "Herunterladen",
-  "regOpenLink": "Öffnen"
+  "regOpenLink": "Öffnen",
+  "homeEvents": "Veranstaltungen",
+  "calendarEvents": "Kommende Veranstaltungen",
+  "eventCategorySocial": "Gesellig",
+  "eventCategoryAssembly": "Versammlung",
+  "eventCategoryVolunteer": "Freiwillig",
+  "eventCategoryOther": "Sonstiges",
+  "noUpcomingEvents": "Keine kommenden Veranstaltungen"
 }

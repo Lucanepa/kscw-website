@@ -2314,3 +2314,42 @@ button:focus-visible {
   color: var(--text-muted);
   margin-top: 0.125rem;
 }
+
+/* ── Events ── */
+
+.event-card {
+  border-left: 3px solid #22c55e;
+}
+
+.event-card .card-body {
+  padding: var(--space-md);
+}
+
+.event-location {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.badge-green {
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+
+.cal-entry--event {
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+  border-left: 2px solid #22c55e;
+}
+
+.cal-entry--event:hover {
+  background: rgba(34, 197, 94, 0.25);
+}
+
+.cal-modal-row--event {
+  border-left: 3px solid #22c55e;
+}
+
+.cal-tooltip-sport--event {
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}

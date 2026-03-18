@@ -2,8 +2,30 @@
 import PageLayout from '../../../layouts/PageLayout.astro';
 import SectionHeader from '../../../components/SectionHeader.astro';
 import { t } from '../../../lib/i18n';
+import client from '../../../../tina/__generated__/client';
 
 const locale = 'de';
+
+let allEvents = [];
+try {
+  const evRes = await client.queries.eventConnection({ first: 100 });
+  allEvents = (evRes.data.eventConnection.edges ?? [])
+    .map(e => ({
+      title: e.node.title,
+      date: e.node.date,
+      endDate: e.node.endDate || '',
+      time: e.node.time || '',
+      location: e.node.location || '',
+      category: e.node.category || 'other',
+    }));
+} catch (e) {
+  console.warn('Failed to fetch events from Tina:', e.message);
+}
+
+const now = new Date();
+const upcomingEvents = allEvents
+  .filter(e => new Date(e.date) >= now)
+  .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 ---
 <PageLayout
   title="Kalender — KSC Wiedikon"
@@ -20,6 +42,38 @@ const locale = 'de';
       </div>
     </div>
   </section>
+
+  <!-- Events data for calendar grid -->
+  <script id="events-data" type="application/json" set:html={JSON.stringify(allEvents)} />
+
+  <!-- Upcoming Events List -->
+  {upcomingEvents.length > 0 && (
+    <section class="section-alt">
+      <div class="container">
+        <SectionHeader title={t(locale, 'calendarEvents')} />
+        <div class="grid grid-3">
+          {upcomingEvents.map(ev => (
+            <article class="card event-card fade-in">
+              <div class="card-body">
+                <div class="flex items-center gap-sm mb-md">
+                  <span class="news-date">{new Date(ev.date).toLocaleDateString('de-CH')}</span>
+                  <span class="badge badge-green">
+                    {ev.category === 'social' ? t(locale, 'eventCategorySocial')
+                      : ev.category === 'assembly' ? t(locale, 'eventCategoryAssembly')
+                      : ev.category === 'volunteer' ? t(locale, 'eventCategoryVolunteer')
+                      : t(locale, 'eventCategoryOther')}
+                  </span>
+                </div>
+                <h3>{ev.title}</h3>
+                {ev.time && <p class="event-location">{ev.time}</p>}
+                {ev.location && <p class="event-location">{ev.location}</p>}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
 
   <!-- iCal Subscriptions -->
   <section class="section-alt">
