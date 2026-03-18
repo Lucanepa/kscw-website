@@ -231,6 +231,60 @@ export default defineConfig({
           },
         ],
       },
+      {
+        name: 'event',
+        label: 'Events',
+        path: 'content/events',
+        format: 'mdx',
+        fields: [
+          {
+            type: 'string',
+            name: 'title',
+            label: 'Title',
+            isTitle: true,
+            required: true,
+          },
+          {
+            type: 'datetime',
+            name: 'date',
+            label: 'Start Date',
+            required: true,
+          },
+          {
+            type: 'datetime',
+            name: 'endDate',
+            label: 'End Date',
+          },
+          {
+            type: 'string',
+            name: 'time',
+            label: 'Time (e.g. 19:00)',
+          },
+          {
+            type: 'string',
+            name: 'location',
+            label: 'Location',
+          },
+          {
+            type: 'string',
+            name: 'category',
+            label: 'Category',
+            options: ['social', 'assembly', 'volunteer', 'other'],
+            required: true,
+          },
+          {
+            type: 'image',
+            name: 'image',
+            label: 'Featured Image',
+          },
+          {
+            type: 'rich-text',
+            name: 'body',
+            label: 'Description',
+            isBody: true,
+          },
+        ],
+      },
     ],
   },
 });
