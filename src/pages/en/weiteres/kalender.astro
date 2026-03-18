@@ -12,28 +12,11 @@ const locale = 'en';
   pageTitle={t(locale, 'calendarTitle')}
   pageSubtitle={t(locale, 'calendarSubtitle')}
 >
-  <!-- Calendar Info -->
+  <!-- Live Calendar Grid -->
   <section class="section">
     <div class="container">
-      <div class="section-header">
-        <div>
-          <h2>{t(locale, 'calendarHeading')}</h2>
-          <div class="gold-bar"></div>
-        </div>
-      </div>
-      <div style="max-width: 720px;">
-        <p style="font-size: 1.125rem; line-height: 1.8; color: var(--text-secondary); margin-bottom: var(--space-md);">
-          {t(locale, 'calendarDescription')}
-        </p>
-        <div style="background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg);">
-          <p style="margin-bottom: var(--space-md); color: var(--text-secondary);">
-            <i data-lucide="info" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 6px;"></i>
-            <span>{t(locale, 'calendarPlatformInfo')}</span>
-          </p>
-          <a href="https://kscw.lucanepa.com/calendar" class="btn btn-gold" target="_blank" rel="noopener noreferrer">
-            <span>{t(locale, 'calendarPlatformLink')} &rarr;</span>
-          </a>
-        </div>
+      <div id="calendar-grid" data-lang="en">
+        <div class="cal-loading">Loading games...</div>
       </div>
     </div>
   </section>
@@ -77,73 +60,5 @@ const locale = 'en';
     </div>
   </section>
 
-  <!-- Upcoming Events -->
-  <section class="section">
-    <div class="container">
-      <div class="section-header">
-        <div>
-          <h2>{t(locale, 'calendarUpcoming')}</h2>
-          <div class="gold-bar"></div>
-        </div>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: var(--space-sm);">
-
-        <div class="card" style="border-left: 4px solid var(--kscw-blue);">
-          <div class="card-body" style="display: flex; align-items: center; gap: var(--space-md); flex-wrap: wrap;">
-            <div style="min-width: 100px;">
-              <span style="font-weight: 700; color: var(--kscw-blue);">Sat, 22 March</span><br>
-              <span style="color: var(--text-secondary); font-size: 0.875rem;">2:00 PM</span>
-            </div>
-            <span class="chip" style="background: #1e40af; color: #fff;">H1</span>
-            <div>
-              <strong>KSCW Herren 1 vs. VBC Zueri Unterland</strong><br>
-              <span style="color: var(--text-secondary); font-size: 0.875rem;">
-                <i data-lucide="map-pin" style="width: 14px; height: 14px; vertical-align: middle;"></i>
-                Turnhalle Utogrund, Zurich
-              </span>
-            </div>
-            <span class="badge badge-blue" style="margin-left: auto;">{t(locale, 'calendarHomeGame')}</span>
-          </div>
-        </div>
-
-        <div class="card" style="border-left: 4px solid var(--kscw-gold);">
-          <div class="card-body" style="display: flex; align-items: center; gap: var(--space-md); flex-wrap: wrap;">
-            <div style="min-width: 100px;">
-              <span style="font-weight: 700; color: var(--kscw-gold);">Sat, 22 March</span><br>
-              <span style="color: var(--text-secondary); font-size: 0.875rem;">4:00 PM</span>
-            </div>
-            <span class="chip" style="background: #f59e0b; color: #78350f;">Lions</span>
-            <div>
-              <strong>KSCW Lions vs. BC Winterthur</strong><br>
-              <span style="color: var(--text-secondary); font-size: 0.875rem;">
-                <i data-lucide="map-pin" style="width: 14px; height: 14px; vertical-align: middle;"></i>
-                Turnhalle Lavater, Zurich
-              </span>
-            </div>
-            <span class="badge badge-gold" style="margin-left: auto;">{t(locale, 'calendarHomeGame')}</span>
-          </div>
-        </div>
-
-        <div class="card" style="border-left: 4px solid var(--kscw-blue);">
-          <div class="card-body" style="display: flex; align-items: center; gap: var(--space-md); flex-wrap: wrap;">
-            <div style="min-width: 100px;">
-              <span style="font-weight: 700; color: var(--kscw-blue);">Tue, 25 March</span><br>
-              <span style="color: var(--text-secondary); font-size: 0.875rem;">8:00 PM</span>
-            </div>
-            <span class="chip" style="background: #2563eb; color: #fff;">H2</span>
-            <div>
-              <strong>Training Herren 2</strong><br>
-              <span style="color: var(--text-secondary); font-size: 0.875rem;">
-                <i data-lucide="map-pin" style="width: 14px; height: 14px; vertical-align: middle;"></i>
-                Turnhalle Sihlfeld, Zurich
-              </span>
-            </div>
-            <span class="badge" style="margin-left: auto;">{t(locale, 'calendarTraining')}</span>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
+  <script src="../../../islands/calendar-grid.ts"></script>
 </PageLayout>
