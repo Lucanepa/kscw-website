@@ -344,6 +344,15 @@
     if (!el) return;
     if (!trainings.length) { hideSection('training'); return; }
 
+    // Filter to currently valid trainings (valid_from/valid_until from hall_slots)
+    var today = new Date().toISOString().slice(0, 10);
+    trainings = trainings.filter(function (t) {
+      if (t.valid_from && today < t.valid_from.slice(0, 10)) return false;
+      if (t.valid_until && today > t.valid_until.slice(0, 10)) return false;
+      return true;
+    });
+    if (!trainings.length) { hideSection('training'); return; }
+
     var frag = document.createDocumentFragment();
     for (var i = 0; i < trainings.length; i++) {
       var t = trainings[i];
