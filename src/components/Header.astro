@@ -29,10 +29,6 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
         <!-- Desktop Navigation -->
         <div class="nav-menu">
           <div class="nav-item">
-            <a href={l('/')} class="nav-link">{t(locale, 'navNews')}</a>
-          </div>
-
-          <div class="nav-item">
             <a href="#" class="nav-link">
               <span>{t(locale, 'navClub')}</span>
               <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -89,7 +85,7 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
                 </div>
               </div>
               <div class="dropdown-divider"></div>
-              <a href={l('/volleyball/reglemente')} class="dropdown-link">{t(locale, 'navRegulations')}</a>
+              <a href={l(locale === 'de' ? '/volleyball/reglemente' : '/volleyball/regulations')} class="dropdown-link">{t(locale, 'navRegulations')}</a>
             </div>
           </div>
 
@@ -179,10 +175,6 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
       </div>
 
       <div class="mobile-nav-item">
-        <a href={l('/')} class="mobile-nav-link">{t(locale, 'navNews')}</a>
-      </div>
-
-      <div class="mobile-nav-item">
         <button class="mobile-nav-link" aria-expanded="false">
           <span>{t(locale, 'navClub')}</span>
           <svg class="mobile-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -237,7 +229,7 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
               <a href={l('/volleyball/hu20')} class="mobile-sublink">Herren U20</a>
             </div>
           </div>
-          <a href={l('/volleyball/reglemente')} class="mobile-sublink">{t(locale, 'navRegulations')}</a>
+          <a href={l(locale === 'de' ? '/volleyball/reglemente' : '/volleyball/regulations')} class="mobile-sublink">{t(locale, 'navRegulations')}</a>
         </div>
       </div>
 
