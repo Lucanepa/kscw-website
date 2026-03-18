@@ -52,22 +52,41 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
             <div class="nav-dropdown">
               <a href={l('/volleyball/')} class="dropdown-link">{t(locale, 'navOverview')}</a>
               <div class="dropdown-divider"></div>
-              <div class="dropdown-label">{t(locale, 'navWomen')}</div>
-              <a href={l('/volleyball/d1')} class="dropdown-link">Damen 1 — 3. Liga</a>
-              <a href={l('/volleyball/d2')} class="dropdown-link">Damen 2 — 3. Liga</a>
-              <a href={l('/volleyball/d3')} class="dropdown-link">Damen 3 — 4. Liga</a>
-              <a href={l('/volleyball/d4')} class="dropdown-link">Damen 4 — 5. Liga</a>
-              <div class="dropdown-divider"></div>
-              <div class="dropdown-label">{t(locale, 'navMen')}</div>
-              <a href={l('/volleyball/h1')} class="dropdown-link">Herren 1 — 2. Liga</a>
-              <a href={l('/volleyball/h2')} class="dropdown-link">Herren 2 — 3. Liga</a>
-              <a href={l('/volleyball/h3')} class="dropdown-link">Herren 3 — 3. Liga</a>
-              <a href={l('/volleyball/legends')} class="dropdown-link">Legends — 4. Liga</a>
-              <div class="dropdown-divider"></div>
-              <div class="dropdown-label">{t(locale, 'navYouth')}</div>
-              <a href={l('/volleyball/du23')} class="dropdown-link">Damen U23</a>
-              <a href={l('/volleyball/hu23')} class="dropdown-link">Herren U23</a>
-              <a href={l('/volleyball/hu20')} class="dropdown-link">Herren U20</a>
+              <div class="dropdown-group">
+                <button class="dropdown-group-toggle" aria-expanded="false">
+                  <span>{t(locale, 'navWomen')}</span>
+                  <svg class="dropdown-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="dropdown-group-items">
+                  <a href={l('/volleyball/d1')} class="dropdown-link">Damen 1 — 3. Liga</a>
+                  <a href={l('/volleyball/d2')} class="dropdown-link">Damen 2 — 3. Liga</a>
+                  <a href={l('/volleyball/d3')} class="dropdown-link">Damen 3 — 4. Liga</a>
+                  <a href={l('/volleyball/d4')} class="dropdown-link">Damen 4 — 5. Liga</a>
+                </div>
+              </div>
+              <div class="dropdown-group">
+                <button class="dropdown-group-toggle" aria-expanded="false">
+                  <span>{t(locale, 'navMen')}</span>
+                  <svg class="dropdown-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="dropdown-group-items">
+                  <a href={l('/volleyball/h1')} class="dropdown-link">Herren 1 — 2. Liga</a>
+                  <a href={l('/volleyball/h2')} class="dropdown-link">Herren 2 — 3. Liga</a>
+                  <a href={l('/volleyball/h3')} class="dropdown-link">Herren 3 — 3. Liga</a>
+                  <a href={l('/volleyball/legends')} class="dropdown-link">Legends — 4. Liga</a>
+                </div>
+              </div>
+              <div class="dropdown-group">
+                <button class="dropdown-group-toggle" aria-expanded="false">
+                  <span>{t(locale, 'navYouth')}</span>
+                  <svg class="dropdown-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="dropdown-group-items">
+                  <a href={l('/volleyball/du23')} class="dropdown-link">Damen U23</a>
+                  <a href={l('/volleyball/hu23')} class="dropdown-link">Herren U23</a>
+                  <a href={l('/volleyball/hu20')} class="dropdown-link">Herren U20</a>
+                </div>
+              </div>
               <div class="dropdown-divider"></div>
               <a href={l('/volleyball/reglemente')} class="dropdown-link">{t(locale, 'navRegulations')}</a>
             </div>
@@ -81,17 +100,36 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
             <div class="nav-dropdown">
               <a href={l('/basketball/')} class="dropdown-link">{t(locale, 'navOverview')}</a>
               <div class="dropdown-divider"></div>
-              <div class="dropdown-label">{t(locale, 'navWomen')}</div>
-              <a href={l('/basketball/lions')} class="dropdown-link">Lions — 1. Liga</a>
-              <a href={l('/basketball/rhinos')} class="dropdown-link">Rhinos — 2. Liga</a>
-              <div class="dropdown-divider"></div>
-              <div class="dropdown-label">{t(locale, 'navMen')}</div>
-              <a href={l('/basketball/h1')} class="dropdown-link">Herren 1 — 1. Liga</a>
-              <a href={l('/basketball/h3')} class="dropdown-link">Herren 3 — 3. Liga</a>
-              <a href={l('/basketball/h4')} class="dropdown-link">Herren 4 — 4. Liga</a>
-              <div class="dropdown-divider"></div>
-              <div class="dropdown-label">{t(locale, 'navYouth')}</div>
-              <a href={l('/basketball/teams/nachwuchs')} class="dropdown-link">{t(locale, 'navAllYouthTeams')}</a>
+              <div class="dropdown-group">
+                <button class="dropdown-group-toggle" aria-expanded="false">
+                  <span>{t(locale, 'navWomen')}</span>
+                  <svg class="dropdown-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="dropdown-group-items">
+                  <a href={l('/basketball/lions')} class="dropdown-link">Lions — 1. Liga</a>
+                  <a href={l('/basketball/rhinos')} class="dropdown-link">Rhinos — 2. Liga</a>
+                </div>
+              </div>
+              <div class="dropdown-group">
+                <button class="dropdown-group-toggle" aria-expanded="false">
+                  <span>{t(locale, 'navMen')}</span>
+                  <svg class="dropdown-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="dropdown-group-items">
+                  <a href={l('/basketball/h1')} class="dropdown-link">Herren 1 — 1. Liga</a>
+                  <a href={l('/basketball/h3')} class="dropdown-link">Herren 3 — 3. Liga</a>
+                  <a href={l('/basketball/h4')} class="dropdown-link">Herren 4 — 4. Liga</a>
+                </div>
+              </div>
+              <div class="dropdown-group">
+                <button class="dropdown-group-toggle" aria-expanded="false">
+                  <span>{t(locale, 'navYouth')}</span>
+                  <svg class="dropdown-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="dropdown-group-items">
+                  <a href={l('/basketball/teams/nachwuchs')} class="dropdown-link">{t(locale, 'navAllYouthTeams')}</a>
+                </div>
+              </div>
             </div>
           </div>
 

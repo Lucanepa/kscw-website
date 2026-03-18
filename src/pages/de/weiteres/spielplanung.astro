@@ -73,7 +73,7 @@ const locale = 'de';
 
         <div style="background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg);">
           <h3 style="margin-bottom: var(--space-md);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--kscw-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px;"><line x1="10" x2="21" y1="6" y2="6"/><line x1="10" x2="21" y1="12" y2="12"/><line x1="10" x2="21" y1="18" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--kscw-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px;"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>
             <span>{t(locale, 'schedulingHowItWorks')}</span>
           </h3>
           <ol style="color: var(--text-secondary); line-height: 1.8; padding-left: var(--space-lg); margin: 0;">
@@ -107,34 +107,18 @@ const locale = 'de';
       </p>
       <div class="grid grid-3">
 
-        <div class="card" style="border-top: 4px solid var(--kscw-blue);">
-          <div class="card-body">
-            <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md);">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--kscw-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg>
-              <h3>Utogrund</h3>
-            </div>
-            <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">
-              Unsere Haupthalle für Volleyball und Basketball. Zwei Spielfelder, Tribüne für Zuschauer, moderne Ausstattung.
-            </p>
-            <div style="display: flex; align-items: flex-start; gap: var(--space-xs); color: var(--text-secondary); font-size: 0.875rem;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-              <span>Utogrundstrasse 2<br>8045 Zürich</span>
-            </div>
-          </div>
-        </div>
-
         <div class="card" style="border-top: 4px solid var(--kscw-gold);">
           <div class="card-body">
             <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md);">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--kscw-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg>
-              <h3>Lavater</h3>
+              <h3>Kantonsschule Wiedikon</h3>
             </div>
             <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">
-              Turnhalle des Schulhauses Lavater. Wird vor allem für Basketball-Trainings und einzelne Heimspiele genutzt.
+              Unsere Haupthalle mit drei Spielfeldern (KWI A, B, C). Hier finden die Spielsamstage und die meisten Heimspiele statt.
             </p>
             <div style="display: flex; align-items: flex-start; gap: var(--space-xs); color: var(--text-secondary); font-size: 0.875rem;">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-              <span>Lavaterstrasse 99<br>8002 Zürich</span>
+              <span>Schrennengasse 7<br>8003 Zürich</span>
             </div>
           </div>
         </div>
@@ -143,14 +127,30 @@ const locale = 'de';
           <div class="card-body">
             <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md);">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--kscw-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg>
-              <h3>Sihlfeld</h3>
+              <h3>Döltschi</h3>
             </div>
             <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">
-              Grosse Dreifachhalle beim Schulhaus Sihlfeld. Ideal für parallele Trainings und Turniere am Wochenende.
+              Doppelhalle der Schul- und Sportanlage Döltschi. Wird für Heimspiele und Trainings genutzt.
             </p>
             <div style="display: flex; align-items: flex-start; gap: var(--space-xs); color: var(--text-secondary); font-size: 0.875rem;">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-              <span>Sihlfeld Strasse 15<br>8003 Zürich</span>
+              <span>Döltschiweg 184<br>8055 Zürich</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="border-top: 4px solid var(--kscw-blue);">
+          <div class="card-body">
+            <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md);">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--kscw-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg>
+              <h3>Borrweg</h3>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">
+              Zwei Hallen an der Schul- und Sportanlage Borrweg. Regelmässig für Heimspiele im Einsatz.
+            </p>
+            <div style="display: flex; align-items: flex-start; gap: var(--space-xs); color: var(--text-secondary); font-size: 0.875rem;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>Borrweg 81<br>8055 Zürich</span>
             </div>
           </div>
         </div>
