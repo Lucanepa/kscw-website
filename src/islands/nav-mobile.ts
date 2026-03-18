@@ -79,7 +79,24 @@ document.addEventListener('click', (e) => {
   });
 });
 
-// 5. Active Nav Highlighting
+// 5. Dropdown Group Accordion (Women/Men/Youth)
+document.querySelectorAll('.dropdown-group-toggle').forEach((toggle) => {
+  toggle.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    // Close siblings in same dropdown
+    const parent = toggle.closest('.nav-dropdown, .mobile-subnav');
+    if (parent) {
+      parent.querySelectorAll('.dropdown-group-toggle').forEach((other) => {
+        if (other !== toggle) other.setAttribute('aria-expanded', 'false');
+      });
+    }
+    toggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+  });
+});
+
+// 6. Active Nav Highlighting
 const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
 document.querySelectorAll('.nav-link, .dropdown-link, .mobile-nav-link, .mobile-sublink').forEach((link) => {
   const href = link.getAttribute('href');
@@ -92,10 +109,18 @@ document.querySelectorAll('.nav-link, .dropdown-link, .mobile-nav-link, .mobile-
       const parentLink = parentItem.querySelector('.nav-link');
       if (parentLink) parentLink.classList.add('active');
     }
+    // Auto-expand the accordion group containing the active link
+    const group = link.closest('.dropdown-group-items');
+    if (group) {
+      const toggle = group.previousElementSibling;
+      if (toggle?.classList.contains('dropdown-group-toggle')) {
+        toggle.setAttribute('aria-expanded', 'true');
+      }
+    }
   }
 });
 
-// 6. Smooth Scroll for Anchor Links
+// 7. Smooth Scroll for Anchor Links
 document.addEventListener('click', (e) => {
   const link = (e.target as HTMLElement).closest('a[href*="#"]');
   if (!link) return;
