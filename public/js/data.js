@@ -83,10 +83,10 @@ var teamPictures = {
 
 // ─── teamIds map (PB team_id → display short name) ─────────────────
 var teamIdMap = {
-  'vb_12747': 'H3',     'vb_1394': 'D4',      'vb_14040': 'DU23',
+  'vb_12747': 'H3',     'vb_1394': 'D4',      'vb_14040': 'DU23-2',
   'vb_7563': 'HU23',    'vb_1393': 'D2',       'vb_541': 'H2',
   'vb_6023': 'Legends', 'vb_4689': 'D3',       'vb_2743': 'H1',
-  'vb_1395': 'D1',      'vb_2301': 'DU23',
+  'vb_1395': 'D1',      'vb_2301': 'DU23-1',
   'bb_1348': 'BB-H1',   'bb_4829': 'BB-H3',    'bb_7183': 'BB-H4',
   'bb_4934': 'BB-D-Classics', 'bb_4935': 'BB-H-Classics',
   'bb_4445': 'BB-Lions D1',   'bb_1077': 'BB-Rhinos D3',

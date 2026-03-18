@@ -1,0 +1,51 @@
+---
+import type { TeamData } from '../data/teams';
+import { formatTrainings, getBadgeText } from '../data/teams';
+
+interface Props {
+  team: TeamData;
+  locale: 'de' | 'en';
+  /** Base path for sport links, e.g., "/de/volleyball" */
+  basePath: string;
+  /** i18n "more" text, e.g., "Mehr erfahren →" */
+  moreText: string;
+}
+
+const { team, locale, basePath, moreText } = Astro.props;
+
+const href = team.linkOverride
+  ? `${basePath}/${team.linkOverride}`
+  : `${basePath}/${team.slug}`;
+
+const hasPhoto = !!team.photoUrl;
+const badgeText = getBadgeText(team.league, team.chipLabel);
+const trainingText = formatTrainings(team.trainings, locale);
+
+const cardClass = hasPhoto
+  ? 'card team-card team-card--photo'
+  : 'card team-card card-accent';
+
+const cardStyle = hasPhoto ? undefined : `--card-accent: ${team.chipBg};`;
+const altText = locale === 'de' ? 'Teamfoto' : 'Team photo';
+---
+<a href={href} class={cardClass} style={cardStyle}>
+  {hasPhoto && (
+    <img
+      src={team.photoUrl!}
+      alt={altText}
+      class="team-card-img"
+      loading="lazy"
+    />
+  )}
+  <div class="card-body">
+    <div class="team-card-header">
+      <span class="chip" style={`background: ${team.chipBg}; color: ${team.chipText};`}>
+        {team.chipLabel}
+      </span>
+      <h3>{team.displayName}</h3>
+    </div>
+    {badgeText && <span class="badge badge-blue">{badgeText}</span>}
+    {trainingText && <p class="team-card-meta mt-sm">{trainingText}</p>}
+    <p class="team-card-meta mt-md" style="color: var(--kscw-blue); font-weight: 600;" set:html={moreText} />
+  </div>
+</a>

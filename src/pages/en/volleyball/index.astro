@@ -1,10 +1,26 @@
 ---
 import PageLayout from '../../../layouts/PageLayout.astro';
+import SectionHeader from '../../../components/SectionHeader.astro';
+import TeamCard from '../../../components/TeamCard.astro';
 import CTA from '../../../components/CTA.astro';
 import { t } from '../../../lib/i18n';
-import SectionHeader from '../../../components/SectionHeader.astro';
+import { fetchAllTeams } from '../../../lib/pocketbase';
+import type { TeamData } from '../../../data/teams';
 
 const locale = 'en';
+const basePath = `/${locale}/volleyball`;
+
+const allTeams = await fetchAllTeams();
+const vb = (cat: string) =>
+  allTeams
+    .filter((t: TeamData) => t.sport === 'volleyball' && t.category === cat)
+    .sort((a: TeamData, b: TeamData) => a.order - b.order);
+
+const men = vb('men');
+const women = vb('women');
+const youth = vb('youth');
+
+const moreText = `${t(locale, 'vbMore')} &rarr;`;
 ---
 <PageLayout
   title="Volleyball — KSC Wiedikon"
@@ -16,66 +32,11 @@ const locale = 'en';
   <!-- Men -->
   <section class="section">
     <div class="container">
-      <div class="section-header">
-        <div>
-          <h2>{t(locale, 'vbMen')}</h2>
-          <div class="gold-bar"></div>
-        </div>
-      </div>
+      <SectionHeader title={t(locale, 'vbMen')} />
       <div class="grid grid-4">
-
-        <a href={`/${locale}/volleyball/h1`} class="card team-card team-card--photo">
-          <img src="https://kscw-api.lucanepa.com/api/files/pbc_1568971955/qz7y8l4tz48f65j/h193rllc4ye3_7d834yw8do.jpg?thumb=640x0" alt="Team photo" class="team-card-img" loading="lazy">
-          <div class="card-body">
-            <div class="team-card-header">
-              <span class="chip" style="background: #1e40af; color: #ffffff;">H1</span>
-              <h3>Herren 1</h3>
-            </div>
-            <span class="badge badge-blue">2. Liga</span>
-            <p class="team-card-meta mt-sm">Tue 20:00-21:30, Thu 19:30-21:30</p>
-            <p class="team-card-meta mt-md" style="color: var(--kscw-blue); font-weight: 600;">{t(locale, 'vbMore')} &rarr;</p>
-          </div>
-        </a>
-
-        <a href={`/${locale}/volleyball/h2`} class="card team-card team-card--photo">
-          <img src="https://kscw-api.lucanepa.com/api/files/pbc_1568971955/601p27iw4xvw1ds/h29vraeson3m_zzvezaah1z.jpg?thumb=640x0" alt="Team photo" class="team-card-img" loading="lazy">
-          <div class="card-body">
-            <div class="team-card-header">
-              <span class="chip" style="background: #2563eb; color: #ffffff;">H2</span>
-              <h3>Herren 2</h3>
-            </div>
-            <span class="badge badge-blue">3. Liga</span>
-            <p class="team-card-meta mt-sm">Mon 20:00-21:30, Wed 20:00-21:30</p>
-            <p class="team-card-meta mt-md" style="color: var(--kscw-blue); font-weight: 600;">{t(locale, 'vbMore')} &rarr;</p>
-          </div>
-        </a>
-
-        <a href={`/${locale}/volleyball/h3`} class="card team-card team-card--photo">
-          <img src="https://kscw-api.lucanepa.com/api/files/pbc_1568971955/il1wd1p018hrb61/image1000852_fbnjri0thk.jpg?thumb=640x0" alt="Team photo" class="team-card-img" loading="lazy">
-          <div class="card-body">
-            <div class="team-card-header">
-              <span class="chip" style="background: #3b82f6; color: #ffffff;">H3</span>
-              <h3>Herren 3</h3>
-            </div>
-            <span class="badge badge-blue">3. Liga</span>
-            <p class="team-card-meta mt-sm">Tue 20:00-21:30, Thu 20:00-21:30</p>
-            <p class="team-card-meta mt-md" style="color: var(--kscw-blue); font-weight: 600;">{t(locale, 'vbMore')} &rarr;</p>
-          </div>
-        </a>
-
-        <a href={`/${locale}/volleyball/legends`} class="card team-card team-card--photo">
-          <img src="https://kscw-api.lucanepa.com/api/files/pbc_1568971955/e352q254s1cip8y/image1000856_d4zcs4gmho.jpg?thumb=640x0" alt="Team photo" class="team-card-img" loading="lazy">
-          <div class="card-body">
-            <div class="team-card-header">
-              <span class="chip" style="background: #1e3a5f; color: #ffffff;">Legends</span>
-              <h3>Legends</h3>
-            </div>
-            <span class="badge badge-blue">4. Liga</span>
-            <p class="team-card-meta mt-sm">Wed 20:30-22:00</p>
-            <p class="team-card-meta mt-md" style="color: var(--kscw-blue); font-weight: 600;">{t(locale, 'vbMore')} &rarr;</p>
-          </div>
-        </a>
-
+        {men.map((team: TeamData) => (
+          <TeamCard team={team} locale={locale} basePath={basePath} moreText={moreText} />
+        ))}
       </div>
     </div>
   </section>
@@ -83,66 +44,11 @@ const locale = 'en';
   <!-- Women -->
   <section class="section-alt">
     <div class="container">
-      <div class="section-header">
-        <div>
-          <h2>{t(locale, 'vbWomen')}</h2>
-          <div class="gold-bar"></div>
-        </div>
-      </div>
+      <SectionHeader title={t(locale, 'vbWomen')} />
       <div class="grid grid-4">
-
-        <a href={`/${locale}/volleyball/d1`} class="card team-card team-card--photo">
-          <img src="https://kscw-api.lucanepa.com/api/files/pbc_1568971955/p1i9cs4km520dd6/d1jfiquwbimv_si9bndu1ir.jpg?thumb=640x0" alt="Team photo" class="team-card-img" loading="lazy">
-          <div class="card-body">
-            <div class="team-card-header">
-              <span class="chip" style="background: #be123c; color: #ffffff;">D1</span>
-              <h3>Damen 1</h3>
-            </div>
-            <span class="badge badge-blue">3. Liga</span>
-            <p class="team-card-meta mt-sm">Tue 20:00-21:30, Thu 19:30-21:30</p>
-            <p class="team-card-meta mt-md" style="color: var(--kscw-blue); font-weight: 600;">{t(locale, 'vbMore')} &rarr;</p>
-          </div>
-        </a>
-
-        <a href={`/${locale}/volleyball/d2`} class="card team-card team-card--photo">
-          <img src="https://kscw-api.lucanepa.com/api/files/pbc_1568971955/9kwn129z84967fc/d24vsjosw59i_83r02oi737.jpg?thumb=640x0" alt="Team photo" class="team-card-img" loading="lazy">
-          <div class="card-body">
-            <div class="team-card-header">
-              <span class="chip" style="background: #e11d48; color: #ffffff;">D2</span>
-              <h3>Damen 2</h3>
-            </div>
-            <span class="badge badge-blue">3. Liga</span>
-            <p class="team-card-meta mt-sm">Tue 20:00-21:30, Thu 20:00-21:30</p>
-            <p class="team-card-meta mt-md" style="color: var(--kscw-blue); font-weight: 600;">{t(locale, 'vbMore')} &rarr;</p>
-          </div>
-        </a>
-
-        <a href={`/${locale}/volleyball/d3`} class="card team-card team-card--photo">
-          <img src="https://kscw-api.lucanepa.com/api/files/pbc_1568971955/c18yey33vwx9yo4/d35u0ihf626u_2ll1lkswhm.jpg?thumb=640x0" alt="Team photo" class="team-card-img" loading="lazy">
-          <div class="card-body">
-            <div class="team-card-header">
-              <span class="chip" style="background: #f43f5e; color: #881337;">D3</span>
-              <h3>Damen 3</h3>
-            </div>
-            <span class="badge badge-blue">4. Liga</span>
-            <p class="team-card-meta mt-sm">Mon 20:00-21:30, Wed 20:00-21:30</p>
-            <p class="team-card-meta mt-md" style="color: var(--kscw-blue); font-weight: 600;">{t(locale, 'vbMore')} &rarr;</p>
-          </div>
-        </a>
-
-        <a href={`/${locale}/volleyball/d4`} class="card team-card team-card--photo">
-          <img src="https://kscw-api.lucanepa.com/api/files/pbc_1568971955/2h55x265r941a4k/d4jgm2oo03ah_7ouliepg2p.jpg?thumb=640x0" alt="Team photo" class="team-card-img" loading="lazy">
-          <div class="card-body">
-            <div class="team-card-header">
-              <span class="chip" style="background: #fb7185; color: #881337;">D4</span>
-              <h3>Damen 4</h3>
-            </div>
-            <span class="badge badge-blue">5. Liga</span>
-            <p class="team-card-meta mt-sm">Tue 20:00-21:30</p>
-            <p class="team-card-meta mt-md" style="color: var(--kscw-blue); font-weight: 600;">{t(locale, 'vbMore')} &rarr;</p>
-          </div>
-        </a>
-
+        {women.map((team: TeamData) => (
+          <TeamCard team={team} locale={locale} basePath={basePath} moreText={moreText} />
+        ))}
       </div>
     </div>
   </section>
@@ -150,50 +56,11 @@ const locale = 'en';
   <!-- Youth -->
   <section class="section">
     <div class="container">
-      <div class="section-header">
-        <div>
-          <h2>{t(locale, 'vbYouth')}</h2>
-          <div class="gold-bar"></div>
-        </div>
-      </div>
-      <div class="grid grid-3">
-
-        <a href={`/${locale}/volleyball/du23`} class="card team-card card-accent" style="--card-accent: #fda4af;">
-          <div class="card-body">
-            <div class="team-card-header">
-              <span class="chip" style="background: #fda4af; color: #881337;">DU23</span>
-              <h3>Damen U23</h3>
-            </div>
-            <span class="badge badge-blue">U23</span>
-            <p class="team-card-meta mt-sm">Mon 19:00-20:30</p>
-            <p class="team-card-meta mt-md" style="color: var(--kscw-blue); font-weight: 600;">{t(locale, 'vbMore')} &rarr;</p>
-          </div>
-        </a>
-
-        <a href={`/${locale}/volleyball/hu23`} class="card team-card card-accent" style="--card-accent: #60a5fa;">
-          <div class="card-body">
-            <div class="team-card-header">
-              <span class="chip" style="background: #60a5fa; color: #1e3a8a;">HU23</span>
-              <h3>Herren U23</h3>
-            </div>
-            <span class="badge badge-blue">U23</span>
-            <p class="team-card-meta mt-sm">Tue 18:00-19:30</p>
-            <p class="team-card-meta mt-md" style="color: var(--kscw-blue); font-weight: 600;">{t(locale, 'vbMore')} &rarr;</p>
-          </div>
-        </a>
-
-        <a href={`/${locale}/volleyball/hu20`} class="card team-card card-accent" style="--card-accent: #93c5fd;">
-          <div class="card-body">
-            <div class="team-card-header">
-              <span class="chip" style="background: #93c5fd; color: #1e3a8a;">HU20</span>
-              <h3>Herren U20</h3>
-            </div>
-            <span class="badge badge-blue">U20</span>
-            <p class="team-card-meta mt-sm">Wed 18:00-19:30</p>
-            <p class="team-card-meta mt-md" style="color: var(--kscw-blue); font-weight: 600;">{t(locale, 'vbMore')} &rarr;</p>
-          </div>
-        </a>
-
+      <SectionHeader title={t(locale, 'vbYouth')} />
+      <div class={`grid grid-${Math.min(youth.length, 4)}`}>
+        {youth.map((team: TeamData) => (
+          <TeamCard team={team} locale={locale} basePath={basePath} moreText={moreText} />
+        ))}
       </div>
     </div>
   </section>

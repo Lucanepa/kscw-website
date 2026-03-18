@@ -18,6 +18,8 @@ export const teamColors: Record<string, TeamColor> = {
   D3:      { bg: '#f43f5e', text: '#881337', border: '#e11d48' },
   D4:      { bg: '#fb7185', text: '#881337', border: '#f43f5e' },
   DU23:    { bg: '#fda4af', text: '#881337', border: '#fb7185' },
+  'DU23-1': { bg: '#fda4af', text: '#881337', border: '#fb7185' },
+  'DU23-2': { bg: '#fda4af', text: '#881337', border: '#fb7185' },
   // Basketball Men (Orange)
   'BB-H1':         { bg: '#9a3412', text: '#ffffff', border: '#7c2d12' },
   'BB-H3':         { bg: '#c2410c', text: '#ffffff', border: '#9a3412' },

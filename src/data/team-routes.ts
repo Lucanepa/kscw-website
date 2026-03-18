@@ -14,7 +14,8 @@ export const volleyballTeams: TeamRoute[] = [
   { slug: 'd2', pbId: '9kwn129z84967fc', short: 'D2', sport: 'volleyball' },
   { slug: 'd3', pbId: 'c18yey33vwx9yo4', short: 'D3', sport: 'volleyball' },
   { slug: 'd4', pbId: '2h55x265r941a4k', short: 'D4', sport: 'volleyball' },
-  { slug: 'du23', pbId: 'vo89vn93wdoo01o', short: 'DU23', sport: 'volleyball' },
+  { slug: 'du23-1', pbId: 'vo89vn93wdoo01o', short: 'DU23-1', sport: 'volleyball' },
+  { slug: 'du23-2', pbId: '6udjwmx5mqtctrn', short: 'DU23-2', sport: 'volleyball' },
   { slug: 'hu23', pbId: '6380e7aj8z80o79', short: 'HU23', sport: 'volleyball' },
   { slug: 'hu20', pbId: '274nyi35of7v34x', short: 'HU20', sport: 'volleyball' },
 ];
