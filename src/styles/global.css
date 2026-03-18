@@ -444,6 +444,8 @@ h1, h2, h3, h4, h5, h6 {
   top: 100%;
   left: 0;
   min-width: 220px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
   padding: var(--space-sm);
   background: var(--bg-white);
   border: 1px solid var(--border);
