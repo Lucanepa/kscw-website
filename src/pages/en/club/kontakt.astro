@@ -1,8 +1,22 @@
 ---
 import PageLayout from '../../../layouts/PageLayout.astro';
 import { t } from '../../../lib/i18n';
+import client from '../../../../tina/__generated__/client';
 
 const locale = 'en';
+
+let contactPersons = [];
+try {
+  const res = await client.queries.contactPersonConnection({ first: 50 });
+  contactPersons = (res.data.contactPersonConnection.edges ?? [])
+    .map(e => e.node)
+    .sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
+} catch (e) {
+  console.warn('Failed to fetch contact persons from Tina:', e.message);
+}
+
+const volleyballContacts = contactPersons.filter(c => c.sport === 'volleyball');
+const basketballContacts = contactPersons.filter(c => c.sport === 'basketball');
 ---
 <PageLayout
   title="Contact — KSC Wiedikon"
@@ -70,7 +84,7 @@ const locale = 'en';
 
           <div class="contact-info-card">
             <h3>
-              <i data-lucide="mail" style="width: 18px; height: 18px; color: var(--kscw-blue, #4A55A2);"></i>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--kscw-blue, #4A55A2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
               <span>{t(locale, 'contactGeneral')}</span>
             </h3>
             <p>
@@ -79,44 +93,48 @@ const locale = 'en';
             </p>
           </div>
 
-          <div class="contact-info-card">
-            <h3>
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--kscw-blue, #4A55A2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20"/><path d="M2 12c3-3 6.5-5 10-5s7 2 10 5"/><path d="M2 12c3 3 6.5 5 10 5s7-2 10-5"/></svg>
-              Volleyball
-            </h3>
-            <p>
-              Thamayanth Kanagalingam<br>
-              <a href="mailto:volleyball@kscw.ch">volleyball@kscw.ch</a>
-            </p>
-          </div>
+          {volleyballContacts.length > 0 && (
+            <div class="contact-info-card">
+              <h3>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--kscw-blue, #4A55A2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20"/><path d="M2 12c3-3 6.5-5 10-5s7 2 10 5"/><path d="M2 12c3 3 6.5 5 10 5s7-2 10-5"/></svg>
+                Volleyball
+              </h3>
+              {volleyballContacts.map((contact, i) => (
+                <p style={i > 0 ? 'margin-top: var(--space-sm);' : ''}>
+                  {contact.name}<br>
+                  <a href={`mailto:${contact.email}`}>{contact.email}</a>
+                </p>
+              ))}
+            </div>
+          )}
+
+          {basketballContacts.length > 0 && (
+            <div class="contact-info-card">
+              <h3>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7 12a5 5 0 0 1 10 0"/><path d="M12 7a5 5 0 0 0 0 10"/></svg>
+                Basketball
+              </h3>
+              {basketballContacts.map((contact, i) => (
+                <p style={i > 0 ? 'margin-top: var(--space-sm);' : ''}>
+                  {contact.name}<br>
+                  <a href={`mailto:${contact.email}`}>{contact.email}</a>
+                </p>
+              ))}
+            </div>
+          )}
 
           <div class="contact-info-card">
             <h3>
-              <i data-lucide="dribbble" style="width: 18px; height: 18px; color: #ea580c;"></i>
-              Basketball
-            </h3>
-            <p>
-              Anja Jimenez<br>
-              <a href="mailto:anja.jimenez@kscw.ch">anja.jimenez@kscw.ch</a>
-            </p>
-            <p style="margin-top: var(--space-sm);">
-              Rachel Moser<br>
-              <a href="mailto:rachel.moser@kscw.ch">rachel.moser@kscw.ch</a>
-            </p>
-          </div>
-
-          <div class="contact-info-card">
-            <h3>
-              <i data-lucide="share-2" style="width: 18px; height: 18px; color: var(--kscw-blue, #4A55A2);"></i>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--kscw-blue, #4A55A2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
               <span>{t(locale, 'contactSocialMedia')}</span>
             </h3>
             <div class="social-links">
               <a href="https://www.facebook.com/kscwiedikon/" class="social-link">
-                <i data-lucide="facebook" style="width: 18px; height: 18px;"></i>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
                 KSC-Wiedikon
               </a>
               <a href="https://www.instagram.com/ksc_wiedikon/" class="social-link">
-                <i data-lucide="instagram" style="width: 18px; height: 18px;"></i>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
                 @ksc_wiedikon
               </a>
             </div>

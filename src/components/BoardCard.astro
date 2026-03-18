@@ -1,12 +1,13 @@
 ---
 interface Props {
   name: string;
-  initials: string;
+  initials?: string;
   role: string;
   photoUrl?: string;
 }
 
-const { name, initials, role, photoUrl } = Astro.props;
+const { name, initials: providedInitials, role, photoUrl } = Astro.props;
+const initials = providedInitials || name.split(' ').map(w => w[0]).join('').toUpperCase();
 ---
 <div class="card fade-in" style="text-align:center;padding:var(--space-lg);">
   {photoUrl ? (

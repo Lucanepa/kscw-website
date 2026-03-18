@@ -142,13 +142,6 @@ export default defineConfig({
             options: ['club', 'volleyball', 'basketball'],
           },
           {
-            type: 'string',
-            name: 'locale',
-            label: 'Language',
-            options: ['de', 'en'],
-            required: true,
-          },
-          {
             type: 'image',
             name: 'image',
             label: 'Featured Image',
@@ -195,6 +188,40 @@ export default defineConfig({
             type: 'image',
             name: 'photo',
             label: 'Photo',
+          },
+          {
+            type: 'number',
+            name: 'order',
+            label: 'Sort Order',
+            required: true,
+          },
+        ],
+      },
+      {
+        name: 'contactPerson',
+        label: 'Contact Persons',
+        path: 'content/contact-persons',
+        format: 'md',
+        fields: [
+          {
+            type: 'string',
+            name: 'name',
+            label: 'Name',
+            isTitle: true,
+            required: true,
+          },
+          {
+            type: 'string',
+            name: 'email',
+            label: 'Email',
+            required: true,
+          },
+          {
+            type: 'string',
+            name: 'sport',
+            label: 'Sport',
+            options: ['general', 'volleyball', 'basketball'],
+            required: true,
           },
           {
             type: 'number',
