@@ -142,13 +142,6 @@ export default defineConfig({
             options: ['club', 'volleyball', 'basketball'],
           },
           {
-            type: 'string',
-            name: 'locale',
-            label: 'Language',
-            options: ['de', 'en'],
-            required: true,
-          },
-          {
             type: 'image',
             name: 'image',
             label: 'Featured Image',
