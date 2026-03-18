@@ -2,12 +2,32 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SectionHeader from '../../components/SectionHeader.astro';
 import { t } from '../../lib/i18n';
+import { readdirSync, readFileSync } from 'fs';
+import { join } from 'path';
 
 const locale = 'en';
 
-const newsGlob = import.meta.glob('/content/news-en/*.mdx', { eager: true });
-const newsArticlesEn = Object.values(newsGlob)
-  .map(f => f.frontmatter)
+// Read EN news frontmatter at build time (no MDX integration needed)
+const EN_NEWS_DIR = 'content/news-en';
+const newsArticlesEn = readdirSync(EN_NEWS_DIR)
+  .filter(f => f.endsWith('.mdx'))
+  .map(f => {
+    const content = readFileSync(join(EN_NEWS_DIR, f), 'utf-8');
+    const match = content.match(/^---\n([\s\S]*?)\n---/);
+    if (!match) return null;
+    const fm: Record<string, string> = {};
+    for (const line of match[1].split('\n')) {
+      const idx = line.indexOf(':');
+      if (idx === -1) continue;
+      const key = line.slice(0, idx).trim();
+      let val = line.slice(idx + 1).trim();
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+        val = val.slice(1, -1);
+      }
+      fm[key] = val;
+    }
+    return fm;
+  })
   .filter(f => f?.title)
   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   .slice(0, 6);
