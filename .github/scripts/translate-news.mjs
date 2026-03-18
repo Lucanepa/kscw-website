@@ -132,6 +132,15 @@ async function main() {
     const title = frontmatter.title || '';
     const excerpt = frontmatter.excerpt || '';
 
+    // Skip files with manual_override flag
+    if (existsSync(enPath)) {
+      const enParsed = parseMdx(readFileSync(enPath, 'utf-8'));
+      if (enParsed?.frontmatter?.manual_override === 'true') {
+        console.log(`⊘ ${file} — manual override, skipping`);
+        continue;
+      }
+    }
+
     const hash = computeHash(title, excerpt, body);
     const existingHash = getExistingHash(enPath);
 
