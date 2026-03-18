@@ -23,5 +23,9 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
+# claude code
+.claude/
+.superpowers/
+
 # TinaCMS generated
 tina/__generated__/
