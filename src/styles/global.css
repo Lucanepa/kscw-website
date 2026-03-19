@@ -688,6 +688,15 @@ h1, h2, h3, h4, h5, h6 {
 .footer-links a:hover {
   color: var(--kscw-gold);
 }
+.footer-contact-info {
+  margin-top: var(--space-md);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.footer-contact-info strong {
+  color: var(--text-on-dark);
+}
 .footer-social {
   display: flex;
   gap: var(--space-md);
