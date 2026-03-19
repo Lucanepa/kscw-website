@@ -1,43 +1,57 @@
-# Astro Starter Kit: Minimal
+# KSCW Website
 
-```sh
-npm create astro@latest -- --template minimal
+Public website for **KSC Wiedikon** — a volleyball and basketball club based in Zurich, Switzerland.
+
+**Live:** [kscw.ch](https://kscw.ch)
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Framework | [Astro 6](https://astro.build) (static output) |
+| Styling | Custom CSS design system (no Tailwind) |
+| Backend | [PocketBase](https://pocketbase.io) API (`api.kscw.ch`) |
+| Hosting | Cloudflare Pages |
+| i18n | Directory routing (`/de/…`, `/en/…`) with build-time `t()` helper |
+
+## Features
+
+- **Bilingual** — Full German and English versions
+- **Dynamic team pages** — Live game data, rankings, rosters, and training schedules fetched from PocketBase
+- **Calendar** — Event grid with tooltips and detail modals
+- **Admin dashboard** — Hidden `/admin` page with Quill rich-text editor for managing news and events
+- **Feedback form** — Bug reports, feature requests, and general feedback with Cloudflare Turnstile CAPTCHA and file upload
+- **Dark mode** — System-aware theme toggle
+- **Interactive islands** — Lightweight client-side interactivity without a JS framework
+
+## Project Structure
+
+```
+src/
+  pages/          # Astro routes (/de/…, /en/…, /admin)
+  components/     # Reusable Astro components
+  layouts/        # BaseLayout, PageLayout
+  islands/        # Client-side interactivity (theme, nav, calendar, etc.)
+  data/           # Static JSON/TS (teams, board, contacts)
+  lib/            # Utilities (PocketBase client, i18n helper)
+  i18n/           # Translation files (de.json, en.json)
+  styles/         # Custom CSS design system (global.css)
+public/           # Static assets (images, favicons)
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Getting Started
 
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```bash
+npm install
+npm run dev       # Dev server at localhost:4321
+npm run build     # Production build → dist/
+npm run preview   # Preview production build
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Deployment
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+Pushes to the `prod` branch trigger automatic deployment via Cloudflare Pages.
 
-Any static assets, like images, can be placed in the `public/` directory.
+## Related
 
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- [Wiedisync](https://github.com/Lucanepa/wiedisync) — Member-facing club platform (React + PocketBase)
