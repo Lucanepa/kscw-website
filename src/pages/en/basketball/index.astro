@@ -65,10 +65,21 @@ const moreText = `${t(locale, 'bbMore')} &rarr;`;
     </div>
   </section>
 
+  <!-- Scoreboard -->
+  <section class="section-alt" id="bb-scoreboard-section">
+    <div class="container">
+      <SectionHeader title="KSCW Basketball Scoreboard" />
+      <div id="bb-scoreboard" data-scoreboard="basketball"></div>
+    </div>
+  </section>
+
   <CTA
     title={t(locale, 'bbCTA')}
     text={t(locale, 'bbCTAText')}
     buttonLabel={t(locale, 'bbCTAButton')}
     buttonHref={`/${locale}/club/kontakt`}
   />
+
+  <script is:inline src="/js/data.js"></script>
+  <script is:inline src="/js/scoreboard.js"></script>
 </PageLayout>

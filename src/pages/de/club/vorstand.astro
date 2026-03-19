@@ -3,21 +3,10 @@ import PageLayout from '../../../layouts/PageLayout.astro';
 import BoardCard from '../../../components/BoardCard.astro';
 import CTA from '../../../components/CTA.astro';
 import { t } from '../../../lib/i18n';
-import client from '../../../../tina/__generated__/client';
+import boardMembers from '../../../data/board-members.json';
 
 const locale = 'de';
-
-let members: { name: string; initials?: string | null; role_de: string; role_en: string; photo?: string | null; order: number }[] = [];
-
-try {
-  const res = await client.queries.boardMemberConnection({ first: 50 });
-  members = (res.data.boardMemberConnection.edges ?? [])
-    .map((edge) => edge?.node)
-    .filter((node): node is NonNullable<typeof node> => node != null)
-    .sort((a, b) => a.order - b.order);
-} catch (e) {
-  console.warn('Failed to fetch board members from Tina:', e);
-}
+const members = boardMembers;
 ---
 <PageLayout
   title="Vorstand — KSC Wiedikon"

@@ -6,14 +6,12 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "tinacms dev -c \"astro dev\"",
-    "build": "tinacms build --skip-cloud-checks && astro build",
+    "dev": "astro dev",
+    "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
-    "@tinacms/cli": "^2.0.5",
-    "astro": "^6.0.5",
-    "tinacms": "^3.5.0"
+    "astro": "^6.0.5"
   }
 }

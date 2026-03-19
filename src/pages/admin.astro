@@ -1,0 +1,1228 @@
+---
+import '../styles/global.css';
+---
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>KSCW Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="/images/kscw_trio.png" type="image/png">
+  <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+  <script is:inline>
+    if (localStorage.getItem('kscw-theme') === 'light') {
+      document.documentElement.classList.add('light');
+    }
+  </script>
+</head>
+<body>
+  <div id="admin-app"></div>
+
+  <script is:inline src="https://cdn.jsdelivr.net/npm/pocketbase@0.25.2/dist/pocketbase.umd.js"></script>
+  <script is:inline src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+  <script is:inline src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js"></script>
+  <script is:inline>
+  (function() {
+    'use strict';
+
+    var PB_URL = 'https://kscw-api.lucanepa.com';
+    var pb = new PocketBase(PB_URL);
+    var app = document.getElementById('admin-app');
+    var currentTab = 'news';
+    var quillInstance = null;
+    var cachedTeams = null; // [{id, name, sport}]
+    var cachedMembers = null; // [{id, first_name, last_name, email}]
+
+    // ── Data caches ───────────────────────────────────────────
+    function fetchTeams() {
+      if (cachedTeams) return Promise.resolve(cachedTeams);
+      return pb.collection('teams').getList(1, 100, { filter: 'active=true', sort: 'name', fields: 'id,name,sport' })
+        .then(function(res) { cachedTeams = res.items; return cachedTeams; });
+    }
+    function fetchMembers() {
+      if (cachedMembers) return Promise.resolve(cachedMembers);
+      return pb.collection('members').getList(1, 500, { sort: 'first_name,last_name', fields: 'id,first_name,last_name,email' })
+        .then(function(res) { cachedMembers = res.items; return cachedMembers; });
+    }
+
+    // ── Auth helpers ──────────────────────────────────────────
+    function isAuthorized() {
+      if (!pb.authStore.isValid) return false;
+      var record = pb.authStore.record;
+      if (!record || !record.role) return false;
+      var roles = Array.isArray(record.role) ? record.role : [record.role];
+      return roles.some(function(r) {
+        return r === 'website_admin' || r === 'admin' || r === 'superuser';
+      });
+    }
+
+    // ── Escape helpers ────────────────────────────────────────
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
+    }
+    function escapeAttr(str) {
+      return (str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // ── Safe DOM helpers (avoid innerHTML with user data) ─────
+    function setAppContent(html) {
+      // All HTML here is hardcoded template strings with user values
+      // escaped via escapeHtml/escapeAttr. This is safe by construction.
+      app.innerHTML = DOMPurify.sanitize(html, { ADD_TAGS: ['form'], ADD_ATTR: ['data-tab', 'data-action', 'data-id', 'required', 'autocomplete'] });
+    }
+
+    // ── Render Router ─────────────────────────────────────────
+    function render() {
+      if (!pb.authStore.isValid) {
+        renderLogin();
+      } else if (!isAuthorized()) {
+        renderAccessDenied();
+      } else {
+        renderAdmin();
+      }
+    }
+
+    // ── Login Page ────────────────────────────────────────────
+    function renderLogin() {
+      setAppContent(
+        '<div class="admin-login">' +
+          '<div class="admin-login-card">' +
+            '<img src="/images/kscw_trio.png" alt="KSCW" style="height:60px;margin-bottom:1.5rem;">' +
+            '<h1>KSCW Admin</h1>' +
+            '<form id="login-form">' +
+              '<div class="admin-field">' +
+                '<label for="email">E-Mail</label>' +
+                '<input type="email" id="email" required autocomplete="email">' +
+              '</div>' +
+              '<div class="admin-field">' +
+                '<label for="password">Passwort</label>' +
+                '<input type="password" id="password" required autocomplete="current-password">' +
+              '</div>' +
+              '<div id="login-error" class="admin-error" style="display:none;"></div>' +
+              '<button type="submit" class="admin-btn admin-btn-primary" style="width:100%;">Anmelden</button>' +
+            '</form>' +
+          '</div>' +
+        '</div>'
+      );
+
+      document.getElementById('login-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var email = document.getElementById('email').value;
+        var password = document.getElementById('password').value;
+        var errEl = document.getElementById('login-error');
+        var btn = e.target.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.textContent = 'Wird angemeldet...';
+
+        pb.collection('members').authWithPassword(email, password)
+          .then(function() {
+            if (!isAuthorized()) {
+              errEl.textContent = 'Zugang verweigert — fehlende Berechtigung.';
+              errEl.style.display = 'block';
+              pb.authStore.clear();
+              btn.disabled = false;
+              btn.textContent = 'Anmelden';
+            } else {
+              render();
+            }
+          })
+          .catch(function() {
+            errEl.textContent = 'Anmeldung fehlgeschlagen. Bitte prüfe E-Mail und Passwort.';
+            errEl.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Anmelden';
+          });
+      });
+    }
+
+    // ── Access Denied ─────────────────────────────────────────
+    function renderAccessDenied() {
+      setAppContent(
+        '<div class="admin-login">' +
+          '<div class="admin-login-card">' +
+            '<h1>Zugang verweigert</h1>' +
+            '<p style="color:var(--text-secondary);margin-bottom:1.5rem;">Du hast keine Berechtigung für den Website-Admin.</p>' +
+            '<button class="admin-btn" id="denied-logout">Abmelden</button>' +
+          '</div>' +
+        '</div>'
+      );
+      document.getElementById('denied-logout').addEventListener('click', function() {
+        pb.authStore.clear();
+        render();
+      });
+    }
+
+    // ── Admin Dashboard ───────────────────────────────────────
+    function renderAdmin() {
+      setAppContent(
+        '<div class="admin-shell">' +
+          '<header class="admin-header">' +
+            '<div class="admin-header-inner">' +
+              '<a href="/" class="admin-logo">' +
+                '<img src="/images/kscw_trio.png" alt="" style="height:32px;">' +
+                '<span>KSCW Admin</span>' +
+              '</a>' +
+              '<button class="admin-btn admin-btn-ghost" id="logout-btn">Abmelden</button>' +
+            '</div>' +
+          '</header>' +
+          '<div class="admin-tabs">' +
+            '<button class="admin-tab' + (currentTab === 'news' ? ' active' : '') + '" data-tab="news">News</button>' +
+            '<button class="admin-tab' + (currentTab === 'events' ? ' active' : '') + '" data-tab="events">Events</button>' +
+          '</div>' +
+          '<div class="admin-content" id="admin-content"></div>' +
+          '<button class="admin-fab" id="fab-btn" title="Neu erstellen">+</button>' +
+        '</div>'
+      );
+
+      // Modal container
+      var modalDiv = document.createElement('div');
+      modalDiv.id = 'admin-modal';
+      modalDiv.className = 'admin-modal-overlay';
+      modalDiv.style.display = 'none';
+      app.appendChild(modalDiv);
+
+      document.getElementById('logout-btn').addEventListener('click', function() {
+        pb.authStore.clear();
+        render();
+      });
+
+      document.querySelectorAll('.admin-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+          currentTab = this.getAttribute('data-tab');
+          document.querySelectorAll('.admin-tab').forEach(function(t) { t.classList.remove('active'); });
+          this.classList.add('active');
+          loadItems();
+        });
+      });
+
+      document.getElementById('fab-btn').addEventListener('click', function() {
+        openModal(null);
+      });
+
+      loadItems();
+    }
+
+    // ── Load Items ────────────────────────────────────────────
+    function loadItems() {
+      var content = document.getElementById('admin-content');
+      content.textContent = '';
+      var loadingDiv = document.createElement('div');
+      loadingDiv.className = 'admin-loading';
+      loadingDiv.textContent = 'Laden...';
+      content.appendChild(loadingDiv);
+
+      var collection = currentTab === 'news' ? 'news' : 'events';
+      var sort = currentTab === 'news' ? '-published_at' : '-start_date';
+
+      pb.collection(collection).getList(1, 50, { sort: sort })
+        .then(function(result) {
+          content.textContent = '';
+
+          if (!result.items.length) {
+            var emptyDiv = document.createElement('div');
+            emptyDiv.className = 'admin-empty';
+            emptyDiv.textContent = 'Keine Einträge vorhanden.';
+            content.appendChild(emptyDiv);
+            return;
+          }
+
+          var list = document.createElement('div');
+          list.className = 'admin-list';
+
+          result.items.forEach(function(item) {
+            var date = currentTab === 'news'
+              ? (item.published_at || item.created || '').substring(0, 10)
+              : (item.start_date || '').substring(0, 10);
+            var title = item.title || '(Ohne Titel)';
+            var category = currentTab === 'news' ? (item.category || '') : (item.event_type || '');
+
+            var row = document.createElement('div');
+            row.className = 'admin-list-item';
+
+            // Info section
+            var info = document.createElement('div');
+            info.className = 'admin-list-info';
+
+            var h3 = document.createElement('h3');
+            h3.className = 'admin-list-title';
+            h3.textContent = title;
+            info.appendChild(h3);
+
+            var meta = document.createElement('div');
+            meta.className = 'admin-list-meta';
+            var dateSpan = document.createElement('span');
+            dateSpan.textContent = date;
+            meta.appendChild(dateSpan);
+            if (category) {
+              var catBadge = document.createElement('span');
+              catBadge.className = 'admin-badge';
+              catBadge.textContent = category;
+              meta.appendChild(catBadge);
+            }
+            if (currentTab === 'news') {
+              var statusBadge = document.createElement('span');
+              statusBadge.className = item.is_published ? 'admin-badge admin-badge-green' : 'admin-badge admin-badge-gray';
+              statusBadge.textContent = item.is_published ? 'Publiziert' : 'Entwurf';
+              meta.appendChild(statusBadge);
+            }
+            info.appendChild(meta);
+            row.appendChild(info);
+
+            // Actions
+            var actions = document.createElement('div');
+            actions.className = 'admin-list-actions';
+
+            var editBtn = document.createElement('button');
+            editBtn.className = 'admin-btn admin-btn-sm';
+            editBtn.textContent = 'Bearbeiten';
+            editBtn.addEventListener('click', function() {
+              pb.collection(collection).getOne(item.id).then(function(fullItem) { openModal(fullItem); });
+            });
+            actions.appendChild(editBtn);
+
+            var deleteBtn = document.createElement('button');
+            deleteBtn.className = 'admin-btn admin-btn-sm admin-btn-danger';
+            deleteBtn.textContent = 'Löschen';
+            deleteBtn.addEventListener('click', function() {
+              if (confirm('Diesen Eintrag wirklich löschen?')) {
+                pb.collection(collection).delete(item.id)
+                  .then(function() { loadItems(); })
+                  .catch(function(err) { alert('Fehler beim Löschen: ' + err.message); });
+              }
+            });
+            actions.appendChild(deleteBtn);
+
+            row.appendChild(actions);
+            list.appendChild(row);
+          });
+
+          content.appendChild(list);
+        })
+        .catch(function(err) {
+          content.textContent = '';
+          var errDiv = document.createElement('div');
+          errDiv.className = 'admin-error';
+          errDiv.textContent = 'Fehler beim Laden: ' + err.message;
+          content.appendChild(errDiv);
+        });
+    }
+
+    // ── Modal (Create / Edit) ─────────────────────────────────
+    function openModal(item) {
+      var modal = document.getElementById('admin-modal');
+      var isEdit = !!item;
+      var isNews = currentTab === 'news';
+      var modalTitle = isEdit ? 'Bearbeiten' : 'Neu erstellen';
+
+      // Build form HTML (all values escaped)
+      var formHtml = '<div class="admin-modal-content">' +
+        '<div class="admin-modal-header">' +
+          '<h2>' + escapeHtml(modalTitle) + '</h2>' +
+          '<button class="admin-modal-close" id="modal-close">&times;</button>' +
+        '</div>' +
+        '<form id="modal-form" class="admin-modal-body">';
+
+      // Title
+      formHtml += fieldInput('title', 'Titel', item ? item.title : '', true);
+
+      if (isNews) {
+        formHtml += fieldInput('slug', 'Slug', item ? item.slug : '');
+        formHtml += fieldTextarea('excerpt', 'Kurzfassung', item ? item.excerpt : '');
+        formHtml += '<div class="admin-field"><label>Inhalt</label><div id="quill-editor" style="min-height:200px;"></div></div>';
+        formHtml += fieldSelect('category', 'Kategorie', ['club', 'volleyball', 'basketball'], item ? item.category : 'club');
+        formHtml += fieldFile('image', 'Bild');
+        if (item && item.image) {
+          formHtml += '<div class="admin-field"><img src="' + escapeAttr(PB_URL + '/api/files/news/' + item.id + '/' + item.image) + '?thumb=200x0" style="max-height:100px;border-radius:var(--radius-md);"></div>';
+        }
+        formHtml += fieldDate('published_at', 'Veröffentlichungsdatum', item ? (item.published_at || '').substring(0, 10) : new Date().toISOString().substring(0, 10));
+        formHtml += fieldCheckbox('is_published', 'Veröffentlicht', item ? item.is_published : true);
+      } else {
+        // Events form
+        formHtml += fieldSelect('event_type', 'Typ', ['verein', 'social', 'meeting', 'tournament', 'other'], item ? item.event_type : 'verein');
+        formHtml += fieldDate('start_date', 'Startdatum', item ? (item.start_date || '').substring(0, 10) : '');
+        formHtml += fieldDate('end_date', 'Enddatum', item ? (item.end_date || '').substring(0, 10) : '');
+        formHtml += fieldCheckbox('all_day', 'Ganztägig', item ? item.all_day : true);
+        formHtml += fieldInput('location', 'Ort', item ? (item.location || '') : '');
+        formHtml += '<div class="admin-field"><label>Beschreibung</label><div id="quill-editor" style="min-height:150px;"></div></div>';
+
+        // Participation section
+        var hasParticipation = item && (item.respond_by || (item.teams && item.teams.length) || item.max_players || item.min_players || (item.required_participants && item.required_participants.length));
+        formHtml += fieldCheckbox('participation_required', 'Teilnahme erforderlich', !!hasParticipation);
+        formHtml += '<div id="participation-fields" style="' + (hasParticipation ? '' : 'display:none;') + '">';
+        formHtml += fieldDate('respond_by', 'Antwort bis', item ? (item.respond_by || '').substring(0, 10) : '');
+
+        // Teams selector (placeholder — filled dynamically)
+        formHtml += '<div class="admin-field">' +
+          '<label>Teams</label>' +
+          '<div class="admin-team-presets" id="team-presets"></div>' +
+          '<div class="admin-multiselect-tags" id="teams-tags"></div>' +
+          '<div id="teams-dropdown" class="admin-multiselect-dropdown" style="display:none;"></div>' +
+          '<input type="hidden" name="teams" value="' + escapeAttr(item && item.teams ? JSON.stringify(item.teams) : '[]') + '">' +
+        '</div>';
+
+        formHtml += fieldNumber('min_players', 'Min. Teilnehmer', item ? item.min_players : '');
+        formHtml += fieldNumber('max_players', 'Max. Teilnehmer', item ? item.max_players : '');
+
+        // Required participants (multi-search select — filled dynamically)
+        formHtml += '<div class="admin-field">' +
+          '<label>Pflicht-Teilnehmer</label>' +
+          '<input type="text" id="member-search" placeholder="Suchen..." autocomplete="off">' +
+          '<div class="admin-multiselect-tags" id="members-tags"></div>' +
+          '<div id="members-dropdown" class="admin-multiselect-dropdown" style="display:none;"></div>' +
+          '<input type="hidden" name="required_participants" value="' + escapeAttr(item && item.required_participants ? JSON.stringify(item.required_participants) : '[]') + '">' +
+        '</div>';
+
+        formHtml += '</div>'; // close participation-fields
+      }
+
+      formHtml += '<div class="admin-modal-footer">' +
+          '<button type="button" class="admin-btn" id="modal-cancel">Abbrechen</button>' +
+          '<button type="submit" class="admin-btn admin-btn-primary" id="modal-save">Speichern</button>' +
+        '</div>' +
+        '</form>' +
+      '</div>';
+
+      // Sanitize and set modal content
+      modal.innerHTML = DOMPurify.sanitize(formHtml, {
+        ADD_TAGS: ['form'],
+        ADD_ATTR: ['data-tab', 'data-action', 'data-id', 'required', 'autocomplete', 'rows', 'accept', 'for']
+      });
+      modal.style.display = 'flex';
+
+      // Initialize Quill
+      quillInstance = null;
+      var editorEl = document.getElementById('quill-editor');
+      if (editorEl) {
+        quillInstance = new Quill(editorEl, {
+          theme: 'snow',
+          modules: {
+            toolbar: [
+              [{ header: [2, 3, false] }],
+              ['bold', 'italic', 'underline'],
+              [{ list: 'ordered' }, { list: 'bullet' }],
+              ['link', 'image'],
+              ['clean']
+            ]
+          }
+        });
+        var bodyContent = isNews ? (item ? item.body : '') : (item ? item.description : '');
+        if (bodyContent) {
+          quillInstance.clipboard.dangerouslyPasteHTML(DOMPurify.sanitize(bodyContent));
+        }
+      }
+
+      // Auto-generate slug from title (news only, new items)
+      if (isNews && !isEdit) {
+        var titleInput = document.querySelector('#modal-form [name="title"]');
+        var slugInput = document.querySelector('#modal-form [name="slug"]');
+        if (titleInput && slugInput) {
+          titleInput.addEventListener('input', function() {
+            slugInput.value = this.value.toLowerCase()
+              .replace(/[äÄ]/g, 'ae').replace(/[öÖ]/g, 'oe').replace(/[üÜ]/g, 'ue').replace(/[ß]/g, 'ss')
+              .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          });
+        }
+      }
+
+      // ── Participation toggle (events only) ───────────────────
+      if (!isNews) {
+        var partCheck = document.querySelector('[name="participation_required"]');
+        var partFields = document.getElementById('participation-fields');
+        if (partCheck && partFields) {
+          partCheck.addEventListener('change', function() {
+            partFields.style.display = this.checked ? '' : 'none';
+          });
+        }
+        initTeamsSelector(item);
+        initMembersSelector(item);
+      }
+
+      // Close handlers
+      document.getElementById('modal-close').addEventListener('click', closeModal);
+      document.getElementById('modal-cancel').addEventListener('click', closeModal);
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeModal();
+      });
+
+      // Submit handler
+      document.getElementById('modal-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveItem(item);
+      });
+    }
+
+    function closeModal() {
+      var modal = document.getElementById('admin-modal');
+      modal.style.display = 'none';
+      modal.textContent = '';
+      quillInstance = null;
+    }
+
+    function saveItem(existingItem) {
+      var form = document.getElementById('modal-form');
+      var saveBtn = document.getElementById('modal-save');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Wird gespeichert...';
+
+      var isNews = currentTab === 'news';
+      var collection = isNews ? 'news' : 'events';
+      var formData = new FormData();
+
+      formData.append('title', form.querySelector('[name="title"]').value);
+
+      if (isNews) {
+        formData.append('slug', form.querySelector('[name="slug"]').value);
+        formData.append('excerpt', form.querySelector('[name="excerpt"]').value);
+        formData.append('body', quillInstance ? DOMPurify.sanitize(quillInstance.root.innerHTML) : '');
+        formData.append('category', form.querySelector('[name="category"]').value);
+        formData.append('published_at', form.querySelector('[name="published_at"]').value);
+        formData.append('is_published', form.querySelector('[name="is_published"]').checked);
+
+        var imageInput = form.querySelector('[name="image"]');
+        if (imageInput && imageInput.files.length > 0) {
+          formData.append('image', imageInput.files[0]);
+        }
+      } else {
+        formData.append('event_type', form.querySelector('[name="event_type"]').value);
+        formData.append('start_date', form.querySelector('[name="start_date"]').value);
+        formData.append('end_date', form.querySelector('[name="end_date"]').value || form.querySelector('[name="start_date"]').value);
+        formData.append('all_day', form.querySelector('[name="all_day"]').checked);
+        formData.append('location', form.querySelector('[name="location"]').value);
+        formData.append('description', quillInstance ? DOMPurify.sanitize(quillInstance.root.innerHTML) : '');
+
+        var participationRequired = form.querySelector('[name="participation_required"]').checked;
+        if (participationRequired) {
+          formData.append('respond_by', form.querySelector('[name="respond_by"]').value);
+          var teamsVal = form.querySelector('[name="teams"]').value;
+          var teamsArr = JSON.parse(teamsVal || '[]');
+          // PB expects relation fields as repeated values
+          if (teamsArr.length) {
+            teamsArr.forEach(function(tid) { formData.append('teams', tid); });
+          } else {
+            formData.append('teams', '');
+          }
+          var minP = form.querySelector('[name="min_players"]').value;
+          var maxP = form.querySelector('[name="max_players"]').value;
+          formData.append('min_players', minP ? Number(minP) : 0);
+          formData.append('max_players', maxP ? Number(maxP) : 0);
+          var reqParts = JSON.parse(form.querySelector('[name="required_participants"]').value || '[]');
+          if (reqParts.length) {
+            reqParts.forEach(function(mid) { formData.append('required_participants', mid); });
+          } else {
+            formData.append('required_participants', '');
+          }
+        } else {
+          // Clear participation fields
+          formData.append('respond_by', '');
+          formData.append('teams', '');
+          formData.append('min_players', 0);
+          formData.append('max_players', 0);
+          formData.append('required_participants', '');
+        }
+
+        if (!existingItem && pb.authStore.record) {
+          formData.append('created_by', pb.authStore.record.id);
+        }
+      }
+
+      var promise = existingItem
+        ? pb.collection(collection).update(existingItem.id, formData)
+        : pb.collection(collection).create(formData);
+
+      promise
+        .then(function() {
+          closeModal();
+          loadItems();
+        })
+        .catch(function(err) {
+          var msg = err.response && err.response.message ? err.response.message : err.message;
+          alert('Fehler beim Speichern: ' + msg);
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Speichern';
+        });
+    }
+
+    // ── Form field helpers (all values escaped) ───────────────
+    function fieldInput(name, label, value, required) {
+      return '<div class="admin-field">' +
+        '<label for="f-' + name + '">' + escapeHtml(label) + '</label>' +
+        '<input type="text" name="' + name + '" id="f-' + name + '" value="' + escapeAttr(value || '') + '"' + (required ? ' required' : '') + '>' +
+      '</div>';
+    }
+    function fieldTextarea(name, label, value) {
+      return '<div class="admin-field">' +
+        '<label for="f-' + name + '">' + escapeHtml(label) + '</label>' +
+        '<textarea name="' + name + '" id="f-' + name + '" rows="3">' + escapeHtml(value || '') + '</textarea>' +
+      '</div>';
+    }
+    function fieldDate(name, label, value) {
+      return '<div class="admin-field">' +
+        '<label for="f-' + name + '">' + escapeHtml(label) + '</label>' +
+        '<input type="date" name="' + name + '" id="f-' + name + '" value="' + escapeAttr(value || '') + '">' +
+      '</div>';
+    }
+    function fieldSelect(name, label, options, selected) {
+      var html = '<div class="admin-field"><label for="f-' + name + '">' + escapeHtml(label) + '</label><select name="' + name + '" id="f-' + name + '">';
+      options.forEach(function(opt) {
+        html += '<option value="' + escapeAttr(opt) + '"' + (opt === selected ? ' selected' : '') + '>' + escapeHtml(opt.charAt(0).toUpperCase() + opt.slice(1)) + '</option>';
+      });
+      html += '</select></div>';
+      return html;
+    }
+    function fieldNumber(name, label, value) {
+      return '<div class="admin-field">' +
+        '<label for="f-' + name + '">' + escapeHtml(label) + '</label>' +
+        '<input type="number" name="' + name + '" id="f-' + name + '" value="' + escapeAttr(value != null && value !== '' ? String(value) : '') + '" min="0">' +
+      '</div>';
+    }
+    function fieldFile(name, label) {
+      return '<div class="admin-field">' +
+        '<label for="f-' + name + '">' + escapeHtml(label) + '</label>' +
+        '<input type="file" name="' + name + '" id="f-' + name + '" accept="image/*">' +
+      '</div>';
+    }
+    function fieldCheckbox(name, label, checked) {
+      return '<div class="admin-field admin-field-check">' +
+        '<label><input type="checkbox" name="' + name + '"' + (checked ? ' checked' : '') + '> ' + escapeHtml(label) + '</label>' +
+      '</div>';
+    }
+
+    // ── Teams multi-select with presets ─────────────────────
+    function initTeamsSelector(item) {
+      var selectedTeams = (item && item.teams) ? item.teams.slice() : [];
+      var hiddenInput = document.querySelector('[name="teams"]');
+      var tagsContainer = document.getElementById('teams-tags');
+      var presetsContainer = document.getElementById('team-presets');
+      if (!hiddenInput || !tagsContainer || !presetsContainer) return;
+
+      function syncHidden() {
+        hiddenInput.value = JSON.stringify(selectedTeams);
+      }
+
+      function renderTags(teams) {
+        tagsContainer.textContent = '';
+        selectedTeams.forEach(function(tid) {
+          var team = teams ? teams.find(function(t) { return t.id === tid; }) : null;
+          var tag = document.createElement('span');
+          tag.className = 'admin-tag';
+          tag.textContent = team ? team.name : tid;
+          var removeBtn = document.createElement('button');
+          removeBtn.type = 'button';
+          removeBtn.className = 'admin-tag-remove';
+          removeBtn.textContent = '\u00d7';
+          removeBtn.addEventListener('click', function() {
+            selectedTeams = selectedTeams.filter(function(id) { return id !== tid; });
+            syncHidden();
+            renderTags(teams);
+          });
+          tag.appendChild(removeBtn);
+          tagsContainer.appendChild(tag);
+        });
+      }
+
+      fetchTeams().then(function(teams) {
+        // Preset buttons
+        var presets = [
+          { label: 'Alle Teams', filter: function() { return teams; } },
+          { label: 'Volleyball', filter: function() { return teams.filter(function(t) { return t.sport === 'volleyball'; }); } },
+          { label: 'Basketball', filter: function() { return teams.filter(function(t) { return t.sport === 'basketball'; }); } }
+        ];
+        presets.forEach(function(p) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'admin-btn admin-btn-sm';
+          btn.textContent = p.label;
+          btn.addEventListener('click', function() {
+            selectedTeams = p.filter().map(function(t) { return t.id; });
+            syncHidden();
+            renderTags(teams);
+          });
+          presetsContainer.appendChild(btn);
+        });
+
+        // Clear button
+        var clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.className = 'admin-btn admin-btn-sm admin-btn-danger';
+        clearBtn.textContent = 'Keine';
+        clearBtn.addEventListener('click', function() {
+          selectedTeams = [];
+          syncHidden();
+          renderTags(teams);
+        });
+        presetsContainer.appendChild(clearBtn);
+
+        // Individual team checkboxes
+        var dropdown = document.getElementById('teams-dropdown');
+        dropdown.style.display = '';
+        dropdown.style.maxHeight = '200px';
+        dropdown.style.overflowY = 'auto';
+        teams.forEach(function(team) {
+          var label = document.createElement('label');
+          label.className = 'admin-dropdown-item';
+          var cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = selectedTeams.includes(team.id);
+          cb.addEventListener('change', function() {
+            if (this.checked) {
+              if (!selectedTeams.includes(team.id)) selectedTeams.push(team.id);
+            } else {
+              selectedTeams = selectedTeams.filter(function(id) { return id !== team.id; });
+            }
+            syncHidden();
+            renderTags(teams);
+          });
+          var sportBadge = document.createElement('span');
+          sportBadge.className = 'admin-badge';
+          sportBadge.textContent = team.sport === 'volleyball' ? 'VB' : 'BB';
+          sportBadge.style.marginLeft = '4px';
+          label.appendChild(cb);
+          var nameSpan = document.createElement('span');
+          nameSpan.textContent = ' ' + team.name + ' ';
+          label.appendChild(nameSpan);
+          label.appendChild(sportBadge);
+          dropdown.appendChild(label);
+        });
+
+        renderTags(teams);
+      });
+    }
+
+    // ── Members multi-search select ──────────────────────────
+    function initMembersSelector(item) {
+      var selectedMembers = (item && item.required_participants) ? item.required_participants.slice() : [];
+      var hiddenInput = document.querySelector('[name="required_participants"]');
+      var tagsContainer = document.getElementById('members-tags');
+      var searchInput = document.getElementById('member-search');
+      var dropdown = document.getElementById('members-dropdown');
+      if (!hiddenInput || !tagsContainer || !searchInput || !dropdown) return;
+
+      var allMembers = [];
+
+      function syncHidden() {
+        hiddenInput.value = JSON.stringify(selectedMembers);
+      }
+
+      function memberName(m) {
+        return (m.first_name || '') + ' ' + (m.last_name || '');
+      }
+
+      function renderTags() {
+        tagsContainer.textContent = '';
+        selectedMembers.forEach(function(mid) {
+          var member = allMembers.find(function(m) { return m.id === mid; });
+          var tag = document.createElement('span');
+          tag.className = 'admin-tag';
+          tag.textContent = member ? memberName(member).trim() : mid;
+          var removeBtn = document.createElement('button');
+          removeBtn.type = 'button';
+          removeBtn.className = 'admin-tag-remove';
+          removeBtn.textContent = '\u00d7';
+          removeBtn.addEventListener('click', function() {
+            selectedMembers = selectedMembers.filter(function(id) { return id !== mid; });
+            syncHidden();
+            renderTags();
+          });
+          tag.appendChild(removeBtn);
+          tagsContainer.appendChild(tag);
+        });
+      }
+
+      function renderDropdown(query) {
+        dropdown.textContent = '';
+        if (!query) { dropdown.style.display = 'none'; return; }
+        var q = query.toLowerCase();
+        var matches = allMembers.filter(function(m) {
+          if (selectedMembers.includes(m.id)) return false;
+          var name = memberName(m).toLowerCase();
+          var email = (m.email || '').toLowerCase();
+          return name.indexOf(q) !== -1 || email.indexOf(q) !== -1;
+        }).slice(0, 20);
+
+        if (!matches.length) {
+          dropdown.style.display = 'none';
+          return;
+        }
+
+        dropdown.style.display = '';
+        matches.forEach(function(m) {
+          var option = document.createElement('div');
+          option.className = 'admin-dropdown-option';
+          var nameText = document.createElement('span');
+          nameText.textContent = memberName(m).trim();
+          option.appendChild(nameText);
+          if (m.email) {
+            var emailSpan = document.createElement('span');
+            emailSpan.className = 'admin-dropdown-email';
+            emailSpan.textContent = m.email;
+            option.appendChild(emailSpan);
+          }
+          option.addEventListener('click', function() {
+            selectedMembers.push(m.id);
+            syncHidden();
+            renderTags();
+            searchInput.value = '';
+            dropdown.style.display = 'none';
+          });
+          dropdown.appendChild(option);
+        });
+      }
+
+      fetchMembers().then(function(members) {
+        allMembers = members;
+        renderTags();
+
+        searchInput.addEventListener('input', function() {
+          renderDropdown(this.value);
+        });
+        searchInput.addEventListener('focus', function() {
+          if (this.value) renderDropdown(this.value);
+        });
+        // Close dropdown on outside click
+        document.addEventListener('click', function(e) {
+          if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+          }
+        });
+      });
+    }
+
+    // ── Init ──────────────────────────────────────────────────
+    render();
+  })();
+  </script>
+</body>
+</html>
+
+<style>
+  /* ── Admin Layout ─────────────────────────────────────────── */
+  body { margin: 0; }
+
+  .admin-shell {
+    min-height: 100vh;
+    background: var(--bg-light);
+  }
+
+  .admin-header {
+    background: var(--bg-white);
+    border-bottom: 1px solid var(--border);
+    padding: 0 var(--space-lg);
+  }
+  .admin-header-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+  }
+  .admin-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: var(--text-lg);
+    color: var(--text-primary);
+  }
+
+  /* ── Tabs ──────────────────────────────────────────────────── */
+  .admin-tabs {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: var(--space-md) var(--space-lg) 0;
+    display: flex;
+    gap: var(--space-xs);
+  }
+  .admin-tab {
+    padding: var(--space-sm) var(--space-lg);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .admin-tab:hover { color: var(--text-primary); }
+  .admin-tab.active {
+    color: var(--kscw-blue);
+    border-bottom-color: var(--kscw-blue);
+  }
+
+  /* ── Content ──────────────────────────────────────────────── */
+  .admin-content {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: var(--space-lg);
+  }
+  .admin-loading, .admin-empty {
+    text-align: center;
+    padding: var(--space-3xl);
+    color: var(--text-muted);
+  }
+
+  /* ── List Items ───────────────────────────────────────────── */
+  .admin-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+  .admin-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-lg);
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    transition: box-shadow 0.2s;
+  }
+  .admin-list-item:hover { box-shadow: var(--shadow-md); }
+  .admin-list-info { flex: 1; min-width: 0; }
+  .admin-list-title {
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-xs) 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .admin-list-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+  }
+  .admin-list-actions {
+    display: flex;
+    gap: var(--space-xs);
+    flex-shrink: 0;
+  }
+
+  /* ── Badges ───────────────────────────────────────────────── */
+  .admin-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    background: var(--bg-light);
+    color: var(--text-secondary);
+  }
+  .admin-badge-green { background: rgba(34,197,94,0.15); color: #16a34a; }
+  .admin-badge-gray { background: var(--bg-light); color: var(--text-muted); }
+
+  /* ── Buttons ──────────────────────────────────────────────── */
+  .admin-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    font-family: 'Inter', sans-serif;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-white);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .admin-btn:hover { background: var(--bg-light); }
+  .admin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .admin-btn-primary {
+    background: var(--kscw-blue);
+    color: #fff;
+    border-color: var(--kscw-blue);
+  }
+  .admin-btn-primary:hover { background: var(--kscw-blue-dark); }
+  .admin-btn-ghost { border: none; background: none; }
+  .admin-btn-ghost:hover { background: var(--bg-light); }
+  .admin-btn-sm { padding: 4px 10px; font-size: var(--text-xs); }
+  .admin-btn-danger { color: #dc2626; border-color: #fecaca; }
+  .admin-btn-danger:hover { background: #fef2f2; }
+
+  /* ── FAB ───────────────────────────────────────────────────── */
+  .admin-fab {
+    position: fixed;
+    bottom: var(--space-xl);
+    right: var(--space-xl);
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-full);
+    background: var(--kscw-blue);
+    color: #fff;
+    font-size: 28px;
+    font-weight: 300;
+    border: none;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    transition: transform 0.15s, background 0.15s;
+    z-index: var(--z-sticky);
+  }
+  .admin-fab:hover { background: var(--kscw-blue-dark); transform: scale(1.05); }
+
+  /* ── Login ─────────────────────────────────────────────────── */
+  .admin-login {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-light);
+    padding: var(--space-lg);
+  }
+  .admin-login-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-2xl);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+  }
+  .admin-login-card h1 {
+    font-size: var(--text-xl);
+    color: var(--text-primary);
+    margin-bottom: var(--space-xl);
+  }
+
+  /* ── Form Fields ───────────────────────────────────────────── */
+  .admin-field {
+    margin-bottom: var(--space-md);
+    text-align: left;
+  }
+  .admin-field label {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-xs);
+  }
+  .admin-field input[type="text"],
+  .admin-field input[type="email"],
+  .admin-field input[type="password"],
+  .admin-field input[type="date"],
+  .admin-field input[type="number"],
+  .admin-field select,
+  .admin-field textarea {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    font-size: var(--text-sm);
+    font-family: 'Inter', sans-serif;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-white);
+    color: var(--text-primary);
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .admin-field input:focus,
+  .admin-field select:focus,
+  .admin-field textarea:focus {
+    outline: none;
+    border-color: var(--kscw-blue);
+    box-shadow: 0 0 0 3px rgba(74, 85, 162, 0.15);
+  }
+  .admin-field input[type="file"] {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+  .admin-field-check label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-weight: 400;
+    cursor: pointer;
+  }
+  .admin-field-check input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--kscw-blue);
+  }
+
+  .admin-error {
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-md);
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+  }
+
+  /* ── Modal ─────────────────────────────────────────────────── */
+  .admin-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    z-index: var(--z-modal);
+    padding: var(--space-xl);
+    overflow-y: auto;
+  }
+  .admin-modal-content {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    width: 100%;
+    max-width: 640px;
+    box-shadow: var(--shadow-xl);
+    margin-top: var(--space-xl);
+  }
+  .admin-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-lg) var(--space-xl);
+    border-bottom: 1px solid var(--border);
+  }
+  .admin-modal-header h2 {
+    font-size: var(--text-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+  }
+  .admin-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+  }
+  .admin-modal-close:hover { color: var(--text-primary); }
+  .admin-modal-body {
+    padding: var(--space-xl);
+  }
+  .admin-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--border);
+    margin-top: var(--space-lg);
+  }
+
+  /* ── Quill Overrides ───────────────────────────────────────── */
+  .ql-toolbar.ql-snow {
+    border-color: var(--border) !important;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    background: var(--bg-light);
+  }
+  .ql-container.ql-snow {
+    border-color: var(--border) !important;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    font-family: 'Inter', sans-serif;
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    background: var(--bg-white);
+  }
+  .ql-editor {
+    min-height: 150px;
+  }
+  .ql-editor.ql-blank::before {
+    color: var(--text-muted);
+  }
+
+  /* ── Multi-select tags & dropdowns ──────────────────────── */
+  .admin-team-presets {
+    display: flex;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-sm);
+    flex-wrap: wrap;
+  }
+  .admin-multiselect-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-sm);
+  }
+  .admin-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: var(--kscw-blue);
+    color: #fff;
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: 500;
+  }
+  .admin-tag-remove {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 2px;
+    line-height: 1;
+  }
+  .admin-tag-remove:hover { color: #fff; }
+  .admin-multiselect-dropdown {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-white);
+    box-shadow: var(--shadow-md);
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .admin-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    color: var(--text-primary);
+  }
+  .admin-dropdown-item:hover {
+    background: var(--bg-light);
+  }
+  .admin-dropdown-item input[type="checkbox"] {
+    accent-color: var(--kscw-blue);
+  }
+  .admin-dropdown-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    color: var(--text-primary);
+  }
+  .admin-dropdown-option:hover {
+    background: var(--bg-light);
+  }
+  .admin-dropdown-email {
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+  }
+
+  /* ── Responsive ────────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    .admin-list-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .admin-list-actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+    .admin-modal-content {
+      margin-top: var(--space-sm);
+    }
+  }
+</style>

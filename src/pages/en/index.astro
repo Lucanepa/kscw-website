@@ -2,61 +2,44 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SectionHeader from '../../components/SectionHeader.astro';
 import { t } from '../../lib/i18n';
-import { readdirSync, readFileSync, existsSync } from 'fs';
-import { join } from 'path';
 
 const locale = 'en';
+const PB = 'https://kscw-api.lucanepa.com';
 
-// Read EN news frontmatter at build time (no MDX integration needed)
-const EN_NEWS_DIR = 'content/news-en';
-const newsArticlesEn = readdirSync(EN_NEWS_DIR)
-  .filter(f => f.endsWith('.mdx'))
-  .map(f => {
-    const content = readFileSync(join(EN_NEWS_DIR, f), 'utf-8');
-    const match = content.match(/^---\n([\s\S]*?)\n---/);
-    if (!match) return null;
-    const fm: Record<string, string> = {};
-    for (const line of match[1].split('\n')) {
-      const idx = line.indexOf(':');
-      if (idx === -1) continue;
-      const key = line.slice(0, idx).trim();
-      let val = line.slice(idx + 1).trim();
-      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
-        val = val.slice(1, -1);
-      }
-      fm[key] = val;
-    }
-    return fm;
-  })
-  .filter(f => f?.title)
-  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  .slice(0, 6);
+let newsArticlesEn: any[] = [];
+try {
+  const res = await fetch(`${PB}/api/collections/news/records?sort=-published_at&filter=(is_published=true)&perPage=6`);
+  if (res.ok) {
+    const data = await res.json();
+    newsArticlesEn = (data.items ?? []).map((n: any) => ({
+      title: n.title,
+      excerpt: n.excerpt || '',
+      date: n.published_at || n.created,
+      category: n.category || 'club',
+      image: n.image ? `${PB}/api/files/news/${n.id}/${n.image}` : null,
+    }));
+  }
+} catch (e) {
+  console.warn('Failed to fetch news from PocketBase:', e);
+}
 
-const EN_EVENTS_DIR = 'content/events-en';
-const upcomingEvents = existsSync(EN_EVENTS_DIR)
-  ? readdirSync(EN_EVENTS_DIR)
-    .filter(f => f.endsWith('.mdx'))
-    .map(f => {
-      const content = readFileSync(join(EN_EVENTS_DIR, f), 'utf-8');
-      const match = content.match(/^---\n([\s\S]*?)\n---/);
-      if (!match) return null;
-      const fm = {};
-      for (const line of match[1].split('\n')) {
-        const idx = line.indexOf(':');
-        if (idx === -1) continue;
-        const key = line.slice(0, idx).trim();
-        let val = line.slice(idx + 1).trim();
-        if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
-          val = val.slice(1, -1);
-        }
-        fm[key] = val;
-      }
-      return fm;
-    })
-    .filter(f => f?.title && new Date(f.date) >= new Date())
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 3)
-  : [];
+let upcomingEvents: any[] = [];
+try {
+  const now = new Date().toISOString().slice(0, 10);
+  const res = await fetch(`${PB}/api/collections/events/records?sort=start_date&filter=(start_date>='${now}')&perPage=3`);
+  if (res.ok) {
+    const data = await res.json();
+    upcomingEvents = (data.items ?? []).map((ev: any) => ({
+      title: ev.title,
+      date: ev.start_date,
+      time: ev.all_day ? '' : (ev.start_date?.split(' ')[1]?.slice(0, 5) || ''),
+      location: ev.location || '',
+      category: ev.event_type || 'other',
+    }));
+  }
+} catch (e) {
+  console.warn('Failed to fetch events from PocketBase:', e);
+}
 ---
 <BaseLayout
   title="KSC Wiedikon — Basketball & Volleyball"
@@ -125,8 +108,9 @@ const upcomingEvents = existsSync(EN_EVENTS_DIR)
                   <span class="news-date">{new Date(ev.date).toLocaleDateString('en-CH')}</span>
                   <span class="badge badge-green">
                     {ev.category === 'social' ? t(locale, 'eventCategorySocial')
-                      : ev.category === 'assembly' ? t(locale, 'eventCategoryAssembly')
-                      : ev.category === 'volunteer' ? t(locale, 'eventCategoryVolunteer')
+                      : ev.category === 'verein' ? t(locale, 'eventCategoryClub')
+                      : ev.category === 'meeting' ? t(locale, 'eventCategoryAssembly')
+                      : ev.category === 'tournament' ? t(locale, 'eventCategoryTournament')
                       : t(locale, 'eventCategoryOther')}
                   </span>
                 </div>
@@ -171,6 +155,14 @@ const upcomingEvents = existsSync(EN_EVENTS_DIR)
     </div>
   </section>
 
+  <!-- Scoreboard -->
+  <section class="section" id="scoreboard">
+    <div class="container">
+      <SectionHeader title="KSCW Scoreboard" />
+      <div id="home-scoreboard" data-scoreboard="all"></div>
+    </div>
+  </section>
+
   <!-- Sponsors -->
   <section class="section-alt" id="sponsors">
     <div class="container">
@@ -189,6 +181,7 @@ const upcomingEvents = existsSync(EN_EVENTS_DIR)
 
   <!-- Client-side data loading (same as current site) -->
   <script is:inline src="/js/data.js"></script>
+  <script is:inline src="/js/scoreboard.js"></script>
   <script is:inline src="/js/game-modal.js"></script>
   <script is:inline>
     (function () {

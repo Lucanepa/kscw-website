@@ -1,20 +1,10 @@
 ---
 import PageLayout from '../../../layouts/PageLayout.astro';
 import { t } from '../../../lib/i18n';
-import client from '../../../../tina/__generated__/client';
+import contactPersonsData from '../../../data/contact-persons.json';
 
 const locale = 'en';
-
-let contactPersons = [];
-try {
-  const res = await client.queries.contactPersonConnection({ first: 50 });
-  contactPersons = (res.data.contactPersonConnection.edges ?? [])
-    .map(e => e.node)
-    .sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
-} catch (e) {
-  console.warn('Failed to fetch contact persons from Tina:', e.message);
-}
-
+const contactPersons = contactPersonsData;
 const volleyballContacts = contactPersons.filter(c => c.sport === 'volleyball');
 const basketballContacts = contactPersons.filter(c => c.sport === 'basketball');
 ---

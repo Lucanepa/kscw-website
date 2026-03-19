@@ -2,34 +2,26 @@
 import PageLayout from '../../../layouts/PageLayout.astro';
 import SectionHeader from '../../../components/SectionHeader.astro';
 import { t } from '../../../lib/i18n';
-import { readdirSync, readFileSync, existsSync } from 'fs';
-import { join } from 'path';
 
 const locale = 'en';
+const PB = 'https://kscw-api.lucanepa.com';
 
-const EN_EVENTS_DIR = 'content/events-en';
-let allEvents = [];
-if (existsSync(EN_EVENTS_DIR)) {
-  allEvents = readdirSync(EN_EVENTS_DIR)
-    .filter(f => f.endsWith('.mdx'))
-    .map(f => {
-      const content = readFileSync(join(EN_EVENTS_DIR, f), 'utf-8');
-      const match = content.match(/^---\n([\s\S]*?)\n---/);
-      if (!match) return null;
-      const fm = {};
-      for (const line of match[1].split('\n')) {
-        const idx = line.indexOf(':');
-        if (idx === -1) continue;
-        const key = line.slice(0, idx).trim();
-        let val = line.slice(idx + 1).trim();
-        if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
-          val = val.slice(1, -1);
-        }
-        fm[key] = val;
-      }
-      return fm;
-    })
-    .filter(Boolean);
+let allEvents: any[] = [];
+try {
+  const res = await fetch(`${PB}/api/collections/events/records?sort=start_date&perPage=100`);
+  if (res.ok) {
+    const data = await res.json();
+    allEvents = (data.items ?? []).map((ev: any) => ({
+      title: ev.title,
+      date: ev.start_date?.split(' ')[0] || ev.start_date,
+      endDate: ev.end_date?.split(' ')[0] || '',
+      time: ev.all_day ? '' : (ev.start_date?.split(' ')[1]?.slice(0, 5) || ''),
+      location: ev.location || '',
+      category: ev.event_type || 'other',
+    }));
+  }
+} catch (e) {
+  console.warn('Failed to fetch events from PocketBase:', e);
 }
 
 const now = new Date();
@@ -69,8 +61,9 @@ const upcomingEvents = allEvents
                   <span class="news-date">{new Date(ev.date).toLocaleDateString('en-CH')}</span>
                   <span class="badge badge-green">
                     {ev.category === 'social' ? t(locale, 'eventCategorySocial')
-                      : ev.category === 'assembly' ? t(locale, 'eventCategoryAssembly')
-                      : ev.category === 'volunteer' ? t(locale, 'eventCategoryVolunteer')
+                      : ev.category === 'verein' ? t(locale, 'eventCategoryClub')
+                      : ev.category === 'meeting' ? t(locale, 'eventCategoryAssembly')
+                      : ev.category === 'tournament' ? t(locale, 'eventCategoryTournament')
                       : t(locale, 'eventCategoryOther')}
                   </span>
                 </div>

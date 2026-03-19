@@ -1215,6 +1215,12 @@ tr:hover td {
   overflow: hidden;
   font-size: var(--text-sm);
   text-align: center;
+  table-layout: fixed;
+}
+.gm-sets th:first-child,
+.gm-sets td:first-child {
+  width: 5rem;
+  text-align: left;
 }
 .gm-sets th {
   padding: var(--space-xs) var(--space-sm);
@@ -2352,4 +2358,148 @@ button:focus-visible {
 .cal-tooltip-sport--event {
   background: rgba(34, 197, 94, 0.15);
   color: #16a34a;
+}
+
+/* ── Scoreboard ──────────────────────────────────────────── */
+.scoreboard-grid {
+  display: grid;
+  gap: var(--space-lg);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1024px) {
+  .scoreboard-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.scoreboard-card {
+  padding: var(--space-lg);
+}
+
+.scoreboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.scoreboard-sport-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.scoreboard-season {
+  margin-bottom: var(--space-sm);
+}
+
+.scoreboard-empty {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.scoreboard-toggle {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+}
+
+.scoreboard-table-wrap {
+  overflow-x: auto;
+}
+
+.scoreboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.scoreboard-table thead th {
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-alt);
+}
+
+.scoreboard-metric-row {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.scoreboard-metric-row:hover {
+  background: var(--surface-alt);
+}
+.scoreboard-metric-row td {
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px solid var(--border);
+}
+
+.sb-col-metric {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.sb-col-total {
+  text-align: center;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sb-col-most {
+  text-align: left;
+}
+.sb-col-most .chip {
+  font-size: 0.7rem;
+}
+
+.sb-expand-icon {
+  display: inline;
+  font-size: 0.7rem;
+}
+
+.scoreboard-expand-cell {
+  background: var(--surface-alt);
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.scoreboard-sub-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.scoreboard-sub-table thead th {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--border);
+}
+
+.scoreboard-sub-table td {
+  text-align: center;
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.scoreboard-sub-table td:nth-child(2) {
+  text-align: left;
 }

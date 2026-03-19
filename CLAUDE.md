@@ -1,35 +1,34 @@
 # KSCW Website
 
-Public club website for KSC Wiedikon — Astro + Tina CMS.
+Astro static site for KSC Wiedikon volleyball club. PocketBase API backend, Cloudflare Pages hosting.
 
-## Tech Stack
-- **Framework**: Astro (static site generation)
-- **CMS**: Tina CMS (visual content editing, git-backed)
-- **Styling**: Custom CSS design system (src/styles/global.css) — no Tailwind
-- **Icons**: Lucide (CDN)
-- **Data**: PocketBase API (kscw-api.lucanepa.com) for dynamic team/game/sponsor data
-- **Hosting**: Cloudflare Pages (project: kscw-website)
-- **Language**: German UI default, English supported via /de/ and /en/ directory routing
+## Commands
+```bash
+npm run dev          # local dev server
+npx astro build      # production build → dist/
+```
 
-## Key Patterns
-- **CSS kept verbatim** from original website_draft/ — do not rewrite to Tailwind
-- **Team data is client-side**: Rosters, games, rankings fetched from PB API at runtime (not build-time)
-- **Sponsors stay in PocketBase**: Managed via Wiedisync admin, not Tina
-- **i18n via directory routing**: /de/... and /en/... — Astro's t() helper at build time
-- **Island scripts** in src/islands/ handle interactivity (nav, theme, animations)
-- **Static generation only**: output: 'static', no SSR needed
+## Conventions
 
-## Tina CMS Collections
-- **page**: Static page content (MDX) — about, membership, calendar, etc.
-- **news**: News articles (MDX) — title, excerpt, date, category, body
-- **boardMember**: Board members (MD) — name, role (DE/EN), photo, sort order
+| Rule | Detail |
+|------|--------|
+| CSS | Custom design system in `src/styles/global.css` — **never rewrite to Tailwind** |
+| i18n | Directory routing `/de/…` `/en/…`, Astro `t()` helper at build time |
+| Team data | Client-side fetch from PB API (not build-time) |
+| News/events | Build-time fetch in frontmatter + runtime via `data.js` |
+| Board/contacts | Static JSON in `src/data/` |
+| Islands | `src/islands/` for interactivity (nav, theme, animations) |
+| Output | `output: 'static'` — no SSR |
+
+## Admin Page
+- `/admin` — hidden link in footer copyright text
+- Auth: PocketBase `members` collection, roles: `website_admin` / `admin` / `superuser`
+- Vanilla JS island, PocketBase SDK + Quill + DOMPurify via CDN
 
 ## Deployment
-- Build: `npx tinacms build && npx astro build`
-- Output: dist/
-- CF Pages project: kscw-website
-- Tina Cloud auto-commits content changes → triggers rebuild
+CF Pages project: `kscw-website` — pushes to `master` trigger deploy.
 
 ## Related
-- **Wiedisync** (main KSCW app): github.com/Lucanepa/kscw
-- **PocketBase API**: kscw-api.lucanepa.com
+- **Wiedisync** (main KSCW platform): `github.com/Lucanepa/kscw`
+- **PocketBase API**: `kscw-api.lucanepa.com`
+- **Session log**: `docs/sessions.md` (gitignored)

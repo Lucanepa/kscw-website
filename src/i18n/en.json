@@ -375,6 +375,8 @@
   "eventCategorySocial": "Social",
   "eventCategoryAssembly": "Assembly",
   "eventCategoryVolunteer": "Volunteer",
+  "eventCategoryClub": "Club",
+  "eventCategoryTournament": "Tournament",
   "eventCategoryOther": "Other",
   "noUpcomingEvents": "No upcoming events"
 }
