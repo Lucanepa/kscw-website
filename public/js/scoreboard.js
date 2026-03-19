@@ -109,7 +109,7 @@
   }
 
   function formatVal(v, mode) {
-    if (mode === 'perGame') return v.toFixed(1).replace('.', ',');
+    if (mode === 'perGame') return v.toFixed(1);
     return formatSwiss(Math.round(v));
   }
 

@@ -566,7 +566,7 @@
       // Rank
       var tdRank = document.createElement('td');
       tdRank.className = 'table-rank';
-      tdRank.textContent = rw.rank || '-';
+      tdRank.textContent = rw.rank != null ? rw.rank : '-';
       tr.appendChild(tdRank);
 
       // Points (bold)
@@ -587,7 +587,7 @@
 
       // Played
       var tdSp = document.createElement('td');
-      tdSp.textContent = rw.played || '-';
+      tdSp.textContent = rw.played != null ? rw.played : '-';
       tr.appendChild(tdSp);
 
       // Wins — with clear/narrow split for VB
@@ -601,7 +601,7 @@
         wSub.textContent = (rw.wins_clear || 0) + '/' + (rw.wins_narrow || 0);
         tdW.appendChild(wSub);
       } else {
-        tdW.textContent = rw.won || '-';
+        tdW.textContent = rw.won != null ? rw.won : '-';
       }
       tr.appendChild(tdW);
 
@@ -616,7 +616,7 @@
         lSub.textContent = (rw.defeats_clear || 0) + '/' + (rw.defeats_narrow || 0);
         tdL.appendChild(lSub);
       } else {
-        tdL.textContent = rw.lost || '-';
+        tdL.textContent = rw.lost != null ? rw.lost : '-';
       }
       tr.appendChild(tdL);
 
