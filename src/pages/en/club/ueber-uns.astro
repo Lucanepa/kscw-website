@@ -22,6 +22,11 @@ const locale = 'en';
           <p style="margin-top: var(--space-lg);">{t(locale, 'aboutHistoryText2')}</p>
         </div>
         <div class="history-map-wrapper">
+          <div class="map-contact-info">
+            <strong>KSC Wiedikon</strong>
+            <p>Schrennengasse 7, 8003 Zürich</p>
+            <p><a href="mailto:kscw@kscw.ch">kscw@kscw.ch</a></p>
+          </div>
           <div id="history-map" style="height: 100%; min-height: 320px; border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden;"></div>
         </div>
       </div>
@@ -175,8 +180,8 @@ const locale = 'en';
       }).addTo(map);
       var kscwIcon = L.icon({
         iconUrl: '/images/kscw_trio.png',
-        iconSize: [52, 52],
-        iconAnchor: [26, 52],
+        iconSize: [48, 52],
+        iconAnchor: [24, 52],
         popupAnchor: [0, -52]
       });
       var marker = L.marker([47.3679, 8.5162], { icon: kscwIcon })
@@ -280,7 +285,21 @@ const locale = 'en';
   }
   .history-map-wrapper {
     min-height: 320px;
-    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .map-contact-info {
+    margin-bottom: var(--space-md);
+    font-size: var(--text-base);
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+  .map-contact-info strong {
+    font-size: var(--text-lg);
+    color: var(--text-primary);
+  }
+  .map-contact-info a {
+    color: var(--kscw-blue, #4A55A2);
   }
   .history-content p {
     font-size: var(--text-base);
