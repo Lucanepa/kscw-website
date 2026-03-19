@@ -82,6 +82,7 @@ import '../styles/global.css';
         minParticipants: 'Min. Teilnehmer',
         maxParticipants: 'Max. Teilnehmer',
         requiredParticipants: 'Pflicht-Teilnehmer',
+        requireNoteIfAbsent: 'Begründung bei Absage erforderlich',
         search: 'Suchen...',
         cancel: 'Abbrechen',
         save: 'Speichern',
@@ -134,6 +135,7 @@ import '../styles/global.css';
         minParticipants: 'Min. participants',
         maxParticipants: 'Max. participants',
         requiredParticipants: 'Required participants',
+        requireNoteIfAbsent: 'Require note if not joining',
         search: 'Search...',
         cancel: 'Cancel',
         save: 'Save',
@@ -511,7 +513,7 @@ import '../styles/global.css';
         formHtml += '<div class="admin-field"><label>' + t('description') + '</label><div id="quill-editor" style="min-height:150px;"></div></div>';
 
         // Participation section
-        var hasParticipation = item && (item.respond_by || (item.teams && item.teams.length) || item.max_players || item.min_players || (item.required_participants && item.required_participants.length));
+        var hasParticipation = item && (item.respond_by || (item.teams && item.teams.length) || item.max_players || item.min_players || item.require_note_if_absent || (item.required_participants && item.required_participants.length));
         formHtml += fieldCheckbox('participation_required', t('participationRequired'), !!hasParticipation);
         formHtml += '<div id="participation-fields" style="' + (hasParticipation ? '' : 'display:none;') + '">';
         formHtml += fieldDate('respond_by', t('respondBy'), item ? (item.respond_by || '').substring(0, 10) : '');
@@ -527,6 +529,7 @@ import '../styles/global.css';
 
         formHtml += fieldNumber('min_players', t('minParticipants'), item ? item.min_players : '');
         formHtml += fieldNumber('max_players', t('maxParticipants'), item ? item.max_players : '');
+        formHtml += fieldCheckbox('require_note_if_absent', t('requireNoteIfAbsent'), item ? !!item.require_note_if_absent : false, { toggle: true });
 
         // Required participants (multi-search select — filled dynamically)
         formHtml += '<div class="admin-field">' +
@@ -714,6 +717,7 @@ import '../styles/global.css';
           var maxP = form.querySelector('[name="max_players"]').value;
           formData.append('min_players', minP ? Number(minP) : 0);
           formData.append('max_players', maxP ? Number(maxP) : 0);
+          formData.append('require_note_if_absent', form.querySelector('[name="require_note_if_absent"]').checked);
           var reqParts; try { reqParts = JSON.parse(form.querySelector('[name="required_participants"]').value || '[]'); } catch (_) { reqParts = []; }
           if (reqParts.length) {
             reqParts.forEach(function(mid) { formData.append('required_participants', mid); });
@@ -726,6 +730,7 @@ import '../styles/global.css';
           formData.append('teams', '');
           formData.append('min_players', 0);
           formData.append('max_players', 0);
+          formData.append('require_note_if_absent', false);
           formData.append('required_participants', '');
         }
 
