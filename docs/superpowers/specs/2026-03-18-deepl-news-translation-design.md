@@ -6,7 +6,7 @@ Automatically translate German news articles from `content/news/` to English in 
 
 ## Trigger
 
-- GitHub Action workflow on push to `master` or `dev` branches
+- GitHub Action workflow on push to `prod` or `dev` branches
 - Only runs when files in `content/news/**` are changed
 
 ## Translation Flow
@@ -81,7 +81,7 @@ content/
 
 ## Workflow Details
 
-- **Runs on:** `push` to `master` or `dev`, path filter `content/news/**`
+- **Runs on:** `push` to `prod` or `dev`, path filter `content/news/**`
 - **Runner:** `ubuntu-latest`
 - **Node version:** 20
 - **Commit message:** `chore: translate news to English [skip ci]`

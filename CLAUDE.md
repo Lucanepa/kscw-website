@@ -26,7 +26,7 @@ npx astro build      # production build → dist/
 - Vanilla JS island, PocketBase SDK + Quill + DOMPurify via CDN
 
 ## Deployment
-CF Pages project: `kscw-website` — pushes to `master` trigger deploy.
+CF Pages project: `kscw-website` — pushes to `prod` trigger deploy.
 
 ## Changelog & Versioning
 

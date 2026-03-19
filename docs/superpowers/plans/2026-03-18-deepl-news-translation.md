@@ -4,7 +4,7 @@
 
 **Goal:** Auto-translate German news articles to English via DeepL Free API in a GitHub Action.
 
-**Architecture:** GitHub Action triggers on push to `master`/`dev` when `content/news/**` changes. A zero-dependency Node.js script scans all DE articles, compares MD5 hashes against existing EN translations, and only translates new/changed content. Translated files are committed back to the branch.
+**Architecture:** GitHub Action triggers on push to `prod`/`dev` when `content/news/**` changes. A zero-dependency Node.js script scans all DE articles, compares MD5 hashes against existing EN translations, and only translates new/changed content. Translated files are committed back to the branch.
 
 **Tech Stack:** GitHub Actions, Node.js 20 (built-in `crypto`, `fs`, `path`), DeepL Free API
 
@@ -317,7 +317,7 @@ name: Translate News (DE → EN)
 
 on:
   push:
-    branches: [master, dev]
+    branches: [prod, dev]
     paths:
       - 'content/news/**'
 
