@@ -1,0 +1,380 @@
+---
+import PageLayout from '../../../layouts/PageLayout.astro';
+import { t } from '../../../lib/i18n';
+
+const locale = 'de';
+---
+<PageLayout
+  title="Feedback — KSC Wiedikon"
+  description="Melde Bugs, schlage Features vor oder gib uns Feedback."
+  locale={locale}
+  pageTitle={t(locale, 'feedbackTitle')}
+  pageSubtitle={t(locale, 'feedbackSubtitle')}
+>
+  <section class="section">
+    <div class="container">
+      <div class="feedback-layout">
+
+        <!-- Feedback Form -->
+        <div class="feedback-form-wrapper">
+          <form id="feedback-form" novalidate>
+            <!-- Type selector (pill buttons) -->
+            <div class="feedback-type-selector">
+              <button type="button" class="feedback-type-pill active" data-type="bug">
+                <i data-lucide="bug"></i> {t(locale, 'feedbackTypeBug')}
+              </button>
+              <button type="button" class="feedback-type-pill" data-type="feature">
+                <i data-lucide="lightbulb"></i> {t(locale, 'feedbackTypeFeature')}
+              </button>
+              <button type="button" class="feedback-type-pill" data-type="feedback">
+                <i data-lucide="message-circle"></i> {t(locale, 'feedbackTypeFeedback')}
+              </button>
+            </div>
+
+            <!-- Title -->
+            <div class="form-group">
+              <label for="feedback-title">{t(locale, 'feedbackFieldTitle')} *</label>
+              <input type="text" id="feedback-title" name="title" required
+                placeholder={t(locale, 'feedbackFieldTitlePlaceholder')}>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+              <label for="feedback-description">{t(locale, 'feedbackFieldDescription')} *</label>
+              <textarea id="feedback-description" name="description" rows="5" required
+                placeholder={t(locale, 'feedbackFieldDescriptionPlaceholder')}></textarea>
+            </div>
+
+            <!-- Source URL -->
+            <div class="form-group">
+              <label for="feedback-url">
+                {t(locale, 'feedbackFieldUrl')}
+                <span class="form-optional">({t(locale, 'feedbackOptional')})</span>
+              </label>
+              <input type="url" id="feedback-url" name="source_url"
+                placeholder={t(locale, 'feedbackFieldUrlPlaceholder')}>
+            </div>
+
+            <!-- Screenshot upload -->
+            <div class="form-group">
+              <label for="feedback-screenshot">
+                {t(locale, 'feedbackFieldScreenshot')}
+                <span class="form-optional">({t(locale, 'feedbackOptional')})</span>
+              </label>
+              <div class="feedback-dropzone" id="feedback-dropzone">
+                <i data-lucide="paperclip"></i>
+                <span>{t(locale, 'feedbackFieldScreenshotHint')}</span>
+                <input type="file" id="feedback-screenshot" name="screenshot"
+                  accept="image/png,image/jpeg,image/webp" hidden>
+              </div>
+              <div class="feedback-file-preview" id="feedback-file-preview" hidden>
+                <span id="feedback-file-name"></span>
+                <button type="button" id="feedback-file-remove" aria-label="Remove">
+                  <i data-lucide="x"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Name & Email (optional, for anonymous visitors) -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="feedback-name">
+                  {t(locale, 'feedbackFieldName')}
+                  <span class="form-optional">({t(locale, 'feedbackOptional')})</span>
+                </label>
+                <input type="text" id="feedback-name" name="name"
+                  placeholder={t(locale, 'feedbackFieldNamePlaceholder')}>
+              </div>
+              <div class="form-group">
+                <label for="feedback-email">
+                  {t(locale, 'feedbackFieldEmail')}
+                  <span class="form-optional">({t(locale, 'feedbackOptional')})</span>
+                </label>
+                <input type="email" id="feedback-email" name="email"
+                  placeholder={t(locale, 'feedbackFieldEmailPlaceholder')}>
+              </div>
+            </div>
+
+            <!-- Turnstile CAPTCHA + Submit -->
+            <div class="form-actions">
+              <div id="turnstile-container"></div>
+              <button type="submit" class="btn btn-primary form-submit">
+                <i data-lucide="send"></i> {t(locale, 'feedbackSubmit')}
+              </button>
+            </div>
+
+            <!-- Feedback message -->
+            <div id="form-feedback" class="form-feedback" hidden></div>
+          </form>
+
+          <!-- Wiedisync cross-link -->
+          <div class="feedback-wiedisync-hint">
+            <i data-lucide="zap"></i>
+            {t(locale, 'feedbackWiedisyncHint')}
+            <a href="https://wiedisync.kscw.ch/feedback">{t(locale, 'feedbackWiedisyncLink')}</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Turnstile script -->
+  <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <!-- Form handler -->
+  <script is:inline src="/js/feedback-form.js"></script>
+
+<style>
+  .feedback-layout {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .feedback-type-selector {
+    display: flex;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-lg);
+  }
+
+  .feedback-type-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-md);
+    border-radius: 999px;
+    border: 2px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .feedback-type-pill:hover {
+    border-color: var(--kscw-blue);
+    color: var(--kscw-blue);
+  }
+
+  .feedback-type-pill.active[data-type="bug"] {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: white;
+  }
+
+  .feedback-type-pill.active[data-type="feature"] {
+    background: var(--kscw-blue);
+    border-color: var(--kscw-blue);
+    color: white;
+  }
+
+  .feedback-type-pill.active[data-type="feedback"] {
+    background: #16a34a;
+    border-color: #16a34a;
+    color: white;
+  }
+
+  .feedback-type-pill svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .form-group {
+    margin-bottom: var(--space-md);
+  }
+
+  .form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: var(--text-sm);
+    margin-bottom: var(--space-xs);
+    color: var(--text-primary);
+  }
+
+  .form-optional {
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-white);
+    color: var(--text-primary);
+    font-size: var(--text-base);
+    font-family: inherit;
+    transition: border-color 0.2s ease;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--kscw-blue);
+    box-shadow: 0 0 0 3px rgba(74, 85, 162, 0.15);
+  }
+
+  .form-group input.error,
+  .form-group textarea.error {
+    border-color: var(--danger);
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+  }
+
+  @media (max-width: 600px) {
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .feedback-dropzone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding: var(--space-lg);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+  }
+
+  .feedback-dropzone:hover,
+  .feedback-dropzone.dragover {
+    border-color: var(--kscw-blue);
+    color: var(--kscw-blue);
+  }
+
+  .feedback-dropzone svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .feedback-file-preview {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-light);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    margin-top: var(--space-xs);
+  }
+
+  .feedback-file-preview button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 2px;
+    display: flex;
+  }
+
+  .feedback-file-preview button:hover {
+    color: #dc2626;
+  }
+
+  .feedback-file-preview svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    margin-top: var(--space-lg);
+    flex-wrap: wrap;
+  }
+
+  .form-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-lg);
+    background: var(--kscw-gold);
+    color: var(--kscw-blue-dark);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-size: var(--text-base);
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  .form-submit:hover {
+    opacity: 0.9;
+  }
+
+  .form-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .form-submit svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .form-feedback {
+    margin-top: var(--space-md);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+  }
+
+  .form-feedback.success {
+    background: #f0fdf4;
+    color: var(--success);
+    border: 1px solid #bbf7d0;
+  }
+
+  .form-feedback.error {
+    background: #fef2f2;
+    color: var(--danger);
+    border: 1px solid #fecaca;
+  }
+
+  :global(.dark) .form-feedback.success {
+    background: rgba(5, 150, 105, 0.1);
+    border-color: rgba(5, 150, 105, 0.3);
+  }
+
+  :global(.dark) .form-feedback.error {
+    background: rgba(220, 38, 38, 0.1);
+    border-color: rgba(220, 38, 38, 0.3);
+  }
+
+  .feedback-wiedisync-hint {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-top: var(--space-lg);
+    padding: var(--space-md);
+    background: var(--bg-light);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+
+  .feedback-wiedisync-hint svg {
+    width: 16px;
+    height: 16px;
+    color: var(--kscw-gold);
+  }
+
+  .feedback-wiedisync-hint a {
+    color: var(--kscw-blue);
+    font-weight: 600;
+  }
+</style>
+</PageLayout>

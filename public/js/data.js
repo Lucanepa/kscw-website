@@ -1,7 +1,7 @@
 /**
  * KSCW Data Layer — KSC Wiedikon (Volleyball & Basketball)
  *
- * Fetches data from the PocketBase API at kscw-api.lucanepa.com.
+ * Fetches data from the PocketBase API at api.kscw.ch.
  * Locale-aware via window.i18n (DE/EN). Colors from src/utils/teamColors.ts.
  *
  * The same `window.KSCW` interface is preserved so all HTML pages work unchanged.
@@ -62,7 +62,7 @@ var teamColors = {
 };
 
 // ─── Team Pictures (from PocketBase) ─────────────────────────────────
-var PB_FILES = 'https://kscw-api.lucanepa.com/api/files/pbc_1568971955/';
+var PB_FILES = 'https://api.kscw.ch/api/files/pbc_1568971955/';
 var teamPictures = {
   // Volleyball
   H1:      PB_FILES + 'qz7y8l4tz48f65j/h193rllc4ye3_7d834yw8do.jpg',
@@ -270,7 +270,7 @@ window.KSCW = {
 (function () {
   'use strict';
 
-  var PB = 'https://kscw-api.lucanepa.com';
+  var PB = 'https://api.kscw.ch';
   var D = window.KSCW;
 
   /**

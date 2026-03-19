@@ -30,5 +30,5 @@ CF Pages project: `kscw-website` — pushes to `master` trigger deploy.
 
 ## Related
 - **Wiedisync** (main KSCW platform): `github.com/Lucanepa/kscw`
-- **PocketBase API**: `kscw-api.lucanepa.com`
+- **PocketBase API**: `api.kscw.ch`
 - **Session log**: `docs/sessions.md` (gitignored)

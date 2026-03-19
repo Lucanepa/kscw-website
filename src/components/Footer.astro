@@ -21,6 +21,11 @@ const l = (path: string) => `/${locale}${path}`;
               <span style="color: white;">KSC Wiedikon</span>
             </a>
             <p>{t(locale, 'footerDescription')}</p>
+            <div class="footer-contact-info">
+              <p><strong>KSC Wiedikon</strong></p>
+              <p>Schrennengasse 7, 8003 Zürich</p>
+              <p><a href="mailto:kscw@kscw.ch" style="color: inherit;">kscw@kscw.ch</a></p>
+            </div>
             <div class="footer-social">
               <a href="https://facebook.com/kscwiedikon" aria-label="Facebook" target="_blank" rel="noopener noreferrer">
                 <i data-lucide="facebook"></i>
@@ -38,6 +43,7 @@ const l = (path: string) => `/${locale}${path}`;
               <a href={l('/club/ueber-uns')}>{t(locale, 'footerAbout')}</a>
               <a href={l('/club/vorstand')}>{t(locale, 'footerBoard')}</a>
               <a href={l('/club/kontakt')}>{t(locale, 'footerContact')}</a>
+              <a href={l('/club/feedback')}>{t(locale, 'footerFeedback')}</a>
             </div>
           </div>
 

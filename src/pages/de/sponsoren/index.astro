@@ -111,7 +111,7 @@ const locale = 'de';
         return card;
       }
 
-      fetch('https://kscw-api.lucanepa.com/api/public/sponsors')
+      fetch('https://api.kscw.ch/api/public/sponsors')
         .then(function(res) {
           if (!res.ok) throw new Error('HTTP ' + res.status);
           return res.json();
