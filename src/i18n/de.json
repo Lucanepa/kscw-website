@@ -377,6 +377,8 @@
   "eventCategorySocial": "Gesellig",
   "eventCategoryAssembly": "Versammlung",
   "eventCategoryVolunteer": "Freiwillig",
+  "eventCategoryClub": "Verein",
+  "eventCategoryTournament": "Turnier",
   "eventCategoryOther": "Sonstiges",
   "noUpcomingEvents": "Keine kommenden Veranstaltungen"
 }

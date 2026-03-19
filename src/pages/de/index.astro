@@ -2,32 +2,43 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SectionHeader from '../../components/SectionHeader.astro';
 import { t } from '../../lib/i18n';
-import client from '../../../tina/__generated__/client';
 
 const locale = 'de';
+const PB = 'https://kscw-api.lucanepa.com';
 
-let newsArticles = [];
+let newsArticles: any[] = [];
 try {
-  const res = await client.queries.newsConnection({ first: 6 });
-  newsArticles = (res.data.newsConnection.edges ?? [])
-    .map(e => e.node)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 6);
+  const res = await fetch(`${PB}/api/collections/news/records?sort=-published_at&filter=(is_published=true)&perPage=6`);
+  if (res.ok) {
+    const data = await res.json();
+    newsArticles = (data.items ?? []).map((n: any) => ({
+      title: n.title,
+      excerpt: n.excerpt || '',
+      date: n.published_at || n.created,
+      category: n.category || 'club',
+      image: n.image ? `${PB}/api/files/news/${n.id}/${n.image}` : null,
+    }));
+  }
 } catch (e) {
-  console.warn('Failed to fetch news from Tina:', e.message);
+  console.warn('Failed to fetch news from PocketBase:', e);
 }
 
-let upcomingEvents = [];
+let upcomingEvents: any[] = [];
 try {
-  const evRes = await client.queries.eventConnection({ first: 20 });
-  const now = new Date();
-  upcomingEvents = (evRes.data.eventConnection.edges ?? [])
-    .map(e => e.node)
-    .filter(e => new Date(e.date) >= now)
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 3);
+  const now = new Date().toISOString().slice(0, 10);
+  const res = await fetch(`${PB}/api/collections/events/records?sort=start_date&filter=(start_date>='${now}')&perPage=3`);
+  if (res.ok) {
+    const data = await res.json();
+    upcomingEvents = (data.items ?? []).map((ev: any) => ({
+      title: ev.title,
+      date: ev.start_date,
+      time: ev.all_day ? '' : (ev.start_date?.split(' ')[1]?.slice(0, 5) || ''),
+      location: ev.location || '',
+      category: ev.event_type || 'other',
+    }));
+  }
 } catch (e) {
-  console.warn('Failed to fetch events from Tina:', e.message);
+  console.warn('Failed to fetch events from PocketBase:', e);
 }
 ---
 <BaseLayout
@@ -97,8 +108,9 @@ try {
                   <span class="news-date">{new Date(ev.date).toLocaleDateString('de-CH')}</span>
                   <span class="badge badge-green">
                     {ev.category === 'social' ? t(locale, 'eventCategorySocial')
-                      : ev.category === 'assembly' ? t(locale, 'eventCategoryAssembly')
-                      : ev.category === 'volunteer' ? t(locale, 'eventCategoryVolunteer')
+                      : ev.category === 'verein' ? t(locale, 'eventCategoryClub')
+                      : ev.category === 'meeting' ? t(locale, 'eventCategoryAssembly')
+                      : ev.category === 'tournament' ? t(locale, 'eventCategoryTournament')
                       : t(locale, 'eventCategoryOther')}
                   </span>
                 </div>

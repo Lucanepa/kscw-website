@@ -2,24 +2,26 @@
 import PageLayout from '../../../layouts/PageLayout.astro';
 import SectionHeader from '../../../components/SectionHeader.astro';
 import { t } from '../../../lib/i18n';
-import client from '../../../../tina/__generated__/client';
 
 const locale = 'de';
+const PB = 'https://kscw-api.lucanepa.com';
 
-let allEvents = [];
+let allEvents: any[] = [];
 try {
-  const evRes = await client.queries.eventConnection({ first: 100 });
-  allEvents = (evRes.data.eventConnection.edges ?? [])
-    .map(e => ({
-      title: e.node.title,
-      date: e.node.date,
-      endDate: e.node.endDate || '',
-      time: e.node.time || '',
-      location: e.node.location || '',
-      category: e.node.category || 'other',
+  const res = await fetch(`${PB}/api/collections/events/records?sort=start_date&perPage=100`);
+  if (res.ok) {
+    const data = await res.json();
+    allEvents = (data.items ?? []).map((ev: any) => ({
+      title: ev.title,
+      date: ev.start_date?.split(' ')[0] || ev.start_date,
+      endDate: ev.end_date?.split(' ')[0] || '',
+      time: ev.all_day ? '' : (ev.start_date?.split(' ')[1]?.slice(0, 5) || ''),
+      location: ev.location || '',
+      category: ev.event_type || 'other',
     }));
+  }
 } catch (e) {
-  console.warn('Failed to fetch events from Tina:', e.message);
+  console.warn('Failed to fetch events from PocketBase:', e);
 }
 
 const now = new Date();
@@ -59,8 +61,9 @@ const upcomingEvents = allEvents
                   <span class="news-date">{new Date(ev.date).toLocaleDateString('de-CH')}</span>
                   <span class="badge badge-green">
                     {ev.category === 'social' ? t(locale, 'eventCategorySocial')
-                      : ev.category === 'assembly' ? t(locale, 'eventCategoryAssembly')
-                      : ev.category === 'volunteer' ? t(locale, 'eventCategoryVolunteer')
+                      : ev.category === 'verein' ? t(locale, 'eventCategoryClub')
+                      : ev.category === 'meeting' ? t(locale, 'eventCategoryAssembly')
+                      : ev.category === 'tournament' ? t(locale, 'eventCategoryTournament')
                       : t(locale, 'eventCategoryOther')}
                   </span>
                 </div>

@@ -1,0 +1,10 @@
+[
+  { "name": "Michelle Howald", "initials": "MH", "role_de": "Präsidentin", "role_en": "President", "order": 1 },
+  { "name": "Anja Jimenez", "initials": "AJ", "role_de": "Vizepräsidentin", "role_en": "Vice President", "order": 2 },
+  { "name": "Dario Kaufmann", "initials": "DK", "role_de": "Kassier", "role_en": "Treasurer", "order": 3 },
+  { "name": "Radomir Radovanovic", "initials": "RR", "role_de": "Kassier", "role_en": "Treasurer", "order": 4 },
+  { "name": "Roger Ruebsam", "initials": "RR", "role_de": "Aktuar", "role_en": "Secretary", "order": 5 },
+  { "name": "Anne Grimshaw", "initials": "AG", "role_de": "Beisitzerin", "role_en": "Assessor", "order": 6 },
+  { "name": "Rachel Moser", "initials": "RM", "role_de": "TK Basketball", "role_en": "TC Basketball", "order": 7 },
+  { "name": "Thamayanth Kanagalingam", "initials": "TK", "role_de": "TK Volleyball", "role_en": "TC Volleyball", "order": 8 }
+]
