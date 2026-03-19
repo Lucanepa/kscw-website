@@ -29,10 +29,10 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
         <!-- Desktop Navigation -->
         <div class="nav-menu">
           <div class="nav-item">
-            <a href="#" class="nav-link">
+            <button type="button" class="nav-link">
               <span>{t(locale, 'navClub')}</span>
               <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </a>
+            </button>
             <div class="nav-dropdown">
               <a href={l('/club/ueber-uns')} class="dropdown-link">{t(locale, 'navAbout')}</a>
               <a href={l('/club/vorstand')} class="dropdown-link">{t(locale, 'navBoard')}</a>
@@ -41,10 +41,10 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
           </div>
 
           <div class="nav-item">
-            <a href="#" class="nav-link">
+            <button type="button" class="nav-link">
               <span>{t(locale, 'navVolleyball')}</span>
               <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </a>
+            </button>
             <div class="nav-dropdown">
               <a href={l('/volleyball/')} class="dropdown-link">{t(locale, 'navOverview')}</a>
               <div class="dropdown-divider"></div>
@@ -90,10 +90,10 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
           </div>
 
           <div class="nav-item">
-            <a href="#" class="nav-link">
+            <button type="button" class="nav-link">
               <span>{t(locale, 'navBasketball')}</span>
               <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </a>
+            </button>
             <div class="nav-dropdown">
               <a href={l('/basketball/')} class="dropdown-link">{t(locale, 'navOverview')}</a>
               <div class="dropdown-divider"></div>
@@ -135,10 +135,10 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
           </div>
 
           <div class="nav-item">
-            <a href="#" class="nav-link">
+            <button type="button" class="nav-link">
               <span>{t(locale, 'navMore')}</span>
               <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </a>
+            </button>
             <div class="nav-dropdown">
               <a href={l('/weiteres/kalender')} class="dropdown-link">{t(locale, 'navCalendar')}</a>
               <a href={l('/weiteres/mitgliedschaft')} class="dropdown-link">{t(locale, 'navMembership')}</a>

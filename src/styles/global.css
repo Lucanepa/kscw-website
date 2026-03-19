@@ -409,6 +409,11 @@ h1, h2, h3, h4, h5, h6 {
 .nav-item {
   position: relative;
 }
+button.nav-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
 .nav-link {
   display: flex;
   align-items: center;

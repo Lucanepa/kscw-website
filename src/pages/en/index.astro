@@ -1,7 +1,9 @@
 ---
+import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SectionHeader from '../../components/SectionHeader.astro';
 import { t } from '../../lib/i18n';
+import heroLogo from '../../assets/images/kscw_trio.png';
 
 const locale = 'en';
 const PB = 'https://api.kscw.ch';
@@ -50,7 +52,7 @@ try {
   <section class="hero">
     <div class="container">
       <div class="hero-content">
-        <img src="/images/kscw_trio.png" alt="" class="hero-logo" aria-hidden="true">
+        <Image src={heroLogo} alt="" class="hero-logo" aria-hidden="true" loading="eager" />
         <h1>KSC Wiedikon</h1>
         <p class="hero-subtitle">{t(locale, 'homeSubtitle')}</p>
         <div class="hero-buttons">
