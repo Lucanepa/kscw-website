@@ -114,20 +114,20 @@
   }
 
   function computeRanking(rows, getValue, perGame) {
-    var best = {};
+    var sums = {};
+    var played = {};
     for (var i = 0; i < rows.length; i++) {
       var row = rows[i];
       var raw = getValue(row);
       if (raw == null) continue;
-      var val = perGame ? (row.played > 0 ? raw / row.played : null) : raw;
-      if (val == null) continue;
-      if (best[row.team_id] === undefined || val > best[row.team_id]) {
-        best[row.team_id] = val;
-      }
+      if (!sums[row.team_id]) { sums[row.team_id] = 0; played[row.team_id] = 0; }
+      sums[row.team_id] += raw;
+      played[row.team_id] += (row.played || 0);
     }
     var arr = [];
-    for (var tid in best) {
-      arr.push({ teamId: tid, value: best[tid] });
+    for (var tid in sums) {
+      var val = perGame ? (played[tid] > 0 ? sums[tid] / played[tid] : null) : sums[tid];
+      if (val != null) arr.push({ teamId: tid, value: val });
     }
     arr.sort(function (a, b) { return b.value - a.value || a.teamId.localeCompare(b.teamId); });
     return arr;
@@ -143,31 +143,21 @@
   }
 
   function computePerGameAvg(rows, getValue) {
-    var sum = 0, count = 0;
+    var totalVal = 0, totalPlayed = 0;
     for (var i = 0; i < rows.length; i++) {
       var v = getValue(rows[i]);
       var p = rows[i].played;
-      if (v != null && p > 0) { sum += v / p; count++; }
+      if (v != null) { totalVal += v; totalPlayed += (p || 0); }
     }
-    return count > 0 ? sum / count : null;
+    return totalPlayed > 0 ? totalVal / totalPlayed : null;
   }
 
-  // ── Create chip element ─────────────────────────────────────────────
-  function createChip(teamShort, label) {
-    var D = window.KSCW;
-    var tc = D ? D.getTeam(teamShort) : null;
-    var chip = document.createElement('span');
-    chip.className = 'chip';
-    if (tc) {
-      chip.style.background = tc.bg;
-      chip.style.color = tc.text;
-      chip.style.border = '1px solid ' + tc.border;
-    } else {
-      chip.style.background = '#e2e8f0';
-      chip.style.color = '#475569';
-    }
-    chip.textContent = label || teamShort;
-    return chip;
+  // ── Create team label element ───────────────────────────────────────
+  function createTeamLabel(teamShort, label) {
+    var span = document.createElement('span');
+    span.className = 'scoreboard-team-label';
+    span.textContent = label || ('KSCW ' + teamShort);
+    return span;
   }
 
   // ── Build a sport section ───────────────────────────────────────────
@@ -293,10 +283,10 @@
         } else {
           for (var ti = 0; ti < topTeams.length; ti++) {
             var shortName = teamIdMap[topTeams[ti].teamId] || topTeams[ti].teamId;
-            var chipLabel = pct !== null
-              ? shortName + ' - ' + formatVal(topVal, state.mode) + ' (' + pct + '%)'
-              : shortName + ' - ' + formatVal(topVal, state.mode);
-            td3.appendChild(createChip(shortName, chipLabel));
+            var teamLabel = pct !== null
+              ? 'KSCW ' + shortName + ' - ' + formatVal(topVal, state.mode) + ' (' + pct + '%)'
+              : 'KSCW ' + shortName + ' - ' + formatVal(topVal, state.mode);
+            td3.appendChild(createTeamLabel(shortName, teamLabel));
             if (ti < topTeams.length - 1) td3.appendChild(document.createTextNode(' '));
           }
         }
@@ -341,7 +331,7 @@
 
             var subTr = document.createElement('tr');
             var std1 = document.createElement('td'); std1.textContent = '#' + rank;
-            var std2 = document.createElement('td'); std2.appendChild(createChip(short, short));
+            var std2 = document.createElement('td'); std2.appendChild(createTeamLabel(short));
             var std3 = document.createElement('td'); std3.textContent = formatVal(entry.value, state.mode);
             var std4 = document.createElement('td'); std4.textContent = rowPct !== null ? rowPct + '%' : '\u2013';
             subTr.appendChild(std1); subTr.appendChild(std2); subTr.appendChild(std3); subTr.appendChild(std4);
