@@ -174,15 +174,18 @@ const locale = 'de';
         maxZoom: 19
       }).addTo(map);
       var kscwIcon = L.icon({
-        iconUrl: '/images/kscw_blau.png',
-        iconSize: [48, 48],
-        iconAnchor: [24, 48],
-        popupAnchor: [0, -48]
+        iconUrl: '/images/kscw_trio.png',
+        iconSize: [52, 52],
+        iconAnchor: [26, 52],
+        popupAnchor: [0, -52]
       });
-      L.marker([47.3679, 8.5162], { icon: kscwIcon })
+      var marker = L.marker([47.3679, 8.5162], { icon: kscwIcon })
         .addTo(map)
         .bindPopup('<strong>KSC Wiedikon</strong><br>Schrennengasse 7, 8003 Zürich<br><a href="mailto:kscw@kscw.ch">kscw@kscw.ch</a>')
         .openPopup();
+      marker.on('click', function () {
+        window.open('https://maps.app.goo.gl/8ia1QiaZYZg1qUEU8', '_blank');
+      });
     });
   </script>
   <script src="../../../islands/stat-counters.ts"></script>
