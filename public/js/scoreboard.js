@@ -176,9 +176,13 @@
     titleEl.textContent = 'KSCW ' + t(sportKey);
     header.appendChild(titleEl);
 
+    var uniqueTeams = {};
+    for (var ui = 0; ui < rows.length; ui++) { uniqueTeams[rows[ui].team_id] = true; }
+    var teamCount = Object.keys(uniqueTeams).length;
+
     var badge = document.createElement('span');
     badge.className = 'badge';
-    badge.textContent = rows.length + ' ' + t('teams');
+    badge.textContent = teamCount + ' ' + t('teams');
     header.appendChild(badge);
     card.appendChild(header);
 
@@ -193,7 +197,7 @@
       card.appendChild(seasonBadge);
     }
 
-    if (rows.length < 2) {
+    if (teamCount < 2) {
       var msg = document.createElement('p');
       msg.className = 'scoreboard-empty';
       msg.textContent = t('needsTeams');
@@ -325,8 +329,8 @@
           for (var ri = 0; ri < ranking.length; ri++) {
             var entry = ranking[ri];
             var short = teamIdMap[entry.teamId] || entry.teamId;
-            var prev = ri > 0 ? ranking[ri - 1] : null;
-            var rank = prev && prev.value === entry.value ? ri : ri + 1;
+            var rank = ri + 1;
+            for (var rj = ri - 1; rj >= 0 && ranking[rj].value === entry.value; rj--) { rank = rj + 1; }
             var rowPct = !isPerGame && totalVal > 0 ? Math.round((entry.value / totalVal) * 100) : null;
 
             var subTr = document.createElement('tr');
