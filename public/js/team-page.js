@@ -697,6 +697,82 @@
     });
   }
 
+  // ── Image Lightbox ──────────────────────────────────────────────
+  var lightboxOverlay = null;
+
+  function openLightbox(src, alt, caption) {
+    if (lightboxOverlay) closeLightbox();
+
+    lightboxOverlay = document.createElement('div');
+    lightboxOverlay.className = 'image-lightbox-overlay';
+
+    var content = document.createElement('div');
+    content.className = 'image-lightbox-content';
+
+    var closeBtn = document.createElement('button');
+    closeBtn.className = 'image-lightbox-close';
+    closeBtn.setAttribute('aria-label', 'Close');
+    closeBtn.textContent = '\u00D7';
+    closeBtn.addEventListener('click', closeLightbox);
+    content.appendChild(closeBtn);
+
+    var img = document.createElement('img');
+    img.src = src;
+    img.alt = alt || '';
+    content.appendChild(img);
+
+    if (caption) {
+      var cap = document.createElement('div');
+      cap.className = 'image-lightbox-caption';
+      cap.textContent = caption;
+      content.appendChild(cap);
+    }
+
+    lightboxOverlay.appendChild(content);
+    lightboxOverlay.addEventListener('click', function (e) {
+      if (e.target === lightboxOverlay) closeLightbox();
+    });
+
+    document.body.appendChild(lightboxOverlay);
+    // Trigger transition
+    requestAnimationFrame(function () {
+      lightboxOverlay.classList.add('visible');
+    });
+  }
+
+  function closeLightbox() {
+    if (!lightboxOverlay) return;
+    lightboxOverlay.classList.remove('visible');
+    var ol = lightboxOverlay;
+    setTimeout(function () { if (ol.parentNode) ol.parentNode.removeChild(ol); }, 200);
+    lightboxOverlay = null;
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeLightbox();
+  });
+
+  // Delegate click on team photo and roster avatars
+  document.addEventListener('click', function (e) {
+    // Team photo
+    var teamPhoto = e.target.closest('.team-photo');
+    if (teamPhoto) {
+      var fullSrc = teamPhoto.src.replace(/\?thumb=[^&]+/, '');
+      openLightbox(fullSrc, teamPhoto.alt);
+      return;
+    }
+    // Roster avatar (only img, not initials div)
+    var avatar = e.target.closest('img.roster-avatar');
+    if (avatar) {
+      var fullSrc = avatar.src.replace(/\?thumb=[^&]+/, '');
+      var card = avatar.closest('.roster-card');
+      var nameEl = card && card.querySelector('.roster-name');
+      var caption = nameEl ? nameEl.textContent : '';
+      openLightbox(fullSrc, caption, caption);
+      return;
+    }
+  });
+
   // ── Init ──────────────────────────────────────────────────────────
   // Wait for i18n translations to load before rendering
   if (window.i18nReady) {
