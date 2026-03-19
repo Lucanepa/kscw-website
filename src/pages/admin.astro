@@ -550,7 +550,7 @@ import '../styles/global.css';
       // Sanitize and set modal content
       modal.innerHTML = DOMPurify.sanitize(formHtml, {
         ADD_TAGS: ['form'],
-        ADD_ATTR: ['data-tab', 'data-action', 'data-id', 'required', 'autocomplete', 'rows', 'accept', 'for']
+        ADD_ATTR: ['data-tab', 'data-action', 'data-id', 'required', 'autocomplete', 'rows', 'accept', 'for', 'name', 'type', 'checked', 'min', 'value', 'placeholder']
       });
       modal.style.display = 'flex';
 
