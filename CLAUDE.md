@@ -28,6 +28,13 @@ npx astro build      # production build → dist/
 ## Deployment
 CF Pages project: `kscw-website` — pushes to `master` trigger deploy.
 
+## Changelog & Versioning
+
+- **CHANGELOG.md** at repo root — update with every meaningful change
+- **Changelog on site** — displayed on `/de/club/feedback` and `/en/club/feedback` pages (both DE and EN versions)
+- **Version** in `package.json` — bump with each changelog entry (semver: patch for fixes, minor for features, major for breaking changes)
+- **At end of every session**: Ask the user "Should this commit be added to the changelog and version bumped?" before finishing. If yes, update CHANGELOG.md, the feedback page changelog sections (both DE and EN), and bump `package.json` version.
+
 ## Related
 - **Wiedisync** (main KSCW platform): `github.com/Lucanepa/kscw`
 - **PocketBase API**: `api.kscw.ch`

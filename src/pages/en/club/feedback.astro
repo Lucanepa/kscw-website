@@ -116,6 +116,64 @@ const locale = 'en';
         </div>
 
       </div>
+
+      <!-- Changelog -->
+      <div class="changelog-section">
+        <h2 class="changelog-heading">
+          <i data-lucide="scroll-text"></i>
+          {t(locale, 'changelogTitle')}
+          <span class="changelog-badge">v1.0.0</span>
+        </h2>
+
+        <div class="changelog-entry">
+          <div class="changelog-meta">v1.0.0 — 2026-03-19</div>
+          <div class="changelog-group">
+            <h3>Website</h3>
+            <ul>
+              <li>Astro 6 static site with custom CSS design system</li>
+              <li>PocketBase API backend (api.kscw.ch)</li>
+              <li>Cloudflare Pages hosting</li>
+              <li>Bilingual: German & English</li>
+            </ul>
+          </div>
+          <div class="changelog-group">
+            <h3>Teams</h3>
+            <ul>
+              <li>Dynamic team pages with live data (games, rankings, roster, training, photos)</li>
+              <li>Promotion/relegation color bands on volleyball rankings</li>
+              <li>Accordion navigation groups (Women/Men/Youth)</li>
+            </ul>
+          </div>
+          <div class="changelog-group">
+            <h3>Games & Scoreboard</h3>
+            <ul>
+              <li>Game modal with sets, referees, venue</li>
+              <li>Scoreboard with Absolute / Per Game toggle</li>
+              <li>Calendar grid with event tooltips</li>
+            </ul>
+          </div>
+          <div class="changelog-group">
+            <h3>Feedback</h3>
+            <ul>
+              <li>Feedback form: Bug / Feature / Feedback</li>
+              <li>Cloudflare Turnstile CAPTCHA</li>
+              <li>Screenshot upload with drag & drop</li>
+              <li>Automatic GitHub issue creation</li>
+            </ul>
+          </div>
+          <div class="changelog-group">
+            <h3>Content</h3>
+            <ul>
+              <li>History page with Leaflet map</li>
+              <li>Scorer course resources</li>
+              <li>Regulations with SVRZ embeds</li>
+              <li>Impressum & Privacy Policy</li>
+              <li>Sponsors page</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -375,6 +433,91 @@ const locale = 'en';
   .feedback-wiedisync-hint a {
     color: var(--kscw-blue);
     font-weight: 600;
+  }
+
+  /* Changelog */
+  .changelog-section {
+    max-width: 640px;
+    margin: var(--space-2xl) auto 0;
+    border-top: 2px solid var(--border);
+    padding-top: var(--space-xl);
+  }
+
+  .changelog-heading {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-lg);
+  }
+
+  .changelog-heading svg {
+    width: 22px;
+    height: 22px;
+    color: var(--kscw-blue);
+  }
+
+  .changelog-badge {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    font-family: monospace;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--kscw-blue);
+    color: white;
+  }
+
+  .changelog-entry {
+    padding-left: var(--space-md);
+    border-left: 3px solid var(--kscw-gold);
+  }
+
+  .changelog-meta {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    font-family: monospace;
+    color: var(--text-muted);
+    margin-bottom: var(--space-md);
+  }
+
+  .changelog-group {
+    margin-bottom: var(--space-md);
+  }
+
+  .changelog-group h3 {
+    font-size: var(--text-sm);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-xs);
+  }
+
+  .changelog-group ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .changelog-group li {
+    position: relative;
+    padding-left: var(--space-md);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .changelog-group li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--kscw-blue);
   }
 </style>
 </PageLayout>
