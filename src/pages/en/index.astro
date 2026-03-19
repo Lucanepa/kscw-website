@@ -37,6 +37,7 @@ try {
       time: ev.all_day ? '' : (ev.start_date?.split(' ')[1]?.slice(0, 5) || ''),
       location: ev.location || '',
       category: ev.event_type || 'other',
+      description: ev.description || '',
     }));
   }
 } catch (e) {
@@ -104,7 +105,7 @@ try {
         <SectionHeader title={t(locale, 'homeEvents')} />
         <div class="grid grid-3">
           {upcomingEvents.map(ev => (
-            <article class="card event-card fade-in">
+            <article class={`card event-card fade-in${ev.description ? ' event-card--clickable' : ''}`}>
               <div class="card-body">
                 <div class="flex items-center gap-sm mb-md">
                   <span class="news-date">{new Date(ev.date).toLocaleDateString('en-CH')}</span>
@@ -115,11 +116,15 @@ try {
                       : ev.category === 'tournament' ? t(locale, 'eventCategoryTournament')
                       : t(locale, 'eventCategoryOther')}
                   </span>
+                  {ev.description && <span class="event-expand-icon" aria-hidden="true">&#x25BC;</span>}
                 </div>
                 <h3>{ev.title}</h3>
                 {ev.time && <p class="event-location">{ev.time}</p>}
                 {ev.location && <p class="event-location">{ev.location}</p>}
               </div>
+              {ev.description && (
+                <div class="event-description" set:html={ev.description} />
+              )}
             </article>
           ))}
         </div>
@@ -387,6 +392,7 @@ try {
       });
     })();
   </script>
+  <script src="../../islands/event-expand.ts"></script>
   <script src="../../islands/scroll-animations.ts"></script>
   <script src="../../islands/sponsor-carousel.ts"></script>
 </BaseLayout>

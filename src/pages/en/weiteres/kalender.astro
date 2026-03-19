@@ -18,6 +18,8 @@ try {
       time: ev.all_day ? '' : (ev.start_date?.split(' ')[1]?.slice(0, 5) || ''),
       location: ev.location || '',
       category: ev.event_type || 'other',
+      description: ev.description || '',
+      body: ev.description || '',
     }));
   }
 } catch (e) {
@@ -55,7 +57,7 @@ const upcomingEvents = allEvents
         <SectionHeader title={t(locale, 'calendarEvents')} />
         <div class="grid grid-3">
           {upcomingEvents.map(ev => (
-            <article class="card event-card fade-in">
+            <article class={`card event-card fade-in${ev.description ? ' event-card--clickable' : ''}`}>
               <div class="card-body">
                 <div class="flex items-center gap-sm mb-md">
                   <span class="news-date">{new Date(ev.date).toLocaleDateString('en-CH')}</span>
@@ -66,11 +68,15 @@ const upcomingEvents = allEvents
                       : ev.category === 'tournament' ? t(locale, 'eventCategoryTournament')
                       : t(locale, 'eventCategoryOther')}
                   </span>
+                  {ev.description && <span class="event-expand-icon" aria-hidden="true">&#x25BC;</span>}
                 </div>
                 <h3>{ev.title}</h3>
                 {ev.time && <p class="event-location">{ev.time}</p>}
                 {ev.location && <p class="event-location">{ev.location}</p>}
               </div>
+              {ev.description && (
+                <div class="event-description" set:html={ev.description} />
+              )}
             </article>
           ))}
         </div>
@@ -117,5 +123,6 @@ const upcomingEvents = allEvents
     </div>
   </section>
 
+  <script src="../../../islands/event-expand.ts"></script>
   <script src="../../../islands/calendar-grid.ts"></script>
 </PageLayout>

@@ -275,6 +275,15 @@ if (container) {
       tip.appendChild(el('div', 'cal-tooltip-hall', ev.location))
     }
 
+    if (ev.body) {
+      const desc = document.createElement('div')
+      desc.className = 'cal-tooltip-desc'
+      // SAFE: ev.body is admin-authored content sanitized with DOMPurify at save time in the admin panel.
+      // No user-generated content flows here. innerHTML needed for rich text formatting from Quill editor.
+      desc.innerHTML = ev.body // eslint-disable-line no-unsanitized/property
+      tip.appendChild(desc)
+    }
+
     document.body.appendChild(tip)
     activeTooltip = tip
 
@@ -517,6 +526,14 @@ if (container) {
 
       if (ev.location) {
         row.appendChild(el('div', 'cal-modal-hall', ev.location))
+      }
+
+      if (ev.body) {
+        const desc = document.createElement('div')
+        desc.className = 'cal-modal-desc'
+        // SAFE: ev.body is admin-authored content sanitized with DOMPurify at save time.
+        desc.innerHTML = ev.body // eslint-disable-line no-unsanitized/property
+        row.appendChild(desc)
       }
 
       modal.appendChild(row)
