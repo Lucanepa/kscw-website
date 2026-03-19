@@ -65,6 +65,14 @@ const moreText = `${t(locale, 'vbMore')} &rarr;`;
     </div>
   </section>
 
+  <!-- Scoreboard -->
+  <section class="section-alt" id="vb-scoreboard-section">
+    <div class="container">
+      <SectionHeader title="KSCW Volleyball Scoreboard" />
+      <div id="vb-scoreboard" data-scoreboard="volleyball"></div>
+    </div>
+  </section>
+
   <!-- CTA -->
   <CTA
     title={t(locale, 'vbCTA')}
@@ -73,5 +81,7 @@ const moreText = `${t(locale, 'vbMore')} &rarr;`;
     buttonHref={`/${locale}/club/kontakt`}
   />
 
+  <script is:inline src="/js/data.js"></script>
+  <script is:inline src="/js/scoreboard.js"></script>
   <script src="../../../islands/scroll-animations.ts"></script>
 </PageLayout>

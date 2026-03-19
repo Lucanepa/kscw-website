@@ -543,6 +543,7 @@ window.KSCW = {
     }
 
     // ── Build rankings ─────────────────────────────────
+    D.rawRankings = pbRankings;
     D.rankings = mapRankings(pbRankings, teamPbIdSet);
 
     // ── Map news ──────────────────────────────────────────
