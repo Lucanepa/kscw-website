@@ -2,6 +2,14 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [1.1.0] — 2026-03-19
+
+### Admin
+- Redesigned admin login page with glassmorphism card, lock icon, and "Websiteverwaltung" subtitle
+- Added password visibility toggle (eye icon)
+- Proper dark mode and light mode support for login form
+- Responsive design for mobile
+
 ## [1.0.0] — 2026-03-19
 
 ### Site Foundation
