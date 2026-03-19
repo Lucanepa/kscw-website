@@ -22,9 +22,9 @@ import '../styles/global.css';
 <body>
   <div id="admin-app"></div>
 
-  <script is:inline src="https://cdn.jsdelivr.net/npm/pocketbase@0.25.2/dist/pocketbase.umd.js"></script>
-  <script is:inline src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
-  <script is:inline src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js"></script>
+  <script is:inline src="https://cdn.jsdelivr.net/npm/pocketbase@0.25.2/dist/pocketbase.umd.js" integrity="sha384-oHOUM+2J5F3LmkQ1sT6oObMGlQaBNjBadRL/tf1qAg6Hsd3o21JpTy1afjRxdYrl" crossorigin="anonymous"></script>
+  <script is:inline src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js" integrity="sha384-utBUCeG4SYaCm4m7GQZYr8Hy8Fpy3V4KGjBZaf4WTKOcwhCYpt/0PfeEe3HNlwx8" crossorigin="anonymous"></script>
+  <script is:inline src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js" integrity="sha384-eEu5CTj3qGvu9PdJuS+YlkNi7d2XxQROAFYOr59zgObtlcux1ae1Il3u7jvdCSWu" crossorigin="anonymous"></script>
   <script is:inline>
   (function() {
     'use strict';
@@ -500,7 +500,7 @@ import '../styles/global.css';
         if (participationRequired) {
           formData.append('respond_by', form.querySelector('[name="respond_by"]').value);
           var teamsVal = form.querySelector('[name="teams"]').value;
-          var teamsArr = JSON.parse(teamsVal || '[]');
+          var teamsArr; try { teamsArr = JSON.parse(teamsVal || '[]'); } catch (_) { teamsArr = []; }
           // PB expects relation fields as repeated values
           if (teamsArr.length) {
             teamsArr.forEach(function(tid) { formData.append('teams', tid); });
@@ -511,7 +511,7 @@ import '../styles/global.css';
           var maxP = form.querySelector('[name="max_players"]').value;
           formData.append('min_players', minP ? Number(minP) : 0);
           formData.append('max_players', maxP ? Number(maxP) : 0);
-          var reqParts = JSON.parse(form.querySelector('[name="required_participants"]').value || '[]');
+          var reqParts; try { reqParts = JSON.parse(form.querySelector('[name="required_participants"]').value || '[]'); } catch (_) { reqParts = []; }
           if (reqParts.length) {
             reqParts.forEach(function(mid) { formData.append('required_participants', mid); });
           } else {
