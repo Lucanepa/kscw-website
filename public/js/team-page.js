@@ -12,7 +12,7 @@
   var CFG = window.TEAM_CONFIG;
   if (!CFG || (!CFG.short && !CFG.pbId)) return;
 
-  var PB = 'https://kscw-api.lucanepa.com';
+  var PB = 'https://api.kscw.ch';
   var TEAM = CFG.short || '';
   var TEAM_PB_ID = CFG.pbId;
   var IS_WOMEN = false; // set after team data loads

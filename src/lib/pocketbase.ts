@@ -1,7 +1,7 @@
 import type { TeamDef, TeamData } from '../data/teams';
 import { allTeamDefs, getBadgeText } from '../data/teams';
 
-const PB_URL = 'https://kscw-api.lucanepa.com';
+const PB_URL = 'https://api.kscw.ch';
 const PB_FILES = `${PB_URL}/api/files/pbc_1568971955`;
 
 interface PBTeamRecord {

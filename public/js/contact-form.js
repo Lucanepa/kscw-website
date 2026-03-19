@@ -8,7 +8,7 @@
 (function () {
   'use strict';
 
-  var PB = 'https://kscw-api.lucanepa.com';
+  var PB = 'https://api.kscw.ch';
   var TURNSTILE_SITE_KEY = '0x4AAAAAACoYmx3xiDfRbmv9';
 
   var betreffSelect = document.getElementById('betreff');

@@ -1,7 +1,7 @@
 // Calendar Grid — Vanilla JS month grid fetching games from PocketBase
 // Mirrors the Wiedisync CalendarGrid visual style
 
-const PB_URL = 'https://kscw-api.lucanepa.com'
+const PB_URL = 'https://api.kscw.ch'
 
 interface PBGame {
   id: string
