@@ -1597,10 +1597,23 @@ import '../styles/global.css';
   }
   .ql-editor {
     min-height: 150px;
-    color: #fff;
+    color: #fff !important;
   }
   .ql-editor.ql-blank::before {
-    color: var(--text-muted);
+    color: var(--text-muted) !important;
+  }
+  .ql-snow .ql-stroke {
+    stroke: var(--text-secondary) !important;
+  }
+  .ql-snow .ql-fill {
+    fill: var(--text-secondary) !important;
+  }
+  .ql-snow .ql-picker-label {
+    color: var(--text-secondary) !important;
+  }
+  .ql-snow .ql-picker-options {
+    background: var(--bg-white) !important;
+    border-color: var(--border) !important;
   }
 
   /* ── Multi-select tags & dropdowns ──────────────────────── */
