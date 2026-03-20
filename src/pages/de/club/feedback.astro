@@ -122,8 +122,30 @@ const locale = 'de';
         <h2 class="changelog-heading">
           <i data-lucide="scroll-text"></i>
           {t(locale, 'changelogTitle')}
-          <span class="changelog-badge">v1.1.0</span>
+          <span class="changelog-badge">v1.2.0</span>
         </h2>
+
+        <div class="changelog-entry">
+          <div class="changelog-meta">v1.2.0 — 2026-03-20</div>
+          <div class="changelog-group">
+            <h3>Testing</h3>
+            <ul>
+              <li>Umfassende Test-Suite: Vitest (Unit) + Playwright (E2E)</li>
+              <li>170 Tests: i18n, Datenintegrität, Navigation, Layout, Inseln, Admin, Barrierefreiheit</li>
+              <li>GitHub Actions CI-Pipeline bei Push auf dev/prod</li>
+            </ul>
+          </div>
+          <div class="changelog-group">
+            <h3>Fehlerbehebungen</h3>
+            <ul>
+              <li>Fehlende EN-Übersetzungsschlüssel behoben</li>
+              <li>Kalender-Raster Overflow auf Desktop behoben</li>
+              <li>Leaflet-Karte Overflow auf Mobile behoben</li>
+              <li>Theme-Toggle funktioniert jetzt auf allen Seiten</li>
+              <li>Sponsor-Karussell funktioniert mit asynchron geladenen Inhalten</li>
+            </ul>
+          </div>
+        </div>
 
         <div class="changelog-entry">
           <div class="changelog-meta">v1.1.0 — 2026-03-19</div>

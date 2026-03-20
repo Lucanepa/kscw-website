@@ -2,6 +2,21 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [1.2.0] — 2026-03-20
+
+### Testing
+- Added comprehensive test suite: Vitest (unit) + Playwright (E2E)
+- 22 unit tests: i18n key parity, i18n helpers, data integrity (board, contacts, teams)
+- 148 E2E tests across mobile (375px) and desktop (1280px): navigation, layout/overflow, i18n locale, islands interactivity, admin panel, accessibility
+- GitHub Actions CI pipeline on push to `dev`/`prod`
+
+### Bug Fixes
+- Fixed 2 missing EN translation keys (`teamCaptainF`, `posSetterF`)
+- Fixed calendar grid horizontal overflow on desktop
+- Fixed Leaflet map causing horizontal overflow on mobile
+- Fixed theme toggle not working (script not imported in BaseLayout)
+- Fixed sponsor carousel not handling async-loaded content
+
 ## [1.1.0] — 2026-03-19
 
 ### Admin
