@@ -9,9 +9,16 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:all": "vitest run && playwright test"
   },
   "dependencies": {
     "astro": "^6.0.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "vitest": "^4.1.0"
   }
 }
