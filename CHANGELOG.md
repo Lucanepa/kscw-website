@@ -2,6 +2,12 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [1.2.1] — 2026-03-20
+
+### Bug Fixes
+
+- Fixed feedback form Turnstile validation failing with "Turnstile token required" despite successful CAPTCHA — PocketBase strips non-schema fields from multipart body, now sends token via `X-Turnstile-Token` header
+
 ## [1.2.0] — 2026-03-20
 
 ### Testing
