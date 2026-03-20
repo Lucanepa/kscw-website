@@ -250,12 +250,10 @@
     }
 
     // Section headings in the spiele tab
-    var spielePanel = document.querySelector('[data-tab-panel="spiele"]');
-    if (spielePanel) {
-      var headings = spielePanel.querySelectorAll('h2');
-      if (headings[0]) headings[0].textContent = i18n.t('teamUpcoming');
-      if (headings[1]) headings[1].textContent = i18n.t('teamResults');
-    }
+    var upcomingH2 = document.querySelector('#upcoming-section h2');
+    if (upcomingH2) upcomingH2.textContent = i18n.t('teamUpcoming');
+    var resultsH2 = document.querySelector('#results-section h2');
+    if (resultsH2) resultsH2.textContent = i18n.t('teamResults');
   }
 
   // ── Render Roster ─────────────────────────────────────────────────
@@ -508,8 +506,22 @@
 
   // ── Render Games from hook response ─────────────────────────────────
   function renderHookGames(upcoming, results, teamData) {
-    renderGameTable('upcoming-games', upcoming, false, teamData);
-    renderGameTable('recent-results', results, true, teamData);
+    var upcomingSection = document.getElementById('upcoming-section');
+    var resultsSection = document.getElementById('results-section');
+
+    if (upcoming.length) {
+      if (upcomingSection) upcomingSection.style.display = '';
+      renderGameTable('upcoming-games', upcoming, false, teamData);
+    } else {
+      if (upcomingSection) upcomingSection.style.display = 'none';
+    }
+
+    if (results.length) {
+      if (resultsSection) resultsSection.style.display = '';
+      renderGameTable('recent-results', results, true, teamData);
+    } else {
+      if (resultsSection) resultsSection.style.display = 'none';
+    }
   }
 
   // ── Render Rankings from hook response ─────────────────────────────

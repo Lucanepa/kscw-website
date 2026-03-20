@@ -89,7 +89,13 @@ import '../styles/global.css';
         saving: 'Wird gespeichert...',
         saveError: 'Fehler beim Speichern: ',
         translationFailed: 'Übersetzung fehlgeschlagen',
-        create: 'Neu erstellen'
+        create: 'Neu erstellen',
+        forgotPassword: 'Passwort vergessen?',
+        resetPasswordInfo: 'Gib deine E-Mail-Adresse ein und klicke auf «Passwort zurücksetzen». Du erhältst eine E-Mail mit einem Link zum Setzen deines Passworts.',
+        resetPassword: 'Passwort zurücksetzen',
+        resetPasswordSent: 'Falls ein Konto mit dieser E-Mail existiert, wurde ein Link zum Zurücksetzen gesendet.',
+        resetPasswordError: 'Fehler beim Senden. Bitte versuche es erneut.',
+        backToLogin: 'Zurück zur Anmeldung'
       },
       en: {
         websiteAdmin: 'Website Management',
@@ -142,7 +148,13 @@ import '../styles/global.css';
         saving: 'Saving...',
         saveError: 'Error saving: ',
         translationFailed: 'Translation failed',
-        create: 'Create new'
+        create: 'Create new',
+        forgotPassword: 'Forgot password?',
+        resetPasswordInfo: 'Enter your email address and click "Reset password". You will receive an email with a link to set your password.',
+        resetPassword: 'Reset password',
+        resetPasswordSent: 'If an account with this email exists, a reset link has been sent.',
+        resetPasswordError: 'Error sending reset email. Please try again.',
+        backToLogin: 'Back to login'
       }
     };
     function t(key) { return (i18n[adminLang] || i18n.de)[key] || key; }
@@ -238,6 +250,7 @@ import '../styles/global.css';
               '<div id="login-error" class="admin-error" style="display:none;"></div>' +
               '<button type="submit" class="admin-login-btn">' + t('login') + '</button>' +
             '</form>' +
+            '<button type="button" id="forgot-pw-link" class="admin-forgot-link">' + t('forgotPassword') + '</button>' +
           '</div>' +
         '</div>'
       );
@@ -284,6 +297,66 @@ import '../styles/global.css';
           open.style.display = 'block';
           closed.style.display = 'none';
         }
+      });
+
+      document.getElementById('forgot-pw-link').addEventListener('click', function() {
+        renderForgotPassword();
+      });
+    }
+
+    // ── Forgot Password Page ─────────────────────────────────
+    function renderForgotPassword() {
+      setAppContent(
+        '<div class="admin-login">' +
+          '<div class="admin-login-card">' +
+            '<img src="/images/kscw_trio.png" alt="KSC Wiedikon" class="admin-login-logo">' +
+            '<div class="admin-login-icon">' +
+              '<svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="var(--kscw-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>' +
+                '<polyline points="22,6 12,13 2,6"/>' +
+              '</svg>' +
+            '</div>' +
+            '<h1>' + t('resetPassword') + '</h1>' +
+            '<p class="admin-login-subtitle" style="text-transform:none;letter-spacing:0;font-size:0.8rem;line-height:1.4;">' + t('resetPasswordInfo') + '</p>' +
+            '<form id="reset-form">' +
+              '<div class="admin-field">' +
+                '<label for="reset-email">' + t('email') + '</label>' +
+                '<input type="email" id="reset-email" required autocomplete="email" placeholder="name@kscw.ch">' +
+              '</div>' +
+              '<div id="reset-msg" class="admin-error" style="display:none;"></div>' +
+              '<button type="submit" class="admin-login-btn">' + t('resetPassword') + '</button>' +
+            '</form>' +
+            '<button type="button" id="back-to-login" class="admin-forgot-link">' + t('backToLogin') + '</button>' +
+          '</div>' +
+        '</div>'
+      );
+
+      document.getElementById('reset-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var email = document.getElementById('reset-email').value;
+        var msgEl = document.getElementById('reset-msg');
+        var btn = e.target.querySelector('button[type="submit"]');
+        btn.disabled = true;
+
+        pb.collection('members').requestPasswordReset(email)
+          .then(function() {
+            msgEl.textContent = t('resetPasswordSent');
+            msgEl.style.display = 'block';
+            msgEl.classList.remove('admin-error');
+            msgEl.classList.add('admin-success');
+            btn.disabled = true;
+          })
+          .catch(function() {
+            msgEl.textContent = t('resetPasswordError');
+            msgEl.style.display = 'block';
+            msgEl.classList.remove('admin-success');
+            msgEl.classList.add('admin-error');
+            btn.disabled = false;
+          });
+      });
+
+      document.getElementById('back-to-login').addEventListener('click', function() {
+        renderLogin();
       });
     }
 
@@ -1392,6 +1465,34 @@ import '../styles/global.css';
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
+  }
+
+  /* ── Forgot password link ────────────────────────────────── */
+  .admin-forgot-link {
+    display: block;
+    margin-top: var(--space-md);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.15s;
+    font-family: 'Inter', sans-serif;
+  }
+  .admin-forgot-link:hover {
+    color: var(--kscw-gold);
+  }
+
+  /* ── Success message ───────────────────────────────────────── */
+  .admin-success {
+    color: #22c55e !important;
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    border-radius: var(--radius-md);
+    padding: 0.625rem 0.75rem;
+    font-size: var(--text-xs);
+    margin-bottom: var(--space-sm);
   }
 
   /* ── Password toggle ─────────────────────────────────────── */

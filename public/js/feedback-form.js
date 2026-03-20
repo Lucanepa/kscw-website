@@ -257,7 +257,11 @@
       body: formData,
     })
       .then(function (res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+        if (!res.ok) {
+          return res.json().then(function (err) {
+            throw new Error(err.message || 'HTTP ' + res.status);
+          });
+        }
         return res.json();
       })
       .then(function () {
@@ -277,8 +281,11 @@
           window.turnstile.reset(turnstileWidgetId);
         }
       })
-      .catch(function () {
-        showFeedback(msg('error'), 'error');
+      .catch(function (err) {
+        var errMsg = (err && err.message && err.message !== 'HTTP 400')
+          ? err.message
+          : msg('error');
+        showFeedback(errMsg, 'error');
       })
       .finally(function () {
         if (submitBtn) {

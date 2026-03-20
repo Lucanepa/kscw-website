@@ -39,13 +39,17 @@ const { pbId, short } = Astro.props;
       </div>
 
       <div class="tab-panel" data-tab-panel="spiele" role="tabpanel">
-        <h2 style="font-size: var(--text-2xl); margin-bottom: var(--space-lg);">{t(locale, 'teamUpcoming')}</h2>
-        <div id="upcoming-games">
-          <p class="text-muted text-sm">{t(locale, 'teamLoadingGames')}</p>
+        <div id="upcoming-section">
+          <h2 style="font-size: var(--text-2xl); margin-bottom: var(--space-lg);">{t(locale, 'teamUpcoming')}</h2>
+          <div id="upcoming-games">
+            <p class="text-muted text-sm">{t(locale, 'teamLoadingGames')}</p>
+          </div>
         </div>
-        <h2 style="font-size: var(--text-2xl); margin-top: var(--space-2xl); margin-bottom: var(--space-lg);">{t(locale, 'teamResults')}</h2>
-        <div id="recent-results">
-          <p class="text-muted text-sm">{t(locale, 'teamLoadingResults')}</p>
+        <div id="results-section">
+          <h2 style="font-size: var(--text-2xl); margin-top: var(--space-2xl); margin-bottom: var(--space-lg);">{t(locale, 'teamResults')}</h2>
+          <div id="recent-results">
+            <p class="text-muted text-sm">{t(locale, 'teamLoadingResults')}</p>
+          </div>
         </div>
       </div>
 
