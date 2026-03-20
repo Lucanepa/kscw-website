@@ -232,7 +232,6 @@
     formData.append('source', 'website');
     formData.append('status', 'new');
     formData.append('turnstile_token', data.turnstileResponse);
-
     var urlField = form.querySelector('#feedback-url');
     if (urlField && urlField.value.trim()) {
       formData.append('source_url', urlField.value.trim());
@@ -254,6 +253,7 @@
 
     fetch(PB + '/api/collections/feedback/records', {
       method: 'POST',
+      headers: { 'X-Turnstile-Token': data.turnstileResponse },
       body: formData,
     })
       .then(function (res) {
