@@ -29,3 +29,4 @@ pnpm-debug.log*
 
 # session log
 docs/sessions.md
+.playwright-mcp/
