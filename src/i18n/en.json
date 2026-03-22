@@ -214,6 +214,8 @@
   "calendarVolleyballDescription": "All volleyball games and training sessions for the 2025/26 season.",
   "calendarBasketball": "Basketball Calendar",
   "calendarBasketballDescription": "All basketball games and training sessions for the 2025/26 season.",
+  "calendarBoth": "All Sports",
+  "calendarBothDescription": "Volleyball and basketball — all games and training sessions in one calendar.",
   "calendarICalSubscribe": "Subscribe via iCal",
   "calendarUpcoming": "Upcoming Events",
   "calendarHomeGame": "Home Game",
