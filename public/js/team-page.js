@@ -275,7 +275,7 @@
       var card = document.createElement('div');
       card.className = 'roster-card';
 
-      if (m.photo_url) {
+      if (m.photo_url && m.website_visible !== false) {
         var img = document.createElement('img');
         img.src = PB + m.photo_url;
         img.alt = '';
