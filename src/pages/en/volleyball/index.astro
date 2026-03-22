@@ -29,24 +29,24 @@ const moreText = `${t(locale, 'vbMore')} &rarr;`;
   pageTitle={t(locale, 'vbTitle')}
   pageSubtitle={t(locale, 'vbSubtitle')}
 >
-  <!-- Men -->
+  <!-- Women -->
   <section class="section">
     <div class="container">
-      <SectionHeader title={t(locale, 'vbMen')} />
+      <SectionHeader title={t(locale, 'vbWomen')} />
       <div class="grid grid-4">
-        {men.map((team: TeamData) => (
+        {women.map((team: TeamData) => (
           <TeamCard team={team} locale={locale} basePath={basePath} moreText={moreText} />
         ))}
       </div>
     </div>
   </section>
 
-  <!-- Women -->
+  <!-- Men -->
   <section class="section-alt">
     <div class="container">
-      <SectionHeader title={t(locale, 'vbWomen')} />
+      <SectionHeader title={t(locale, 'vbMen')} />
       <div class="grid grid-4">
-        {women.map((team: TeamData) => (
+        {men.map((team: TeamData) => (
           <TeamCard team={team} locale={locale} basePath={basePath} moreText={moreText} />
         ))}
       </div>
