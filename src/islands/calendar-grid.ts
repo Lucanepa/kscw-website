@@ -128,6 +128,36 @@ if (container) {
     return e
   }
 
+  // -- Sport ball SVG icons --
+  function svgEl(tag: string, attrs: Record<string, string>): SVGElement {
+    const e = document.createElementNS('http://www.w3.org/2000/svg', tag)
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v)
+    return e
+  }
+
+  function sportBallIcon(sport: string): SVGElement {
+    const svg = svgEl('svg', { viewBox: '0 0 24 24', class: 'cal-sport-ball' })
+    const s = '1.5' // stroke-width
+
+    if (sport === 'basketball') {
+      const c = '#1a1a1a'
+      svg.appendChild(svgEl('circle', { cx: '12', cy: '12', r: '10', fill: '#F97316', stroke: c, 'stroke-width': s }))
+      svg.appendChild(svgEl('path', { d: 'M4.93 4.93c4.08 2.64 8.74 3.2 14.14 0', fill: 'none', stroke: c, 'stroke-width': s, 'stroke-linecap': 'round' }))
+      svg.appendChild(svgEl('path', { d: 'M4.93 19.07c4.08-2.64 8.74-3.2 14.14 0', fill: 'none', stroke: c, 'stroke-width': s, 'stroke-linecap': 'round' }))
+      svg.appendChild(svgEl('line', { x1: '12', y1: '2', x2: '12', y2: '22', stroke: c, 'stroke-width': s }))
+      svg.appendChild(svgEl('line', { x1: '2', y1: '12', x2: '22', y2: '12', stroke: c, 'stroke-width': s }))
+    } else {
+      const c = '#4A55A2'
+      svg.appendChild(svgEl('circle', { cx: '12', cy: '12', r: '10', fill: '#FFC832', stroke: c, 'stroke-width': s }))
+      svg.appendChild(svgEl('path', { d: 'M11.1 7.1a16.55 16.55 0 0 1 10.9 4', stroke: c, 'stroke-width': s, fill: 'none', 'stroke-linecap': 'round' }))
+      svg.appendChild(svgEl('path', { d: 'M12 12a12.6 12.6 0 0 1-8.7 5', stroke: c, 'stroke-width': s, fill: 'none', 'stroke-linecap': 'round' }))
+      svg.appendChild(svgEl('path', { d: 'M16.8 13.6a16.55 16.55 0 0 1-9 7.5', stroke: c, 'stroke-width': s, fill: 'none', 'stroke-linecap': 'round' }))
+      svg.appendChild(svgEl('path', { d: 'M20.7 17a12.8 12.8 0 0 0-8.7-5 13.3 13.3 0 0 1 0-10', stroke: c, 'stroke-width': s, fill: 'none', 'stroke-linecap': 'round' }))
+      svg.appendChild(svgEl('path', { d: 'M6.3 3.8a16.55 16.55 0 0 0 1.9 11.5', stroke: c, 'stroke-width': s, fill: 'none', 'stroke-linecap': 'round' }))
+    }
+    return svg
+  }
+
   // -- Color helpers --
   function hexToRgba(hex: string, alpha: number): string {
     const r = parseInt(hex.slice(1, 3), 16)
@@ -207,11 +237,9 @@ if (container) {
     btn.style.background = hexToRgba(teamColor, 0.15)
     btn.style.borderLeft = `3px solid ${teamColor}`
 
-    // Sport dot
+    // Sport ball icon
     const sport = getTeamSport(g)
-    const dot = el('span', 'cal-sport-dot')
-    dot.style.background = sport === 'basketball' ? '#d97706' : 'var(--kscw-blue)'
-    btn.appendChild(dot)
+    btn.appendChild(sportBallIcon(sport))
 
     // Time
     if (g.time) {
@@ -219,11 +247,10 @@ if (container) {
     }
 
     // H/A badge
-    const badge = el('span', 'cal-entry-badge', isHome ? 'H' : 'A')
-    badge.style.color = isHome ? 'var(--kscw-blue)' : '#d97706'
+    const badge = el('span', `cal-entry-badge cal-entry-badge--${isHome ? 'home' : 'away'}`, isHome ? 'H' : 'A')
     btn.appendChild(badge)
 
-    // Team name
+    // Team name (short)
     btn.appendChild(el('span', 'cal-entry-title', teamName))
 
     btn.addEventListener('click', (e) => {

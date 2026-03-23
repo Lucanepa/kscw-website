@@ -2542,13 +2542,43 @@ button:focus-visible {
 .cal-sport-dot--vb { background: var(--kscw-blue); }
 .cal-sport-dot--bb { background: #d97706; }
 
+/* Sport ball SVG icon in chip */
+.cal-sport-ball {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
 /* H/A mini badge in chip */
 .cal-entry-badge {
-  font-size: 0.6em;
-  font-weight: 700;
+  font-size: 0.55rem;
+  font-weight: 800;
   flex-shrink: 0;
   text-transform: uppercase;
-  opacity: 0.8;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  line-height: 1;
+}
+.cal-entry-badge--home {
+  background: rgba(74, 85, 162, 0.2);
+  color: var(--kscw-blue);
+}
+.cal-entry-badge--away {
+  background: rgba(217, 119, 6, 0.2);
+  color: #d97706;
+}
+[data-theme="dark"] .cal-entry-badge--home {
+  background: rgba(74, 85, 162, 0.35);
+  color: #a5b4fc;
+}
+[data-theme="dark"] .cal-entry-badge--away {
+  background: rgba(217, 119, 6, 0.35);
+  color: #fbbf24;
 }
 
 /* Subscribe button */
