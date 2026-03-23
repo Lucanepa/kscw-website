@@ -201,7 +201,7 @@ if (container) {
       const url =
         `${PB_URL}/api/collections/games/records?perPage=200&sort=date,time` +
         `&filter=${filter}` +
-        `&fields=id,game_id,date,time,home_team,away_team,home_score,away_score,status,type` +
+        `&fields=id,game_id,date,time,home_team,away_team,home_score,away_score,status,type,expand.kscw_team.id,expand.kscw_team.name,expand.kscw_team.sport,expand.kscw_team.color,expand.hall.name,expand.hall.address,expand.hall.city` +
         `&expand=kscw_team,hall`
       const res = await fetch(url)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
