@@ -23,7 +23,7 @@ interface PBGame {
   type: string
   expand?: {
     kscw_team?: PBTeam
-    hall?: { name: string; address: string; city: string }
+    hall?: { name: string; address: string; city: string; maps_url?: string }
   }
 }
 
@@ -201,7 +201,7 @@ if (container) {
       const url =
         `${PB_URL}/api/collections/games/records?perPage=200&sort=date,time` +
         `&filter=${filter}` +
-        `&fields=id,game_id,date,time,home_team,away_team,home_score,away_score,status,type,expand.kscw_team.id,expand.kscw_team.name,expand.kscw_team.sport,expand.kscw_team.color,expand.hall.name,expand.hall.address,expand.hall.city` +
+        `&fields=id,game_id,date,time,home_team,away_team,home_score,away_score,status,type,expand.kscw_team.id,expand.kscw_team.name,expand.kscw_team.sport,expand.kscw_team.color,expand.hall.name,expand.hall.address,expand.hall.city,expand.hall.maps_url` +
         `&expand=kscw_team,hall`
       const res = await fetch(url)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -340,7 +340,10 @@ if (container) {
     if (hall) {
       infoList.appendChild(makeInfoRow('\uD83C\uDFE2', hall.name))
       const addr = [hall.address, hall.city].filter(Boolean).join(', ')
-      if (addr) infoList.appendChild(makeInfoRow('\uD83D\uDCCD', addr))
+      if (addr) {
+        const mapsUrl = hall.maps_url || `https://maps.google.com/?q=${encodeURIComponent(addr)}`
+        infoList.appendChild(makeInfoRowLink('\uD83D\uDCCD', addr, mapsUrl))
+      }
     }
 
     // Status
@@ -421,6 +424,19 @@ if (container) {
     const row = el('div', 'cal-detail-row')
     row.appendChild(el('span', 'cal-detail-icon', icon))
     row.appendChild(el('span', undefined, text))
+    return row
+  }
+
+  function makeInfoRowLink(icon: string, text: string, href: string): HTMLElement {
+    const row = el('div', 'cal-detail-row')
+    row.appendChild(el('span', 'cal-detail-icon', icon))
+    const link = document.createElement('a')
+    link.href = href
+    link.target = '_blank'
+    link.rel = 'noopener noreferrer'
+    link.className = 'cal-detail-link'
+    link.textContent = text
+    row.appendChild(link)
     return row
   }
 

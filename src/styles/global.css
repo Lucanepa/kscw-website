@@ -2677,6 +2677,17 @@ button:focus-visible {
   width: 1.25em;
   text-align: center;
 }
+.cal-detail-link {
+  color: var(--kscw-blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.cal-detail-link:hover {
+  opacity: 0.8;
+}
+[data-theme="dark"] .cal-detail-link {
+  color: #a5b4fc;
+}
 
 @media (max-width: 640px) {
   .cal-toolbar {
