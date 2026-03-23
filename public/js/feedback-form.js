@@ -77,6 +77,7 @@
     turnstileWidgetId = window.turnstile.render(turnstileContainer, {
       sitekey: TURNSTILE_SITE_KEY,
       theme: 'auto',
+      size: 'invisible',
     });
   }
 
