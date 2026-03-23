@@ -21,6 +21,7 @@ interface PBGame {
   away_score: number
   status: string
   type: string
+  away_hall_json?: { name?: string; address?: string; city?: string; plus_code?: string } | null
   expand?: {
     kscw_team?: PBTeam
     hall?: { name: string; address: string; city: string; maps_url?: string }
@@ -201,7 +202,7 @@ if (container) {
       const url =
         `${PB_URL}/api/collections/games/records?perPage=200&sort=date,time` +
         `&filter=${filter}` +
-        `&fields=id,game_id,date,time,home_team,away_team,home_score,away_score,status,type,expand.kscw_team.id,expand.kscw_team.name,expand.kscw_team.sport,expand.kscw_team.color,expand.hall.name,expand.hall.address,expand.hall.city,expand.hall.maps_url` +
+        `&fields=id,game_id,date,time,home_team,away_team,home_score,away_score,status,type,away_hall_json,expand.kscw_team.id,expand.kscw_team.name,expand.kscw_team.sport,expand.kscw_team.color,expand.hall.name,expand.hall.address,expand.hall.city,expand.hall.maps_url` +
         `&expand=kscw_team,hall`
       const res = await fetch(url)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -335,15 +336,19 @@ if (container) {
     infoList.appendChild(makeInfoRow('\uD83D\uDCC5', dateStr))
     if (g.time) infoList.appendChild(makeInfoRow('\u23F0', g.time.slice(0, 5)))
 
-    // Hall
+    // Hall — prefer expanded hall relation, fall back to away_hall_json
     const hall = g.expand?.hall
-    if (hall) {
-      infoList.appendChild(makeInfoRow('\uD83C\uDFE2', hall.name))
-      const addr = [hall.address, hall.city].filter(Boolean).join(', ')
-      if (addr) {
-        const mapsUrl = hall.maps_url || `https://maps.google.com/?q=${encodeURIComponent(addr)}`
-        infoList.appendChild(makeInfoRowLink('\uD83D\uDCCD', addr, mapsUrl))
-      }
+    const awayHall = g.away_hall_json
+    const hallName = hall?.name || awayHall?.name
+    const hallAddr = [hall?.address || awayHall?.address, hall?.city || awayHall?.city].filter(Boolean).join(', ')
+    if (hallName) {
+      infoList.appendChild(makeInfoRow('\uD83C\uDFE2', hallName))
+    }
+    if (hallAddr) {
+      const mapsUrl = hall?.maps_url
+        || (awayHall?.plus_code ? `https://maps.google.com/?q=${encodeURIComponent(awayHall.plus_code)}` : null)
+        || `https://maps.google.com/?q=${encodeURIComponent(hallAddr)}`
+      infoList.appendChild(makeInfoRowLink('\uD83D\uDCCD', hallAddr, mapsUrl))
     }
 
     // Status
@@ -817,9 +822,11 @@ if (container) {
       }
       row.appendChild(el('div', 'cal-modal-teams', teamsText))
 
-      const hall = g.expand?.hall
-      if (hall) {
-        row.appendChild(el('div', 'cal-modal-hall', [hall.name, hall.city].filter(Boolean).join(', ')))
+      const dHall = g.expand?.hall
+      const dAwayHall = g.away_hall_json
+      const dHallText = [dHall?.name || dAwayHall?.name, dHall?.city || dAwayHall?.city].filter(Boolean).join(', ')
+      if (dHallText) {
+        row.appendChild(el('div', 'cal-modal-hall', dHallText))
       }
 
       modal.appendChild(row)
