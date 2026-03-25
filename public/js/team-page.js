@@ -22,11 +22,11 @@
       setter: 'posSetter', opposite: 'posOpposite',
       outside_hitter: 'posOutsideHitter', outside: 'posOutsideHitter',
       middle_blocker: 'posMiddleBlocker', middle: 'posMiddleBlocker',
-      libero: 'posLibero', coach: 'posCoach',
+      libero: 'posLibero',
       point_guard: 'posPointGuard', shooting_guard: 'posShootingGuard',
       small_forward: 'posSmallForward', power_forward: 'posPowerForward', center: 'posCenter'
     };
-    // Feminine forms for women's teams (not for coach — could be male)
+    // Feminine forms for women's teams
     var femMap = { setter: 'posSetterF' };
     var i18nKey = (IS_WOMEN && femMap[key]) ? femMap[key] : (map[key] || 'posPlayer');
     return i18n.t(i18nKey);
