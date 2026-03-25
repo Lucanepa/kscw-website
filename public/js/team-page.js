@@ -267,13 +267,20 @@
       return (a.last_name || '').localeCompare(b.last_name || '');
     });
 
+    // Build captain lookup by full name
+    var captainNames = {};
+    for (var ci = 0; ci < captain.length; ci++) {
+      captainNames[captain[ci].first_name + ' ' + captain[ci].last_name] = true;
+    }
+
     var frag = document.createDocumentFragment();
     for (var i = 0; i < roster.length; i++) {
       var m = roster[i];
       if (m.guest_level > 0) continue;
 
+      var isCaptain = captainNames[m.first_name + ' ' + m.last_name] === true;
       var card = document.createElement('div');
-      card.className = 'roster-card';
+      card.className = 'roster-card' + (isCaptain ? ' captain-card' : '');
 
       if (m.photo_url && m.website_visible !== false) {
         var img = document.createElement('img');
@@ -307,6 +314,15 @@
       }
 
       card.appendChild(info);
+
+      if (isCaptain) {
+        var badge = document.createElement('div');
+        badge.className = 'captain-badge';
+        badge.textContent = 'K';
+        badge.title = i18n.t(IS_WOMEN ? 'teamCaptainF' : 'teamCaptain');
+        card.appendChild(badge);
+      }
+
       frag.appendChild(card);
     }
 
@@ -317,24 +333,12 @@
     if (metaEl) {
       metaEl.textContent = '';
 
-      // Captain text line
-      if (captain.length) {
-        var captainKey = IS_WOMEN ? 'teamCaptainF' : 'teamCaptain';
-        var cp = document.createElement('p');
-        cp.style.fontWeight = '600';
-        cp.style.fontSize = 'var(--text-sm)';
-        cp.style.color = 'var(--text-secondary)';
-        cp.textContent = i18n.t(captainKey) + ': ' + captain.map(function (c) { return c.first_name + ' ' + c.last_name; }).join(', ');
-        metaEl.appendChild(cp);
-      }
-
       // Coach cards
       if (coach.length) {
         var label = document.createElement('p');
         label.style.fontWeight = '600';
         label.style.fontSize = 'var(--text-sm)';
         label.style.color = 'var(--text-secondary)';
-        if (captain.length) label.style.marginTop = 'var(--space-md)';
         label.textContent = i18n.t('teamCoach') + ':';
         metaEl.appendChild(label);
 
