@@ -316,22 +316,62 @@
     var metaEl = document.getElementById('roster-meta');
     if (metaEl) {
       metaEl.textContent = '';
-      var lines = [];
+
+      // Captain text line
       if (captain.length) {
         var captainKey = IS_WOMEN ? 'teamCaptainF' : 'teamCaptain';
-        lines.push(i18n.t(captainKey) + ': ' + captain.map(function (c) { return c.first_name + ' ' + c.last_name; }).join(', '));
+        var cp = document.createElement('p');
+        cp.style.fontWeight = '600';
+        cp.style.fontSize = 'var(--text-sm)';
+        cp.style.color = 'var(--text-secondary)';
+        cp.textContent = i18n.t(captainKey) + ': ' + captain.map(function (c) { return c.first_name + ' ' + c.last_name; }).join(', ');
+        metaEl.appendChild(cp);
       }
+
+      // Coach cards
       if (coach.length) {
-        lines.push(i18n.t('teamCoach') + ': ' + coach.map(function (c) { return c.first_name + ' ' + c.last_name; }).join(', '));
-      }
-      for (var li = 0; li < lines.length; li++) {
-        var p = document.createElement('p');
-        p.style.fontWeight = '600';
-        p.style.fontSize = 'var(--text-sm)';
-        p.style.color = 'var(--text-secondary)';
-        if (li > 0) p.style.marginTop = 'var(--space-xs)';
-        p.textContent = lines[li];
-        metaEl.appendChild(p);
+        var label = document.createElement('p');
+        label.style.fontWeight = '600';
+        label.style.fontSize = 'var(--text-sm)';
+        label.style.color = 'var(--text-secondary)';
+        if (captain.length) label.style.marginTop = 'var(--space-md)';
+        label.textContent = i18n.t('teamCoach') + ':';
+        metaEl.appendChild(label);
+
+        var coachGrid = document.createElement('div');
+        coachGrid.className = 'roster-grid';
+        coachGrid.style.marginTop = 'var(--space-sm)';
+
+        for (var ci = 0; ci < coach.length; ci++) {
+          var c = coach[ci];
+          var cCard = document.createElement('div');
+          cCard.className = 'roster-card';
+
+          if (c.photo_url) {
+            var cImg = document.createElement('img');
+            cImg.src = PB + c.photo_url;
+            cImg.alt = '';
+            cImg.className = 'roster-avatar';
+            cImg.style.objectFit = 'cover';
+            cImg.loading = 'lazy';
+            cCard.appendChild(cImg);
+          } else {
+            var cAv = document.createElement('div');
+            cAv.className = 'roster-avatar';
+            cAv.textContent = c.initials || '?';
+            cCard.appendChild(cAv);
+          }
+
+          var cInfo = document.createElement('div');
+          var cName = document.createElement('div');
+          cName.className = 'roster-name';
+          cName.textContent = c.first_name + ' ' + c.last_name;
+          cInfo.appendChild(cName);
+          cCard.appendChild(cInfo);
+          coachGrid.appendChild(cCard);
+        }
+
+        metaEl.appendChild(coachGrid);
       }
     }
   }
