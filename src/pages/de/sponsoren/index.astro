@@ -95,7 +95,7 @@ const locale = 'de';
         if (hasLogo) {
           var img = document.createElement('img');
           img.className = 'sponsor-logo';
-          img.src = s.logo_url;
+          img.src = 'https://api.kscw.ch' + s.logo_url;
           img.alt = name;
           img.loading = 'lazy';
           wrapper.appendChild(img);
