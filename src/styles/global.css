@@ -981,6 +981,7 @@ img.roster-avatar {
 .card-img-placeholder {
   width: 100%;
   aspect-ratio: 16/10;
+  overflow: hidden;
   background: linear-gradient(135deg, var(--bg-light) 0%, #dde0f0 100%);
   display: flex;
   align-items: center;
@@ -1538,7 +1539,7 @@ tr:hover td {
 .sponsor-track {
   display: flex;
   gap: var(--space-2xl);
-  animation: scroll-sponsors 60s linear infinite;
+  animation: scroll-sponsors 120s linear infinite;
   width: max-content;
 }
 .sponsor-track:hover {
