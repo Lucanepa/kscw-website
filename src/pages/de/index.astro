@@ -354,7 +354,7 @@ try {
                   link.title = sp.name;
                   if (sp.logo_url) {
                     var img = document.createElement('img');
-                    img.src = sp.logo_url;
+                    img.src = 'https://api.kscw.ch' + sp.logo_url;
                     img.alt = sp.name;
                     img.style.maxHeight = '40px'; img.style.objectFit = 'contain';
                     link.appendChild(img);
