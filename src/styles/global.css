@@ -1396,6 +1396,106 @@ tr:hover td {
   margin-top: var(--space-sm);
   line-height: 1.65;
 }
+/* ── News Modal ───────────────────────────────────────────── */
+.news-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.7);
+  padding: var(--space-md);
+  backdrop-filter: blur(4px);
+}
+.news-modal {
+  max-height: 90vh;
+  width: 100%;
+  max-width: 600px;
+  overflow-y: auto;
+  background: #1e293b;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+  border: 1px solid var(--border);
+}
+.light .news-modal {
+  background: #ffffff;
+}
+.nm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--border);
+}
+.nm-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.nm-author {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.nm-title {
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-weight: 800;
+  line-height: 1.25;
+  padding: var(--space-lg) var(--space-lg) 0;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.nm-image {
+  padding: var(--space-md) var(--space-lg);
+}
+.nm-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: var(--radius-md);
+}
+.nm-body {
+  padding: 0 var(--space-lg) var(--space-lg);
+  font-size: var(--text-sm);
+  line-height: 1.75;
+  color: var(--text-secondary);
+}
+.nm-body h2,
+.nm-body h3 {
+  color: var(--text-primary);
+  margin-top: var(--space-lg);
+  margin-bottom: var(--space-sm);
+  font-size: var(--text-base);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.nm-body p {
+  margin-bottom: var(--space-md);
+}
+.nm-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  margin: var(--space-md) 0;
+}
+.nm-body a {
+  color: var(--kscw-blue);
+}
+.nm-body blockquote {
+  border-left: 3px solid var(--kscw-gold);
+  padding-left: var(--space-md);
+  margin: var(--space-md) 0;
+  font-style: italic;
+  color: var(--text-muted);
+}
+.nm-body ul,
+.nm-body ol {
+  padding-left: var(--space-lg);
+  margin-bottom: var(--space-md);
+}
+.nm-body li {
+  margin-bottom: var(--space-xs);
+}
 
 /* ── Team Cards (sport overview) ───────────────────────────── */
 .team-card {

@@ -14,8 +14,11 @@ try {
   if (res.ok) {
     const data = await res.json();
     newsArticles = (data.items ?? []).map((n: any) => ({
+      id: n.id,
       title: n.title,
       excerpt: n.excerpt || '',
+      body: n.body || '',
+      author: n.author || '',
       date: n.published_at || n.created,
       category: n.category || 'club',
       image: n.image ? `${PB}/api/files/news/${n.id}/${n.image}` : null,
@@ -71,7 +74,7 @@ try {
       <div class="grid grid-3">
         {newsArticles.length > 0 ? (
           newsArticles.map(n => (
-            <article class="card news-card fade-in">
+            <article class="card news-card fade-in" data-news-id={n.id}>
               <div class="card-img-placeholder">
                 {n.image ? (
                   <img src={n.image} alt={n.title} style="width:100%;height:100%;object-fit:cover;" />
@@ -89,6 +92,7 @@ try {
                 <h3>{n.title}</h3>
                 <p class="news-excerpt">{n.excerpt}</p>
               </div>
+              <script type="application/json" class="news-data" set:html={JSON.stringify({ title: n.title, body: n.body, date: n.date, category: n.category, image: n.image, author: n.author })} />
             </article>
           ))
         ) : (
@@ -190,6 +194,7 @@ try {
   <script is:inline src="/js/data.js"></script>
   <script is:inline src="/js/scoreboard.js"></script>
   <script is:inline src="/js/game-modal.js"></script>
+  <script is:inline src="/js/news-modal.js"></script>
   <script is:inline>
     (function () {
       'use strict';
