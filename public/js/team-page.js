@@ -224,6 +224,7 @@
 
         // Render tab content
         renderRoster(data.roster || [], data.coach || [], data.captain || []);
+        initRosterViewToggle();
         renderTrainings(data.trainings || []);
         renderHookGames(data.upcoming || [], data.results || [], teamData);
         renderHookRankings(data.rankings || [], teamData);
@@ -254,6 +255,42 @@
     if (upcomingH2) upcomingH2.textContent = i18n.t('teamUpcoming');
     var resultsH2 = document.querySelector('#results-section h2');
     if (resultsH2) resultsH2.textContent = i18n.t('teamResults');
+  }
+
+  // ── Roster View Toggle ───────────────────────────────────────────
+  function initRosterViewToggle() {
+    var toggle = document.getElementById('roster-view-toggle');
+    if (!toggle) return;
+    var gridBtn = toggle.querySelector('[data-view="grid"]');
+    var listBtn = toggle.querySelector('[data-view="list"]');
+    var rosterEl = document.getElementById('roster-grid');
+    if (!gridBtn || !listBtn || !rosterEl) return;
+
+    var saved = null;
+    try { saved = localStorage.getItem('kscw-roster-view'); } catch (e) {}
+    if (saved === 'list') {
+      rosterEl.classList.add('roster-list');
+      gridBtn.classList.remove('active');
+      listBtn.classList.add('active');
+    }
+
+    function setView(mode) {
+      var coachEl = document.getElementById('coach-grid');
+      if (mode === 'list') {
+        rosterEl.classList.add('roster-list');
+        if (coachEl) coachEl.classList.add('roster-list');
+        listBtn.classList.add('active');
+        gridBtn.classList.remove('active');
+      } else {
+        rosterEl.classList.remove('roster-list');
+        if (coachEl) coachEl.classList.remove('roster-list');
+        gridBtn.classList.add('active');
+        listBtn.classList.remove('active');
+      }
+      try { localStorage.setItem('kscw-roster-view', mode); } catch (e) {}
+    }
+    gridBtn.addEventListener('click', function () { setView('grid'); });
+    listBtn.addEventListener('click', function () { setView('list'); });
   }
 
   // ── Render Roster ─────────────────────────────────────────────────
@@ -343,7 +380,10 @@
         metaEl.appendChild(label);
 
         var coachGrid = document.createElement('div');
-        coachGrid.className = 'roster-grid';
+        var isListMode = false;
+        try { isListMode = localStorage.getItem('kscw-roster-view') === 'list'; } catch (e) {}
+        coachGrid.className = 'roster-grid' + (isListMode ? ' roster-list' : '');
+        coachGrid.id = 'coach-grid';
         coachGrid.style.marginTop = 'var(--space-sm)';
 
         for (var ci = 0; ci < coach.length; ci++) {

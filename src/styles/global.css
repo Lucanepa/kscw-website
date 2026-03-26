@@ -1622,10 +1622,45 @@ tr:hover td {
 }
 
 /* ── Roster ────────────────────────────────────────────────── */
+.roster-view-toggle {
+  display: flex;
+  gap: 4px;
+  margin-bottom: var(--space-md);
+  justify-content: flex-end;
+}
+.roster-view-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+.roster-view-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+.roster-view-btn.active {
+  background: var(--bg-light);
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+.roster-view-btn svg {
+  width: 18px;
+  height: 18px;
+}
 .roster-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: var(--space-md);
+}
+.roster-grid.roster-list {
+  grid-template-columns: 1fr;
+  gap: var(--space-xs);
 }
 .roster-card {
   display: flex;
@@ -1634,6 +1669,23 @@ tr:hover td {
   padding: var(--space-md);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
+}
+.roster-list .roster-card {
+  padding: var(--space-sm) var(--space-md);
+}
+.roster-list .roster-card .roster-name,
+.roster-list .roster-card .roster-position {
+  display: inline;
+}
+.roster-list .roster-card > div:last-of-type {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+}
+.roster-list .roster-avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 11px;
 }
 .roster-avatar {
   width: 48px;
