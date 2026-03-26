@@ -29,6 +29,7 @@ const { pbId, short } = Astro.props;
         <button class="tab-btn" data-tab="spiele" role="tab" aria-selected="false">{t(locale, 'teamTabGames')}</button>
         <button class="tab-btn" data-tab="rangliste" role="tab" aria-selected="false">{t(locale, 'teamTabRankings')}</button>
         <button class="tab-btn" data-tab="training" role="tab" aria-selected="false">{t(locale, 'teamTabTraining')}</button>
+        <button class="tab-btn" data-tab="sponsoren" role="tab" aria-selected="false">{t(locale, 'teamTabSponsors')}</button>
       </div>
 
       <div class="tab-panel active" data-tab-panel="kader" role="tabpanel">
@@ -71,6 +72,10 @@ const { pbId, short } = Astro.props;
         <div id="training-list">
           <p class="text-muted text-sm">{t(locale, 'teamLoadingTrainings')}</p>
         </div>
+      </div>
+
+      <div class="tab-panel" data-tab-panel="sponsoren" role="tabpanel">
+        <div id="team-sponsors-grid" class="sponsors-page-grid"></div>
       </div>
     </div>
   </section>

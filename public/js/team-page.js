@@ -228,6 +228,7 @@
         renderTrainings(data.trainings || []);
         renderHookGames(data.upcoming || [], data.results || [], teamData);
         renderHookRankings(data.rankings || [], teamData);
+        renderSponsors(data.sponsors || []);
 
         // Update static tab labels and headings with i18n
         updateStaticLabels();
@@ -242,7 +243,8 @@
       kader: 'teamTabRoster',
       spiele: 'teamTabGames',
       rangliste: 'teamTabRankings',
-      training: 'teamTabTraining'
+      training: 'teamTabTraining',
+      sponsoren: 'teamTabSponsors'
     };
     var keys = Object.keys(tabMap);
     for (var i = 0; i < keys.length; i++) {
@@ -291,6 +293,52 @@
     }
     gridBtn.addEventListener('click', function () { setView('grid'); });
     listBtn.addEventListener('click', function () { setView('list'); });
+  }
+
+  // ── Render Sponsors ─────────────────────────────────────────────
+  function renderSponsors(sponsors) {
+    var el = document.getElementById('team-sponsors-grid');
+    if (!el) return;
+    if (!sponsors.length) { hideSection('sponsoren'); return; }
+
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < sponsors.length; i++) {
+      var sp = sponsors[i];
+      var card = document.createElement('div');
+      card.className = 'sponsor-page-card';
+
+      var wrapper = card;
+      if (sp.website_url) {
+        var link = document.createElement('a');
+        link.href = sp.website_url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.className = 'sponsor-page-card';
+        wrapper = link;
+        card = link;
+      }
+
+      if (sp.logo_url) {
+        var img = document.createElement('img');
+        img.src = 'https://api.kscw.ch' + sp.logo_url;
+        img.alt = sp.name;
+        img.className = 'sponsor-logo';
+        img.loading = 'lazy';
+        wrapper.appendChild(img);
+      }
+
+      if (sp.name) {
+        var nameEl = document.createElement('div');
+        nameEl.className = 'sponsor-name';
+        nameEl.textContent = sp.name;
+        wrapper.appendChild(nameEl);
+      }
+
+      frag.appendChild(card);
+    }
+
+    el.textContent = '';
+    el.appendChild(frag);
   }
 
   // ── Render Roster ─────────────────────────────────────────────────

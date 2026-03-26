@@ -123,11 +123,17 @@ const locale = 'de';
             return;
           }
 
+          // Filter: show club-level sponsors + team sponsors not restricted to team page
+          var displaySponsors = sponsors.filter(function(sp) {
+            if (!sp.teams || !sp.teams.length) return true;
+            return !sp.team_page_only;
+          });
+
           container.textContent = '';
           var grid = document.createElement('div');
           grid.className = 'sponsors-grid';
 
-          sponsors.forEach(function(s) {
+          displaySponsors.forEach(function(s) {
             grid.appendChild(buildCard(s));
           });
 
