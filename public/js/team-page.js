@@ -93,25 +93,28 @@
     if (!teamData.team_picture || !teamData.collectionId) return;
 
     var url = PB + '/api/files/' + teamData.collectionId + '/' + TEAM_PB_ID + '/' + teamData.team_picture + '?thumb=1280x0';
-    var container = document.getElementById('team-photo-container');
-    if (!container) {
-      // Fallback: insert after hero
-      container = document.querySelector('.team-hero');
-      if (!container) return;
+
+    function createPhotoEl() {
+      var wrapper = document.createElement('div');
+      wrapper.className = 'team-photo-wrapper';
       var img = document.createElement('img');
       img.src = url;
       img.alt = i18n.t('teamPhoto') + ' ' + esc(teamData.name || TEAM);
       img.className = 'team-photo';
       img.loading = 'lazy';
-      container.parentNode.insertBefore(img, container.nextSibling);
+      wrapper.appendChild(img);
+      return wrapper;
+    }
+
+    var container = document.getElementById('team-photo-container');
+    if (!container) {
+      // Fallback: insert after hero
+      container = document.querySelector('.team-hero');
+      if (!container) return;
+      container.parentNode.insertBefore(createPhotoEl(), container.nextSibling);
       return;
     }
-    var img2 = document.createElement('img');
-    img2.src = url;
-    img2.alt = i18n.t('teamPhoto') + ' ' + esc(teamData.name || TEAM);
-    img2.className = 'team-photo';
-    img2.loading = 'lazy';
-    container.appendChild(img2);
+    container.appendChild(createPhotoEl());
   }
 
   // ── Render CTA section ─────────────────────────────────────────────
