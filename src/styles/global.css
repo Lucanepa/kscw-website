@@ -1143,6 +1143,17 @@ tr:hover td {
   border-color: var(--kscw-blue);
 }
 
+/* ── Games Grid (side-by-side on desktop) ─────────────────── */
+.games-grid {
+  display: grid;
+  gap: var(--space-xl);
+}
+@media (min-width: 1024px) {
+  .games-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 /* ── Game Table ────────────────────────────────────────────── */
 .game-table {
   width: 100%;
@@ -3065,6 +3076,8 @@ button:focus-visible {
 
 .sb-col-most {
   text-align: left;
+  white-space: normal;
+  word-break: break-word;
 }
 .sb-col-most .chip {
   font-size: 0.7rem;

@@ -67,8 +67,38 @@ try {
     </div>
   </section>
 
+  <!-- Games (upcoming + recent results side-by-side on desktop) -->
+  <section class="section" id="games">
+    <div class="container">
+      <div class="games-grid">
+        <div class="games-grid__col">
+          <SectionHeader title={t(locale, 'homeUpcomingGames')} />
+          <div class="sport-tabs" data-target="upcoming-games-list">
+            <button class="sport-tab active" data-filter="all">Alle</button>
+            <button class="sport-tab" data-filter="volleyball">Volleyball</button>
+            <button class="sport-tab" data-filter="basketball">Basketball</button>
+          </div>
+          <table class="game-table" id="upcoming-games-list">
+            <tbody><!-- Populated by client-side JS --></tbody>
+          </table>
+        </div>
+        <div class="games-grid__col">
+          <SectionHeader title={t(locale, 'homeRecentResults')} />
+          <div class="sport-tabs" data-target="recent-results-list">
+            <button class="sport-tab active" data-filter="all">Alle</button>
+            <button class="sport-tab" data-filter="volleyball">Volleyball</button>
+            <button class="sport-tab" data-filter="basketball">Basketball</button>
+          </div>
+          <table class="game-table" id="recent-results-list">
+            <tbody><!-- Populated by client-side JS --></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- News -->
-  <section class="section" id="news">
+  <section class="section-alt" id="news">
     <div class="container">
       <SectionHeader title={t(locale, 'homeNews')} />
       <div class="grid grid-3">
@@ -104,7 +134,7 @@ try {
 
   <!-- Events -->
   {upcomingEvents.length > 0 && (
-    <section class="section-alt" id="events">
+    <section class="section" id="events">
       <div class="container">
         <SectionHeader title={t(locale, 'homeEvents')} />
         <div class="grid grid-3">
@@ -135,36 +165,6 @@ try {
       </div>
     </section>
   )}
-
-  <!-- Upcoming Games -->
-  <section class="section-alt" id="upcoming-games">
-    <div class="container">
-      <SectionHeader title={t(locale, 'homeUpcomingGames')} />
-      <div class="sport-tabs" data-target="upcoming-games-list">
-        <button class="sport-tab active" data-filter="all">Alle</button>
-        <button class="sport-tab" data-filter="volleyball">Volleyball</button>
-        <button class="sport-tab" data-filter="basketball">Basketball</button>
-      </div>
-      <table class="game-table" id="upcoming-games-list">
-        <tbody><!-- Populated by client-side JS --></tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- Recent Results -->
-  <section class="section" id="recent-results">
-    <div class="container">
-      <SectionHeader title={t(locale, 'homeRecentResults')} />
-      <div class="sport-tabs" data-target="recent-results-list">
-        <button class="sport-tab active" data-filter="all">Alle</button>
-        <button class="sport-tab" data-filter="volleyball">Volleyball</button>
-        <button class="sport-tab" data-filter="basketball">Basketball</button>
-      </div>
-      <table class="game-table" id="recent-results-list">
-        <tbody><!-- Populated by client-side JS --></tbody>
-      </table>
-    </div>
-  </section>
 
   <!-- Scoreboard -->
   <section class="section" id="scoreboard">

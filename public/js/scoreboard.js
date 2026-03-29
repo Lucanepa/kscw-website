@@ -257,8 +257,12 @@
         var totalVal = isPerGame ? computePerGameAvg(rows, m.get) : computeTotal(rows, m.get);
         var topVal = ranking.length > 0 ? ranking[0].value : null;
         var topTeams = topVal === null ? [] : ranking.filter(function (e) { return e.value === topVal; });
-        var pct = !isPerGame && topVal !== null && totalVal !== null && totalVal > 0
-          ? Math.round((topVal / totalVal) * 100) : null;
+        var pctBase = isPerGame ? computeTotal(rows, m.get) : totalVal;
+        var pctTopVal = isPerGame && ranking.length > 0
+          ? (function () { var absR = computeRanking(rows, m.get, false); return absR.length > 0 ? absR[0].value : null; })()
+          : topVal;
+        var pct = pctTopVal !== null && pctBase !== null && pctBase > 0
+          ? Math.round((pctTopVal / pctBase) * 100) : null;
 
         var rowKey = sportKey + ':' + m.key;
         var isExpanded = !!state.expanded[rowKey];
@@ -308,6 +312,14 @@
 
         // Expanded breakdown
         if (isExpanded && ranking.length > 0 && totalVal !== null) {
+          // Always compute absolute total for % column (even in per-game mode)
+          var absTotal = computeTotal(rows, m.get);
+          var absRanking = isPerGame ? computeRanking(rows, m.get, false) : null;
+          var absMap = {};
+          if (absRanking) {
+            for (var ai = 0; ai < absRanking.length; ai++) { absMap[absRanking[ai].teamId] = absRanking[ai].value; }
+          }
+
           var expTr = document.createElement('tr');
           var expTd = document.createElement('td');
           expTd.setAttribute('colspan', '3');
@@ -331,7 +343,8 @@
             var short = teamIdMap[entry.teamId] || entry.teamId;
             var rank = ri + 1;
             for (var rj = ri - 1; rj >= 0 && ranking[rj].value === entry.value; rj--) { rank = rj + 1; }
-            var rowPct = !isPerGame && totalVal > 0 ? Math.round((entry.value / totalVal) * 100) : null;
+            var absVal = isPerGame ? (absMap[entry.teamId] || 0) : entry.value;
+            var rowPct = absTotal > 0 ? Math.round((absVal / absTotal) * 100) : null;
 
             var subTr = document.createElement('tr');
             var std1 = document.createElement('td'); std1.textContent = '#' + rank;
