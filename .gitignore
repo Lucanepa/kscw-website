@@ -31,3 +31,4 @@ pnpm-debug.log*
 docs/sessions.md
 .playwright-mcp/
 test-results/
+.worktrees/
