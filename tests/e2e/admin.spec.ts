@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 
-const PB_URL = 'https://api.kscw.ch';
+const DIRECTUS_URL = process.env.DIRECTUS_URL ?? 'https://directus.kscw.ch';
 
 async function adminLogin(page: Page) {
   const email = process.env.PB_TEST_EMAIL;
@@ -26,26 +26,27 @@ async function cleanupTestRecords(page: Page) {
   if (!email || !password) return;
 
   try {
-    const authRes = await page.request.post(`${PB_URL}/api/collections/members/auth-with-password`, {
-      data: { identity: email, password },
+    const authRes = await page.request.post(`${DIRECTUS_URL}/auth/login`, {
+      data: { email, password },
     });
     if (!authRes.ok()) return;
     const authData = await authRes.json();
-    const token = authData.token;
+    const token = authData.data?.access_token;
+    if (!token) return;
 
     for (const collection of ['events', 'news']) {
       try {
-        const filter = encodeURIComponent('title ~ "[TEST]"');
+        const filter = encodeURIComponent('{"title":{"_contains":"[TEST]"}}');
         const listRes = await page.request.get(
-          `${PB_URL}/api/collections/${collection}/records?filter=${filter}&perPage=50`,
-          { headers: { Authorization: token } }
+          `${DIRECTUS_URL}/items/${collection}?filter=${filter}&limit=50`,
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         if (!listRes.ok()) continue;
         const data = await listRes.json();
-        for (const record of data.items || []) {
+        for (const record of data.data || []) {
           await page.request.delete(
-            `${PB_URL}/api/collections/${collection}/records/${record.id}`,
-            { headers: { Authorization: token } }
+            `${DIRECTUS_URL}/items/${collection}/${record.id}`,
+            { headers: { Authorization: `Bearer ${token}` } }
           );
         }
       } catch { /* collection might not exist */ }

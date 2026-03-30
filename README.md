@@ -10,14 +10,14 @@ Public website for **KSC Wiedikon** — a volleyball and basketball club based i
 |-------|------------|
 | Framework | [Astro 6](https://astro.build) (static output) |
 | Styling | Custom CSS design system (no Tailwind) |
-| Backend | [PocketBase](https://pocketbase.io) API (`api.kscw.ch`) |
+| Backend | [Directus](https://directus.io) API (`directus.kscw.ch`) |
 | Hosting | Cloudflare Pages |
 | i18n | Directory routing (`/de/…`, `/en/…`) with build-time `t()` helper |
 
 ## Features
 
 - **Bilingual** — Full German and English versions
-- **Dynamic team pages** — Live game data, rankings, rosters, and training schedules fetched from PocketBase
+- **Dynamic team pages** — Live game data, rankings, rosters, and training schedules fetched from Directus
 - **Calendar** — Event grid with tooltips and detail modals
 - **Admin dashboard** — Hidden `/admin` page with Quill rich-text editor for managing news and events
 - **Feedback form** — Bug reports, feature requests, and general feedback with Cloudflare Turnstile CAPTCHA and file upload
@@ -33,7 +33,7 @@ src/
   layouts/        # BaseLayout, PageLayout
   islands/        # Client-side interactivity (theme, nav, calendar, etc.)
   data/           # Static JSON/TS (teams, board, contacts)
-  lib/            # Utilities (PocketBase client, i18n helper)
+  lib/            # Utilities (Directus client, i18n helper)
   i18n/           # Translation files (de.json, en.json)
   styles/         # Custom CSS design system (global.css)
 public/           # Static assets (images, favicons)
