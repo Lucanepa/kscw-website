@@ -89,7 +89,7 @@
     }
 
     // ── Body (HTML from Quill editor, authored by admin — not user-submitted)
-    // SECURITY: This content comes from the PocketBase `news` collection which is
+    // SECURITY: This content comes from the Directus `news` collection which is
     // only writable by authenticated admins via the admin dashboard's Quill editor.
     // It is NOT user-submitted content and does not require sanitization.
     if (data.body) {
