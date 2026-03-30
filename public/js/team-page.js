@@ -1,20 +1,21 @@
 /**
  * KSCW Team Page — Dynamic Data Loader
  *
- * Fetches roster, trainings, coach/captain from the public PB API
- * and populates the team page sections. Games & rankings from window.KSCW.
+ * Fetches roster, trainings, coach/captain from the Directus custom endpoint
+ * and populates the team page sections.
  *
- * Usage: set window.TEAM_CONFIG = { short: 'H1', pbId: 'qz7y8l4tz48f65j' }
+ * Usage: set window.TEAM_CONFIG = { short: 'H1', directusId: '1' }
  */
 (function () {
   'use strict';
 
   var CFG = window.TEAM_CONFIG;
-  if (!CFG || (!CFG.short && !CFG.pbId)) return;
+  if (!CFG || (!CFG.short && !CFG.directusId)) return;
 
-  var PB = 'https://api.kscw.ch';
+  var DIRECTUS_URL = (window.location.hostname === 'kscw.ch' || window.location.hostname === 'www.kscw.ch')
+    ? 'https://directus.kscw.ch' : 'https://directus-dev.kscw.ch';
   var TEAM = CFG.short || '';
-  var TEAM_PB_ID = CFG.pbId;
+  var TEAM_DIRECTUS_ID = CFG.directusId;
   var IS_WOMEN = false; // set after team data loads
 
   function getPosLabel(key) {
@@ -53,10 +54,8 @@
     var container = document.getElementById('team-hero-container');
     if (!container) return;
 
-    // Resolve team color from teamColors in data.js or fallback
-    var D = window.KSCW;
-    var teamInfo = (D && D.getTeam) ? D.getTeam(TEAM) : null;
-    var color = (teamInfo && teamInfo.bg) ? teamInfo.bg : 'var(--kscw-blue)';
+    // Resolve team color from API data or fallback
+    var color = teamData.color || 'var(--kscw-blue)';
 
     var section = document.createElement('section');
     section.className = 'team-hero';
@@ -90,9 +89,9 @@
   // ── Render team photo ──────────────────────────────────────────────
   function renderTeamPhoto(teamData) {
     if (document.querySelector('.team-photo')) return;
-    if (!teamData.team_picture || !teamData.collectionId) return;
+    if (!teamData.team_picture) return;
 
-    var url = PB + '/api/files/' + teamData.collectionId + '/' + TEAM_PB_ID + '/' + teamData.team_picture + '?thumb=1280x0';
+    var url = DIRECTUS_URL + '/assets/' + teamData.team_picture + '?width=1280&quality=80';
 
     function createPhotoEl() {
       var wrapper = document.createElement('div');
@@ -198,9 +197,9 @@
 
   // ── Fetch team data from public API ───────────────────────────────
   function fetchTeamData() {
-    if (!TEAM_PB_ID) { hideSection('kader'); hideSection('training'); return; }
+    if (!TEAM_DIRECTUS_ID) { hideSection('kader'); hideSection('training'); return; }
 
-    fetch(PB + '/api/public/team/' + TEAM_PB_ID)
+    fetch(DIRECTUS_URL + '/kscw/public/team/' + TEAM_DIRECTUS_ID)
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function (data) {
         var teamData = data.team || {};
@@ -323,7 +322,7 @@
 
       if (sp.logo_url) {
         var img = document.createElement('img');
-        img.src = 'https://api.kscw.ch' + sp.logo_url;
+        img.src = sp.logo_url.indexOf('http') === 0 ? sp.logo_url : DIRECTUS_URL + '/assets/' + sp.logo_url + '?width=200&quality=80';
         img.alt = sp.name;
         img.className = 'sponsor-logo';
         img.loading = 'lazy';
@@ -372,7 +371,7 @@
 
       if (m.photo_url && m.website_visible !== false) {
         var img = document.createElement('img');
-        img.src = PB + m.photo_url;
+        img.src = m.photo_url.indexOf('http') === 0 ? m.photo_url : DIRECTUS_URL + '/assets/' + m.photo_url + '?width=200&quality=80';
         img.alt = '';
         img.className = 'roster-avatar';
         img.style.objectFit = 'cover';
@@ -444,7 +443,7 @@
 
           if (c.photo_url) {
             var cImg = document.createElement('img');
-            cImg.src = PB + c.photo_url;
+            cImg.src = c.photo_url.indexOf('http') === 0 ? c.photo_url : DIRECTUS_URL + '/assets/' + c.photo_url + '?width=200&quality=80';
             cImg.alt = '';
             cImg.className = 'roster-avatar';
             cImg.style.objectFit = 'cover';
@@ -520,16 +519,9 @@
   }
 
   function createChip(teamShort) {
-    var D = window.KSCW;
-    var t = (D && D.getTeam) ? D.getTeam(teamShort) : null;
     var chip = document.createElement('span');
     chip.className = 'chip';
-    if (t) {
-      chip.style.background = t.bg; chip.style.color = t.text;
-      chip.style.border = '1px solid ' + t.border; chip.textContent = t.short;
-    } else {
-      chip.style.background = '#6b7280'; chip.style.color = '#fff'; chip.textContent = teamShort;
-    }
+    chip.style.background = '#6b7280'; chip.style.color = '#fff'; chip.textContent = teamShort;
     return chip;
   }
 
@@ -563,14 +555,21 @@
     };
   }
 
+  function formatDateLocal(iso) {
+    if (!iso) return '\u2013';
+    try {
+      var d = new Date(iso + 'T12:00:00');
+      return d.toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch (e) { return '\u2013'; }
+  }
+
   function buildGameRow(g, showScore, teamData) {
-    var D = window.KSCW;
     var tr = document.createElement('tr');
     var modalGame = toModalGame(g, teamData);
     tr._gameData = modalGame;
 
     // Date
-    tr.appendChild(makeCell(D && D.formatDate ? D.formatDate(g.date) : g.date, 'gt-date'));
+    tr.appendChild(makeCell(formatDateLocal(g.date), 'gt-date'));
 
     // Time
     tr.appendChild(makeCell(g.time || '', 'gt-time'));
@@ -930,7 +929,7 @@
 
   // ── Re-render on language change ──────────────────────────────────
   document.addEventListener('langChanged', function () {
-    if (window.TEAM_CONFIG && window.TEAM_CONFIG.pbId) {
+    if (window.TEAM_CONFIG && window.TEAM_CONFIG.directusId) {
       // Clear rendered content so fetchTeamData re-renders fresh
       var heroContainer = document.getElementById('team-hero-container');
       if (heroContainer) heroContainer.textContent = '';

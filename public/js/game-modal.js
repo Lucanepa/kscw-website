@@ -17,18 +17,16 @@
     return e;
   }
 
-  function createChipSpan(D, teamShort) {
-    var t = D.getTeam(teamShort);
+  function createChipSpan(game) {
     var chip = el('span', 'chip');
-    if (t) {
-      chip.style.background = t.bg;
-      chip.style.color = t.text;
-      chip.style.border = '1px solid ' + t.border;
-      chip.textContent = t.short;
+    if (game.teamColor) {
+      chip.style.background = game.teamColor;
+      chip.style.color = '#fff';
+      chip.textContent = game.teamShort || game.teamName || '';
     } else {
       chip.style.background = '#e2e8f0';
       chip.style.color = '#475569';
-      chip.textContent = teamShort;
+      chip.textContent = game.teamShort || game.teamName || '';
     }
     return chip;
   }
@@ -72,8 +70,6 @@
 
   window.showGameModal = function (game, locale) {
     if (overlay) close();
-    var D = window.KSCW;
-    if (!D) return;
 
     var isDE = locale !== 'en';
 
@@ -95,7 +91,7 @@
     if (game.league) {
       left.appendChild(el('span', 'badge', game.league));
     }
-    left.appendChild(createChipSpan(D, game.teamShort));
+    left.appendChild(createChipSpan(game));
     header.appendChild(left);
 
     var closeBtn = el('button', 'gm-close');
@@ -113,15 +109,19 @@
     teamsRow.appendChild(homeEl);
 
     var center = el('div', 'gm-score-center');
-    if (game.status === 'completed' && game.score) {
-      var isWin = D.isWin(game);
-      var homeSpan = el('span', '', String(game.homeScore));
-      var awaySpan = el('span', '', String(game.awayScore));
-      homeSpan.style.color = game.type === 'home'
-        ? (isWin === true ? 'var(--success)' : isWin === false ? 'var(--danger)' : 'var(--text)')
+    if (game.status === 'completed' && (game.score || (game.homeScore != null && game.awayScore != null))) {
+      var homeS = game.homeScore || 0;
+      var awayS = game.awayScore || 0;
+      var isHome = game.type === 'home' || game.isHome;
+      var isWin = isHome ? homeS > awayS : awayS > homeS;
+      var isLoss = isHome ? homeS < awayS : awayS < homeS;
+      var homeSpan = el('span', '', String(homeS));
+      var awaySpan = el('span', '', String(awayS));
+      homeSpan.style.color = (game.type === 'home' || game.isHome)
+        ? (isWin ? 'var(--success)' : isLoss ? 'var(--danger)' : 'var(--text)')
         : 'var(--text-muted)';
-      awaySpan.style.color = game.type === 'away'
-        ? (isWin === true ? 'var(--success)' : isWin === false ? 'var(--danger)' : 'var(--text)')
+      awaySpan.style.color = (game.type === 'away' || !game.isHome)
+        ? (isWin ? 'var(--success)' : isLoss ? 'var(--danger)' : 'var(--text)')
         : 'var(--text-muted)';
       center.appendChild(homeSpan);
       center.appendChild(el('span', 'colon', ':'));
@@ -172,9 +172,12 @@
     // ── Game Info section
     var info = el('div', 'gm-section');
     info.appendChild(el('div', 'gm-section-title', isDE ? 'Spielinfo' : 'Game Info'));
-    info.appendChild(infoRow(isDE ? 'Datum' : 'Date', D.formatDateLong ? D.formatDateLong(game.date) : D.formatDate(game.date)));
-    info.appendChild(infoRow(isDE ? 'Anpfiff' : 'Kickoff', game.time || '\u2013'));
-    info.appendChild(infoRow(isDE ? 'Typ' : 'Type', game.isHome ? (isDE ? 'Heimspiel' : 'Home') : (isDE ? 'Ausw\u00e4rtsspiel' : 'Away')));
+    var dateLocale = isDE ? 'de-CH' : 'en-GB';
+    var dateLong = game.date ? new Date(game.date + 'T12:00:00').toLocaleDateString(dateLocale, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }) : '\u2013';
+    info.appendChild(infoRow(isDE ? 'Datum' : 'Date', dateLong));
+    info.appendChild(infoRow(isDE ? 'Anpfiff' : 'Kickoff', game.time ? game.time.slice(0, 5) : '\u2013'));
+    var gameIsHome = game.type === 'home' || game.isHome;
+    info.appendChild(infoRow(isDE ? 'Typ' : 'Type', gameIsHome ? (isDE ? 'Heimspiel' : 'Home') : (isDE ? 'Ausw\u00e4rtsspiel' : 'Away')));
     if (game.id) {
       info.appendChild(infoRow(isDE ? 'Spielnr.' : 'Game #', String(game.id).replace(/^(vb_|bb_)/, '')));
     }

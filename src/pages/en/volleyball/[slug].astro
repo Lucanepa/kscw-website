@@ -8,11 +8,11 @@ const locale = 'en';
 export function getStaticPaths() {
   return volleyballTeams.map((team) => ({
     params: { slug: team.slug },
-    props: { pbId: team.pbId, short: team.short },
+    props: { directusId: team.directusId, short: team.short },
   }));
 }
 
-const { pbId, short } = Astro.props;
+const { directusId, short } = Astro.props;
 ---
 <BaseLayout title={`${short} — KSC Wiedikon`} locale={locale}>
   <!-- Hero: rendered by JS -->
@@ -91,12 +91,11 @@ const { pbId, short } = Astro.props;
   <!-- CTA: rendered by JS -->
   <div id="cta-container"></div>
 
-  <script is:inline define:vars={{ pbId, short }}>
-    window.TEAM_CONFIG = { short: short, pbId: pbId };
+  <script is:inline define:vars={{ directusId, short }}>
+    window.TEAM_CONFIG = { short: short, directusId: directusId };
   </script>
   <script is:inline src="/js/i18n.js"></script>
   <script is:inline>i18n.init();</script>
-  <script is:inline src="/js/data.js"></script>
   <script is:inline src="/js/game-modal.js"></script>
   <script is:inline src="/js/team-page.js"></script>
 </BaseLayout>

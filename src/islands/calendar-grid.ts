@@ -1,17 +1,18 @@
-// Calendar Grid — Vanilla JS month grid fetching games from PocketBase
+// Calendar Grid — Vanilla JS month grid fetching games from Directus
 // With filter toolbar, sport/team colors, and iCal subscribe modal
 
-const PB_URL = 'https://api.kscw.ch'
+const DIRECTUS_URL = (typeof window !== 'undefined' && (window.location.hostname === 'kscw.ch' || window.location.hostname === 'www.kscw.ch'))
+  ? 'https://directus.kscw.ch' : 'https://directus-dev.kscw.ch'
 
-interface PBTeam {
-  id: string
+interface DirectusTeam {
+  id: number
   name: string
   sport: string
   color: string
 }
 
-interface PBGame {
-  id: string
+interface DirectusGame {
+  id: number
   game_id: string
   date: string
   time: string
@@ -21,11 +22,8 @@ interface PBGame {
   away_score: number
   status: string
   type: string
-  away_hall_json?: { name?: string; address?: string; city?: string; plus_code?: string } | null
-  expand?: {
-    kscw_team?: PBTeam
-    hall?: { name: string; address: string; city: string; maps_url?: string }
-  }
+  kscw_team?: DirectusTeam | null
+  hall?: { id: number; name: string; address: string; city?: string; maps_url?: string } | null
 }
 
 interface CalendarEvent {
@@ -66,7 +64,7 @@ if (container) {
 
   let currentMonth = new Date()
   currentMonth.setDate(1)
-  let games: PBGame[] = []
+  let games: DirectusGame[] = []
   let fetchedRange = ''
   // Filter state
   let filterType = new Set(['home', 'away'])
@@ -74,7 +72,7 @@ if (container) {
   let filterTeams = new Set<string>() // empty = all
 
   // Teams list
-  let allTeams: PBTeam[] = []
+  let allTeams: DirectusTeam[] = []
 
   // Load build-time events
   let calEvents: CalendarEvent[] = []
@@ -167,18 +165,19 @@ if (container) {
     return `rgba(${r},${g},${b},${alpha})`
   }
 
-  function getTeamSport(g: PBGame): string {
-    return g.expand?.kscw_team?.sport || (g.game_id?.startsWith('bb_') ? 'basketball' : 'volleyball')
+  function getTeamSport(g: DirectusGame): string {
+    return g.kscw_team?.sport || (g.game_id?.startsWith('bb_') ? 'basketball' : 'volleyball')
   }
 
   // -- Fetch teams --
   async function fetchTeams(): Promise<void> {
     try {
-      const url = `${PB_URL}/api/collections/teams/records?perPage=100&sort=sport,name&fields=id,name,sport,color`
+      const filter = encodeURIComponent(JSON.stringify({ active: { _eq: true } }))
+      const url = `${DIRECTUS_URL}/items/teams?fields=id,name,sport,color&sort=sport,name&limit=-1&filter=${filter}`
       const res = await fetch(url)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
-      allTeams = data.items || []
+      allTeams = data.data || []
     } catch {
       allTeams = []
     }
@@ -198,41 +197,41 @@ if (container) {
     fetchedRange = rangeKey
 
     try {
-      const filter = encodeURIComponent(`date>="${from}" && date<"${to}"`)
+      const filter = encodeURIComponent(JSON.stringify({ _and: [{ date: { _gte: from } }, { date: { _lt: to } }] }))
+      const fields = encodeURIComponent('id,game_id,date,time,home_team,away_team,home_score,away_score,status,type,kscw_team.id,kscw_team.name,kscw_team.sport,kscw_team.color,hall.id,hall.name,hall.address')
       const url =
-        `${PB_URL}/api/collections/games/records?perPage=200&sort=date,time` +
+        `${DIRECTUS_URL}/items/games?limit=-1&sort=date,time` +
         `&filter=${filter}` +
-        `&fields=id,game_id,date,time,home_team,away_team,home_score,away_score,status,type,away_hall_json,expand.kscw_team.id,expand.kscw_team.name,expand.kscw_team.sport,expand.kscw_team.color,expand.hall.name,expand.hall.address,expand.hall.city,expand.hall.maps_url` +
-        `&expand=kscw_team,hall`
+        `&fields=${fields}`
       const res = await fetch(url)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
-      games = data.items || []
+      games = data.data || []
     } catch {
       games = []
     }
   }
 
   // -- Filter games --
-  function applyFilters(gameList: PBGame[]): PBGame[] {
+  function applyFilters(gameList: DirectusGame[]): DirectusGame[] {
     return gameList.filter(g => {
       if (!filterType.has(g.type)) return false
       const sport = getTeamSport(g)
       if (!filterSport.has(sport)) return false
-      if (filterTeams.size > 0 && g.expand?.kscw_team?.id && !filterTeams.has(g.expand.kscw_team.id)) return false
+      if (filterTeams.size > 0 && g.kscw_team?.id && !filterTeams.has(String(g.kscw_team.id))) return false
       return true
     })
   }
 
   // -- Build game entry chip --
-  function gameChip(g: PBGame): HTMLElement {
+  function gameChip(g: DirectusGame): HTMLElement {
     const btn = document.createElement('button')
     btn.type = 'button'
     btn.className = 'cal-entry'
 
     const isHome = g.type === 'home'
-    const teamColor = g.expand?.kscw_team?.color || (isHome ? '#4A55A2' : '#d97706')
-    const teamName = g.expand?.kscw_team?.name || (isHome ? g.home_team : g.away_team)
+    const teamColor = g.kscw_team?.color || (isHome ? '#4A55A2' : '#d97706')
+    const teamName = g.kscw_team?.name || (isHome ? g.home_team : g.away_team)
 
     // Use team color for chip background
     btn.style.background = hexToRgba(teamColor, 0.15)
@@ -283,7 +282,7 @@ if (container) {
   }
 
   // -- Game detail modal --
-  function showGameDetail(g: PBGame): void {
+  function showGameDetail(g: DirectusGame): void {
     const overlay = el('div', 'cal-modal-overlay')
     overlay.addEventListener('click', () => overlay.remove())
 
@@ -302,15 +301,15 @@ if (container) {
     const isBB = getTeamSport(g) === 'basketball'
     const sportLabel = isBB ? 'Basketball' : 'Volleyball'
     const typeLabel = isHome ? homeLabel : awayLabel
-    const teamColor = g.expand?.kscw_team?.color || '#4A55A2'
+    const teamColor = g.kscw_team?.color || '#4A55A2'
 
     // Header badges
     const hdr = el('div', 'cal-modal-row-header')
     hdr.style.marginBottom = 'var(--space-sm)'
     hdr.appendChild(el('span', `cal-tooltip-sport cal-tooltip-sport--${isBB ? 'bb' : 'vb'}`, sportLabel))
     hdr.appendChild(el('span', `cal-tooltip-type cal-tooltip-type--${isHome ? 'home' : 'away'}`, typeLabel))
-    if (g.expand?.kscw_team?.name) {
-      const teamChip = el('span', 'cal-detail-team', g.expand.kscw_team.name)
+    if (g.kscw_team?.name) {
+      const teamChip = el('span', 'cal-detail-team', g.kscw_team.name)
       teamChip.style.background = hexToRgba(teamColor, 0.15)
       teamChip.style.color = teamColor
       teamChip.style.border = `1px solid ${hexToRgba(teamColor, 0.3)}`
@@ -336,17 +335,15 @@ if (container) {
     infoList.appendChild(makeInfoRow('\uD83D\uDCC5', dateStr))
     if (g.time) infoList.appendChild(makeInfoRow('\u23F0', g.time.slice(0, 5)))
 
-    // Hall — prefer expanded hall relation, fall back to away_hall_json
-    const hall = g.expand?.hall
-    const awayHall = g.away_hall_json
-    const hallName = hall?.name || awayHall?.name
-    const hallAddr = [hall?.address || awayHall?.address, hall?.city || awayHall?.city].filter(Boolean).join(', ')
+    // Hall
+    const hall = g.hall
+    const hallName = hall?.name
+    const hallAddr = [hall?.address, hall?.city].filter(Boolean).join(', ')
     if (hallName) {
       infoList.appendChild(makeInfoRow('\uD83C\uDFE2', hallName))
     }
     if (hallAddr) {
       const mapsUrl = hall?.maps_url
-        || (awayHall?.plus_code ? `https://maps.google.com/?q=${encodeURIComponent(awayHall.plus_code)}` : null)
         || `https://maps.google.com/?q=${encodeURIComponent(hallAddr)}`
       infoList.appendChild(makeInfoRowLink('\uD83D\uDCCD', hallAddr, mapsUrl))
     }
@@ -493,8 +490,8 @@ if (container) {
     const vbTeams = allTeams.filter(t => t.sport === 'volleyball')
     const bbTeams = allTeams.filter(t => t.sport === 'basketball')
     const teamOptions = [
-      ...vbTeams.map(t => ({ id: t.id, label: t.name, checked: filterTeams.size === 0 || filterTeams.has(t.id) })),
-      ...bbTeams.map(t => ({ id: t.id, label: t.name, checked: filterTeams.size === 0 || filterTeams.has(t.id) })),
+      ...vbTeams.map(t => ({ id: String(t.id), label: t.name, checked: filterTeams.size === 0 || filterTeams.has(String(t.id)) })),
+      ...bbTeams.map(t => ({ id: String(t.id), label: t.name, checked: filterTeams.size === 0 || filterTeams.has(String(t.id)) })),
     ]
     const teamGroups = [
       { label: 'Volleyball', startIdx: 0 },
@@ -631,7 +628,7 @@ if (container) {
     const filteredGames = applyFilters(games)
 
     // Group games by date key
-    const gamesByDate = new Map<string, PBGame[]>()
+    const gamesByDate = new Map<string, DirectusGame[]>()
     for (const g of filteredGames) {
       const key = g.date.slice(0, 10)
       if (!gamesByDate.has(key)) gamesByDate.set(key, [])
@@ -783,7 +780,7 @@ if (container) {
   }
 
   // -- Day overflow modal --
-  function showDayModal(date: Date, dayGames: PBGame[], dayEvents: CalendarEvent[] = []): void {
+  function showDayModal(date: Date, dayGames: DirectusGame[], dayEvents: CalendarEvent[] = []): void {
     const overlay = el('div', 'cal-modal-overlay')
     overlay.addEventListener('click', () => overlay.remove())
 
@@ -822,9 +819,8 @@ if (container) {
       }
       row.appendChild(el('div', 'cal-modal-teams', teamsText))
 
-      const dHall = g.expand?.hall
-      const dAwayHall = g.away_hall_json
-      const dHallText = [dHall?.name || dAwayHall?.name, dHall?.city || dAwayHall?.city].filter(Boolean).join(', ')
+      const dHall = g.hall
+      const dHallText = [dHall?.name, dHall?.city].filter(Boolean).join(', ')
       if (dHallText) {
         row.appendChild(el('div', 'cal-modal-hall', dHallText))
       }
@@ -923,7 +919,7 @@ if (container) {
       teamDiv.appendChild(el('div', 'cal-filter-group-label', 'Volleyball'))
       for (const t of vbTeams) {
         teamDiv.appendChild(makeCheckLabel(t.name, true, (c) => {
-          if (c) subTeams.delete(t.id); else subTeams.add(t.id)
+          if (c) subTeams.delete(String(t.id)); else subTeams.add(String(t.id))
         }))
       }
     }
@@ -931,7 +927,7 @@ if (container) {
       teamDiv.appendChild(el('div', 'cal-filter-group-label', 'Basketball'))
       for (const t of bbTeams) {
         teamDiv.appendChild(makeCheckLabel(t.name, true, (c) => {
-          if (c) subTeams.delete(t.id); else subTeams.add(t.id)
+          if (c) subTeams.delete(String(t.id)); else subTeams.add(String(t.id))
         }))
       }
     }
@@ -1011,15 +1007,16 @@ if (container) {
     // Team filter: include only non-excluded teams
     if (excludedTeams.size > 0) {
       const included = allTeams
-        .filter(t => !excludedTeams.has(t.id))
-        .map(t => t.id)
+        .filter(t => !excludedTeams.has(String(t.id)))
+        .map(t => String(t.id))
       if (included.length > 0 && included.length < allTeams.length) {
         params.set('team', included.join(','))
       }
     }
 
+    const baseUrl = DIRECTUS_URL.replace('https://', '')
     const qs = params.toString()
-    return `${protocol}://api.kscw.ch${path}${qs ? '?' + qs : ''}`
+    return `${protocol}://${baseUrl}${path}${qs ? '?' + qs : ''}`
   }
 
   // Close dropdowns on outside click

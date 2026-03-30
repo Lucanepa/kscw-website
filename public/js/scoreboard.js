@@ -5,10 +5,16 @@
  * Supports Absolute / Per Game toggle, expandable metric breakdowns, and i18n.
  *
  * Usage: renderScoreboard('container-id', 'all' | 'volleyball' | 'basketball')
- * Requires: data.js loaded first (window.KSCW with rawRankings + teamIdMap available globally)
+ * Fetches rankings directly from Directus.
  */
 (function () {
   'use strict';
+
+  var DIRECTUS_URL = (window.location.hostname === 'kscw.ch' || window.location.hostname === 'www.kscw.ch')
+    ? 'https://directus.kscw.ch' : 'https://directus-dev.kscw.ch';
+
+  // teamIdMap: maps Directus team IDs to short display names
+  var teamIdMap = {};
 
   // ── i18n labels ────────────────────────────────────────────────────
   var labels = {
@@ -384,14 +390,12 @@
   }
 
   // ── Main render function ────────────────────────────────────────────
-  window.renderScoreboard = function (containerId, sportFilter) {
+  window.renderScoreboard = function (containerId, sportFilter, rankingsData) {
     var container = document.getElementById(containerId);
     if (!container) return;
 
-    var D = window.KSCW;
-    if (!D || !D.rawRankings) return;
-
-    var rankings = D.rawRankings;
+    var rankings = rankingsData;
+    if (!rankings || !rankings.length) return;
 
     var sports = sportFilter === 'all' ? ['volleyball', 'basketball']
       : sportFilter === 'volleyball' ? ['volleyball']
@@ -425,21 +429,42 @@
     container.appendChild(grid);
   };
 
-  // ── Auto-render on data ready ───────────────────────────────────────
+  // ── Auto-render: fetch rankings from Directus, then render ──────────
   function autoRender() {
-    // Render all scoreboard containers on the page
     var containers = document.querySelectorAll('[data-scoreboard]');
-    for (var i = 0; i < containers.length; i++) {
-      var el = containers[i];
-      if (el.children.length > 0) continue; // already rendered
-      var filter = el.getAttribute('data-scoreboard') || 'all';
-      window.renderScoreboard(el.id, filter);
-    }
+    if (!containers.length) return;
+
+    // Fetch rankings and team names from Directus
+    Promise.all([
+      fetch(DIRECTUS_URL + '/items/rankings?sort=sport,league,rank&limit=-1')
+        .then(function (r) { return r.json(); }),
+      fetch(DIRECTUS_URL + '/items/teams?filter=' + encodeURIComponent(JSON.stringify({ active: { _eq: true } })) + '&fields=id,name,sport&limit=-1')
+        .then(function (r) { return r.json(); })
+    ]).then(function (results) {
+      var rankings = results[0].data || [];
+      var teams = results[1].data || [];
+
+      // Build teamIdMap from teams data
+      for (var ti = 0; ti < teams.length; ti++) {
+        var tm = teams[ti];
+        teamIdMap[String(tm.id)] = tm.name;
+      }
+
+      for (var i = 0; i < containers.length; i++) {
+        var el = containers[i];
+        if (el.children.length > 0) continue;
+        var filter = el.getAttribute('data-scoreboard') || 'all';
+        window.renderScoreboard(el.id, filter, rankings);
+      }
+    }).catch(function (err) {
+      console.warn('[KSCW Scoreboard] Failed to fetch rankings:', err);
+    });
   }
 
-  if (window.KSCW && window.KSCW.ready) {
-    autoRender();
+  // Auto-init on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoRender);
   } else {
-    document.addEventListener('kscw-data-ready', autoRender);
+    autoRender();
   }
 })();

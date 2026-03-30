@@ -4,47 +4,31 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import SectionHeader from '../../components/SectionHeader.astro';
 import { t } from '../../lib/i18n';
 import heroLogo from '../../assets/images/kscw_trio.png';
+import { getLatestNews } from '../../lib/fetch/news';
+import { getUpcomingEvents } from '../../lib/fetch/events';
 
 const locale = 'en';
-const PB = 'https://api.kscw.ch';
 
 let newsArticlesEn: any[] = [];
 try {
-  const res = await fetch(`${PB}/api/collections/news/records?sort=-published_at&filter=(is_published=true)&perPage=6`);
-  if (res.ok) {
-    const data = await res.json();
-    newsArticlesEn = (data.items ?? []).map((n: any) => ({
-      id: n.id,
-      title: n.title,
-      excerpt: n.excerpt || '',
-      body: n.body || '',
-      author: n.author || '',
-      date: n.published_at || n.created,
-      category: n.category || 'club',
-      image: n.image ? `${PB}/api/files/news/${n.id}/${n.image}` : null,
-    }));
-  }
+  newsArticlesEn = await getLatestNews(6);
 } catch (e) {
-  console.warn('Failed to fetch news from PocketBase:', e);
+  console.warn('Failed to fetch news:', e);
 }
 
 let upcomingEvents: any[] = [];
 try {
-  const now = new Date().toISOString().slice(0, 10);
-  const res = await fetch(`${PB}/api/collections/events/records?sort=start_date&filter=(start_date>='${now}')&perPage=3`);
-  if (res.ok) {
-    const data = await res.json();
-    upcomingEvents = (data.items ?? []).map((ev: any) => ({
-      title: ev.title,
-      date: ev.start_date,
-      time: ev.all_day ? '' : (ev.start_date?.split(' ')[1]?.slice(0, 5) || ''),
-      location: ev.location || '',
-      category: ev.event_type || 'other',
-      description: ev.description || '',
-    }));
-  }
+  const events = await getUpcomingEvents(3);
+  upcomingEvents = events.map(ev => ({
+    title: ev.title,
+    date: ev.startDate,
+    time: '',
+    location: ev.location || '',
+    category: ev.eventType || 'other',
+    description: ev.description || '',
+  }));
 } catch (e) {
-  console.warn('Failed to fetch events from PocketBase:', e);
+  console.warn('Failed to fetch events:', e);
 }
 ---
 <BaseLayout
@@ -106,8 +90,8 @@ try {
           newsArticlesEn.map(n => (
             <article class="card news-card fade-in" data-news-id={n.id}>
               <div class="card-img-placeholder">
-                {n.image ? (
-                  <img src={n.image} alt={n.title} />
+                {n.imageUrl ? (
+                  <img src={n.imageUrl} alt={n.title} />
                 ) : (
                   <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
                 )}
@@ -122,7 +106,7 @@ try {
                 <h3>{n.title}</h3>
                 <p class="news-excerpt">{n.excerpt}</p>
               </div>
-              <script type="application/json" class="news-data" set:html={JSON.stringify({ title: n.title, body: n.body, date: n.date, category: n.category, image: n.image, author: n.author })} />
+              <script type="application/json" class="news-data" set:html={JSON.stringify({ title: n.title, body: n.body, date: n.date, category: n.category, image: n.imageUrl, author: n.author })} />
             </article>
           ))
         ) : (
@@ -190,14 +174,16 @@ try {
     </div>
   </section>
 
-  <!-- Client-side data loading (same as current site) -->
-  <script is:inline src="/js/data.js"></script>
+  <!-- Client-side data loading -->
   <script is:inline src="/js/scoreboard.js"></script>
   <script is:inline src="/js/game-modal.js"></script>
   <script is:inline src="/js/news-modal.js"></script>
   <script is:inline>
     (function () {
       'use strict';
+
+      var DIRECTUS_URL = (window.location.hostname === 'kscw.ch' || window.location.hostname === 'www.kscw.ch')
+        ? 'https://directus.kscw.ch' : 'https://directus-dev.kscw.ch';
 
       ['upcoming-games-list', 'recent-results-list'].forEach(function(id) {
         var tbl = document.getElementById(id);
@@ -214,30 +200,25 @@ try {
         }
       });
 
-      // Sport icons — filled versions matching Wiedisync (hardcoded SVG, safe)
       var VB_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#FFC832" stroke="#4A55A2" stroke-width="1.5"/><path d="M11.1 7.1a16.55 16.55 0 0 1 10.9 4" stroke="#4A55A2" stroke-width="1.5"/><path d="M12 12a12.6 12.6 0 0 1-8.7 5" stroke="#4A55A2" stroke-width="1.5"/><path d="M16.8 13.6a16.55 16.55 0 0 1-9 7.5" stroke="#4A55A2" stroke-width="1.5"/><path d="M20.7 17a12.8 12.8 0 0 0-8.7-5 13.3 13.3 0 0 1 0-10" stroke="#4A55A2" stroke-width="1.5"/><path d="M6.3 3.8a16.55 16.55 0 0 0 1.9 11.5" stroke="#4A55A2" stroke-width="1.5"/></svg>';
       var BB_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(90deg)"><circle cx="12" cy="12" r="10" fill="#F97316"/><path d="M4.93 4.93c4.08 2.64 8.74 3.2 14.14 0"/><path d="M4.93 19.07c4.08-2.64 8.74-3.2 14.14 0"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>';
 
-      function sportSvg(game) {
-        return (game.sport === 'basketball' || game.teamShort.indexOf('BB-') === 0) ? BB_SVG : VB_SVG;
-      }
+      function sportSvg(game) { return (game.teamSport === 'basketball') ? BB_SVG : VB_SVG; }
       function createIconEl(game) {
         var span = document.createElement('span');
         span.className = 'game-sport-icon';
-        // SAFE: sportSvg() only returns hardcoded VB_SVG or BB_SVG constants.
-        // No user input. innerHTML needed for SVG namespace compatibility in HTML.
-        span.innerHTML = sportSvg(game); // eslint-disable-line no-unsanitized/property
+        span.innerHTML = sportSvg(game);
         return span;
       }
-      function createChip(D, teamShort) {
-        var t = D.getTeam(teamShort);
+      function createChip(game) {
         var chip = document.createElement('span');
         chip.className = 'chip';
-        if (t) {
-          chip.style.background = t.bg; chip.style.color = t.text;
-          chip.style.border = '1px solid ' + t.border; chip.textContent = t.short;
+        if (game.teamColor) {
+          chip.style.background = game.teamColor; chip.style.color = '#fff';
+          chip.textContent = game.teamName || '';
         } else {
-          chip.style.background = '#e2e8f0'; chip.style.color = '#475569'; chip.textContent = teamShort;
+          chip.style.background = '#e2e8f0'; chip.style.color = '#475569';
+          chip.textContent = game.teamName || '';
         }
         return chip;
       }
@@ -253,26 +234,34 @@ try {
         return td;
       }
 
-      function buildGameRow(D, game, showScore) {
+      function formatDate(iso) {
+        if (!iso) return '\u2013';
+        try {
+          var d = new Date(iso + 'T12:00:00');
+          return d.toLocaleDateString('en-CH', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        } catch (e) { return '\u2013'; }
+      }
+
+      function buildGameRow(game, showScore) {
         var tr = document.createElement('tr');
         tr.className = 'fade-in';
-        tr._gameData = game; // store for click handler
+        tr._gameData = game;
+        var isHome = game.homeTeam && game.homeTeam.indexOf('KSCW') !== -1;
         tr.appendChild(makeCell(createIconEl(game), 'gt-icon'));
-        tr.appendChild(makeCell(D.formatDate(game.date), 'gt-date'));
-        tr.appendChild(makeCell(game.time || '', 'gt-time'));
-        tr.appendChild(makeCell(createChip(D, game.teamShort), 'gt-team'));
+        tr.appendChild(makeCell(formatDate(game.date), 'gt-date'));
+        tr.appendChild(makeCell(game.time ? game.time.slice(0, 5) : '', 'gt-time'));
+        tr.appendChild(makeCell(createChip(game), 'gt-team'));
         var badge = document.createElement('span');
-        badge.className = 'game-badge ' + (game.isHome ? 'home' : 'away');
-        badge.textContent = game.isHome ? 'Home' : 'Away';
+        badge.className = 'game-badge ' + (isHome ? 'home' : 'away');
+        badge.textContent = isHome ? 'Home' : 'Away';
         tr.appendChild(makeCell(badge, 'gt-loc'));
-        tr.appendChild(makeCell(game.isHome ? ('KSCW vs ' + game.opponent) : (game.opponent + ' vs KSCW'), 'gt-matchup'));
-        if (showScore && game.score) {
+        tr.appendChild(makeCell(game.homeTeam + ' vs ' + game.awayTeam, 'gt-matchup'));
+        if (showScore && game.homeScore != null && game.awayScore != null) {
           var scoreSpan = document.createElement('span');
-          var win = D.isWin(game);
-          scoreSpan.className = 'game-score';
-          if (win === true) scoreSpan.className += ' win';
-          else if (win === false) scoreSpan.className += ' loss';
-          scoreSpan.textContent = game.score;
+          var homeWin = game.homeScore > game.awayScore;
+          var kscwWin = isHome ? homeWin : !homeWin;
+          scoreSpan.className = 'game-score' + (kscwWin ? ' win' : ' loss');
+          scoreSpan.textContent = game.homeScore + ':' + game.awayScore;
           tr.appendChild(makeCell(scoreSpan, 'gt-score'));
         } else {
           tr.appendChild(makeCell('', 'gt-score'));
@@ -284,7 +273,6 @@ try {
         var tbl = document.getElementById(tableId);
         if (!tbl) return;
         var tbody = tbl.querySelector('tbody') || tbl;
-        var D = window.KSCW;
         while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
         if (!games.length) {
           var tr = document.createElement('tr');
@@ -294,59 +282,85 @@ try {
           tr.appendChild(td); tbody.appendChild(tr); return;
         }
         var frag = document.createDocumentFragment();
-        for (var i = 0; i < games.length; i++) frag.appendChild(buildGameRow(D, games[i], showScore));
+        for (var i = 0; i < games.length; i++) frag.appendChild(buildGameRow(games[i], showScore));
         tbody.appendChild(frag);
       }
 
-      function renderAll() {
-        var D = window.KSCW;
-        if (!D) return;
-        cachedUpcoming = D.getUpcomingGames().slice(0, 10);
-        cachedCompleted = D.getCompletedGames().slice(0, 10);
-        renderGameTable('upcoming-games-list', cachedUpcoming.slice(0, 5), false);
-        renderGameTable('recent-results-list', cachedCompleted.slice(0, 5), true);
+      var today = new Date().toISOString().slice(0, 10);
+      var gameFields = 'id,game_id,date,time,home_team,away_team,home_score,away_score,status,type,league,season,sets_json,kscw_team.id,kscw_team.name,kscw_team.sport,kscw_team.color,hall.id,hall.name,hall.address';
 
-        // Sponsor Carousel
-        var sponsorTrack = document.getElementById('sponsor-track');
-        if (sponsorTrack) {
-          fetch('https://api.kscw.ch/api/public/sponsors')
-            .then(function (res) { return res.json(); })
-            .then(function (data) {
-              var allSponsors = data.sponsors || [];
-              // Filter: show club-level sponsors + team sponsors not restricted to team page
-              var displaySponsors = allSponsors.filter(function(sp) {
-                if (!sp.teams || !sp.teams.length) return true;
-                return !sp.team_page_only;
-              });
-              if (!displaySponsors.length) return;
-              var spFrag = document.createDocumentFragment();
-              for (var pass = 0; pass < 2; pass++) {
-                for (var s = 0; s < displaySponsors.length; s++) {
-                  var sp = displaySponsors[s];
-                  var link = document.createElement('a');
-                  link.href = sp.website_url || '#';
-                  link.className = 'sponsor-item';
-                  if (sp.website_url) { link.target = '_blank'; link.rel = 'noopener noreferrer'; }
-                  link.title = sp.name;
-                  if (sp.logo_url) {
-                    var img = document.createElement('img');
-                    img.src = 'https://api.kscw.ch' + sp.logo_url;
-                    img.alt = sp.name;
-                    img.style.maxHeight = '40px'; img.style.objectFit = 'contain';
-                    link.appendChild(img);
-                  } else {
-                    var label = document.createElement('span');
-                    label.textContent = sp.name; link.appendChild(label);
-                  }
-                  spFrag.appendChild(link);
-                }
-              }
-              sponsorTrack.appendChild(spFrag);
-            }).catch(function () {});
-        }
+      function mapGame(g) {
+        return {
+          id: g.id, gameId: g.game_id, date: g.date, time: g.time,
+          homeTeam: g.home_team, awayTeam: g.away_team,
+          homeScore: g.home_score, awayScore: g.away_score,
+          status: g.status, type: g.type, league: g.league, season: g.season,
+          setsJson: g.sets_json ? (typeof g.sets_json === 'string' ? JSON.parse(g.sets_json) : g.sets_json) : null,
+          teamId: g.kscw_team ? String(g.kscw_team.id) : null,
+          teamName: g.kscw_team ? g.kscw_team.name : null,
+          teamSport: g.kscw_team ? g.kscw_team.sport : null,
+          teamColor: g.kscw_team ? g.kscw_team.color : null,
+          teamShort: g.kscw_team ? g.kscw_team.name : '',
+          isHome: g.type === 'home',
+          opponent: g.type === 'home' ? g.away_team : g.home_team,
+          score: (g.home_score != null && g.away_score != null) ? g.home_score + ':' + g.away_score : null,
+          hall: g.hall || null,
+          sport: g.kscw_team ? g.kscw_team.sport : 'volleyball'
+        };
       }
 
-      // ── Sport filter tabs ──
+      function fetchGames() {
+        var upcomingUrl = DIRECTUS_URL + '/items/games?fields=' + encodeURIComponent(gameFields)
+          + '&sort=date,time&limit=10&filter=' + encodeURIComponent(JSON.stringify({ _and: [{ date: { _gte: today } }, { status: { _neq: 'cancelled' } }] }));
+        var completedUrl = DIRECTUS_URL + '/items/games?fields=' + encodeURIComponent(gameFields)
+          + '&sort=-date,-time&limit=10&filter=' + encodeURIComponent(JSON.stringify({ status: { _eq: 'completed' } }));
+        Promise.all([
+          fetch(upcomingUrl).then(function(r) { return r.json(); }),
+          fetch(completedUrl).then(function(r) { return r.json(); })
+        ]).then(function(results) {
+          cachedUpcoming = (results[0].data || []).map(mapGame);
+          cachedCompleted = (results[1].data || []).map(mapGame);
+          renderGameTable('upcoming-games-list', cachedUpcoming.slice(0, 5), false);
+          renderGameTable('recent-results-list', cachedCompleted.slice(0, 5), true);
+          requestAnimationFrame(observeNewFadeIns);
+        }).catch(function(err) { console.warn('Failed to fetch games:', err); });
+      }
+
+      function fetchSponsors() {
+        var sponsorTrack = document.getElementById('sponsor-track');
+        if (!sponsorTrack) return;
+        fetch(DIRECTUS_URL + '/items/sponsors?fields=id,name,logo,logo_url,website_url&sort=name&limit=-1')
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            var allSponsors = data.data || [];
+            if (!allSponsors.length) return;
+            var spFrag = document.createDocumentFragment();
+            for (var pass = 0; pass < 2; pass++) {
+              for (var s = 0; s < allSponsors.length; s++) {
+                var sp = allSponsors[s];
+                var link = document.createElement('a');
+                link.href = sp.website_url || '#';
+                link.className = 'sponsor-item';
+                if (sp.website_url) { link.target = '_blank'; link.rel = 'noopener noreferrer'; }
+                link.title = sp.name;
+                var logoSrc = sp.logo ? (DIRECTUS_URL + '/assets/' + sp.logo + '?width=300&quality=80') : sp.logo_url;
+                if (logoSrc) {
+                  var img = document.createElement('img');
+                  img.src = logoSrc;
+                  img.alt = sp.name;
+                  img.style.maxHeight = '40px'; img.style.objectFit = 'contain';
+                  link.appendChild(img);
+                } else {
+                  var label = document.createElement('span');
+                  label.textContent = sp.name; link.appendChild(label);
+                }
+                spFrag.appendChild(link);
+              }
+            }
+            sponsorTrack.appendChild(spFrag);
+          }).catch(function () {});
+      }
+
       function filterBySport(source, sport) {
         if (sport === 'all') return source.slice(0, 5);
         return source.filter(function (g) { return g.sport === sport; }).slice(0, 5);
@@ -380,18 +394,9 @@ try {
         els.forEach(function(el) { obs.observe(el); });
       }
 
-      function renderAndAnimate() { renderAll(); requestAnimationFrame(observeNewFadeIns); }
+      fetchGames();
+      fetchSponsors();
 
-      if (window.KSCW && window.KSCW.ready) {
-        renderAndAnimate();
-      } else {
-        document.addEventListener('kscw-data-ready', renderAndAnimate);
-        var poll = setInterval(function () {
-          if (window.KSCW && window.KSCW.ready) { clearInterval(poll); renderAndAnimate(); }
-        }, 100);
-      }
-
-      // ── Game row click → modal ──
       document.querySelectorAll('.game-table').forEach(function (tbl) {
         tbl.addEventListener('click', function (e) {
           var tr = e.target.closest('tr');

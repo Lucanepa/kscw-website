@@ -1,8 +1,16 @@
 ---
 import PageLayout from '../../../layouts/PageLayout.astro';
 import { t } from '../../../lib/i18n';
+import { getSponsors } from '../../../lib/fetch/sponsors';
 
 const locale = 'de';
+
+let sponsors: any[] = [];
+try {
+  sponsors = await getSponsors();
+} catch (e) {
+  console.warn('Failed to fetch sponsors:', e);
+}
 ---
 <PageLayout
   title="Sponsoren — KSC Wiedikon"
@@ -15,7 +23,27 @@ const locale = 'de';
   <section class="section">
     <div class="container">
       <div id="sponsors-grid">
-        <div class="sponsors-loading">{t(locale, 'sponsorsLoading')}</div>
+        {sponsors.length > 0 ? (
+          <div class="sponsors-grid">
+            {sponsors.map(s => (
+              <div class="sponsor-card">
+                {s.websiteUrl ? (
+                  <a href={s.websiteUrl} target="_blank" rel="noopener noreferrer">
+                    {s.logoUrl && <img class="sponsor-logo" src={s.logoUrl} alt={s.name} loading="lazy" />}
+                    {s.name && <div class="sponsor-name">{s.name}</div>}
+                  </a>
+                ) : (
+                  <div>
+                    {s.logoUrl && <img class="sponsor-logo" src={s.logoUrl} alt={s.name} loading="lazy" />}
+                    {s.name && <div class="sponsor-name">{s.name}</div>}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div class="sponsors-error">Sponsoren konnten nicht geladen werden</div>
+        )}
       </div>
     </div>
   </section>
@@ -58,92 +86,6 @@ const locale = 'de';
       </div>
     </div>
   </section>
-
-  <!-- Client-side sponsor loading -->
-  <script is:inline>
-    (function() {
-      var container = document.getElementById('sponsors-grid');
-      var lang = document.documentElement.lang || 'de';
-      var errorMsg = lang === 'en' ? 'Sponsors could not be loaded' : 'Sponsoren konnten nicht geladen werden';
-
-      function showError() {
-        container.textContent = '';
-        var div = document.createElement('div');
-        div.className = 'sponsors-error';
-        div.textContent = errorMsg;
-        container.appendChild(div);
-      }
-
-      function buildCard(s) {
-        var card = document.createElement('div');
-        card.className = 'sponsor-card';
-
-        var name = s.name || '';
-        var hasLogo = s.logo_url && s.logo_url.trim();
-        var hasUrl = s.website_url && s.website_url.trim();
-
-        var wrapper = card;
-        if (hasUrl) {
-          var link = document.createElement('a');
-          link.href = s.website_url;
-          link.target = '_blank';
-          link.rel = 'noopener noreferrer';
-          card.appendChild(link);
-          wrapper = link;
-        }
-
-        if (hasLogo) {
-          var img = document.createElement('img');
-          img.className = 'sponsor-logo';
-          img.src = 'https://api.kscw.ch' + s.logo_url;
-          img.alt = name;
-          img.loading = 'lazy';
-          wrapper.appendChild(img);
-        }
-
-        if (name) {
-          var nameEl = document.createElement('div');
-          nameEl.className = 'sponsor-name';
-          nameEl.textContent = name;
-          wrapper.appendChild(nameEl);
-        }
-
-        return card;
-      }
-
-      fetch('https://api.kscw.ch/api/public/sponsors')
-        .then(function(res) {
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          return res.json();
-        })
-        .then(function(data) {
-          var sponsors = data && data.sponsors;
-          if (!sponsors || !sponsors.length) {
-            showError();
-            return;
-          }
-
-          // Filter: show club-level sponsors + team sponsors not restricted to team page
-          var displaySponsors = sponsors.filter(function(sp) {
-            if (!sp.teams || !sp.teams.length) return true;
-            return !sp.team_page_only;
-          });
-
-          container.textContent = '';
-          var grid = document.createElement('div');
-          grid.className = 'sponsors-grid';
-
-          displaySponsors.forEach(function(s) {
-            grid.appendChild(buildCard(s));
-          });
-
-          container.appendChild(grid);
-        })
-        .catch(function() {
-          showError();
-        });
-    })();
-  </script>
 
   <script src="../../../islands/scroll-animations.ts"></script>
 </PageLayout>

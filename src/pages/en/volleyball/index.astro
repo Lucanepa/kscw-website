@@ -4,17 +4,22 @@ import SectionHeader from '../../../components/SectionHeader.astro';
 import TeamCard from '../../../components/TeamCard.astro';
 import CTA from '../../../components/CTA.astro';
 import { t } from '../../../lib/i18n';
-import { fetchAllTeams } from '../../../lib/pocketbase';
-import type { TeamData } from '../../../data/teams';
+import { getActiveTeams, type Team } from '../../../lib/fetch/teams';
+import { allTeamDefs } from '../../../data/teams';
 
 const locale = 'en';
 const basePath = `/${locale}/volleyball`;
 
-const allTeams = await fetchAllTeams();
+let allTeams: Team[];
+try {
+  allTeams = await getActiveTeams();
+} catch {
+  allTeams = allTeamDefs.map(d => ({ ...d, league: d.fallbackLeague || '', photoUrl: '', season: '' }));
+}
 const vb = (cat: string) =>
   allTeams
-    .filter((t: TeamData) => t.sport === 'volleyball' && t.category === cat)
-    .sort((a: TeamData, b: TeamData) => a.order - b.order);
+    .filter(t => t.sport === 'volleyball' && t.category === cat)
+    .sort((a, b) => a.order - b.order);
 
 const men = vb('men');
 const women = vb('women');
@@ -80,6 +85,5 @@ const moreText = `${t(locale, 'vbMore')} &rarr;`;
     buttonHref={`/${locale}/club/kontakt`}
   />
 
-  <script is:inline src="/js/data.js"></script>
   <script is:inline src="/js/scoreboard.js"></script>
 </PageLayout>

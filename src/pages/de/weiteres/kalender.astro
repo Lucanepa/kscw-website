@@ -1,28 +1,25 @@
 ---
 import PageLayout from '../../../layouts/PageLayout.astro';
 import { t } from '../../../lib/i18n';
+import { getAllEvents } from '../../../lib/fetch/events';
 
 const locale = 'de';
-const PB = 'https://api.kscw.ch';
 
 let allEvents: any[] = [];
 try {
-  const res = await fetch(`${PB}/api/collections/events/records?sort=start_date&perPage=100`);
-  if (res.ok) {
-    const data = await res.json();
-    allEvents = (data.items ?? []).map((ev: any) => ({
-      title: ev.title,
-      date: ev.start_date?.split(' ')[0] || ev.start_date,
-      endDate: ev.end_date?.split(' ')[0] || '',
-      time: ev.all_day ? '' : (ev.start_date?.split(' ')[1]?.slice(0, 5) || ''),
-      location: ev.location || '',
-      category: ev.event_type || 'other',
-      description: ev.description || '',
-      body: ev.description || '',
-    }));
-  }
+  const events = await getAllEvents();
+  allEvents = events.map(ev => ({
+    title: ev.title,
+    date: ev.startDate,
+    endDate: ev.endDate || '',
+    time: '',
+    location: ev.location || '',
+    category: ev.eventType || 'other',
+    description: ev.description || '',
+    body: ev.description || '',
+  }));
 } catch (e) {
-  console.warn('Failed to fetch events from PocketBase:', e);
+  console.warn('Failed to fetch events:', e);
 }
 ---
 <PageLayout
