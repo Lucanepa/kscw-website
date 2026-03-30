@@ -1,8 +1,8 @@
 // Calendar Grid — Vanilla JS month grid fetching games from Directus
 // With filter toolbar, sport/team colors, and iCal subscribe modal
 
-const DIRECTUS_URL = (typeof window !== 'undefined' && (window.location.hostname === 'kscw.ch' || window.location.hostname === 'www.kscw.ch'))
-  ? 'https://directus.kscw.ch' : 'https://directus-dev.kscw.ch'
+const DIRECTUS_URL = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+  ? 'https://directus-dev.kscw.ch' : 'https://directus.kscw.ch'
 
 interface DirectusTeam {
   id: number

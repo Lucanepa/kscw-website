@@ -10,8 +10,8 @@
 (function () {
   'use strict';
 
-  var DIRECTUS_URL = (window.location.hostname === 'kscw.ch' || window.location.hostname === 'www.kscw.ch')
-    ? 'https://directus.kscw.ch' : 'https://directus-dev.kscw.ch';
+  var DIRECTUS_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'https://directus-dev.kscw.ch' : 'https://directus.kscw.ch';
 
   // teamIdMap: maps Directus team IDs to short display names
   var teamIdMap = {};

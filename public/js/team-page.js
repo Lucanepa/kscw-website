@@ -12,8 +12,8 @@
   var CFG = window.TEAM_CONFIG;
   if (!CFG || (!CFG.short && !CFG.directusId)) return;
 
-  var DIRECTUS_URL = (window.location.hostname === 'kscw.ch' || window.location.hostname === 'www.kscw.ch')
-    ? 'https://directus.kscw.ch' : 'https://directus-dev.kscw.ch';
+  var DIRECTUS_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'https://directus-dev.kscw.ch' : 'https://directus.kscw.ch';
   var TEAM = CFG.short || '';
   var TEAM_DIRECTUS_ID = CFG.directusId;
   var IS_WOMEN = false; // set after team data loads

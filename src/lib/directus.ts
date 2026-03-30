@@ -10,10 +10,10 @@
 export function getDirectusUrl(): string {
   if (typeof window !== 'undefined') {
     const h = window.location.hostname
-    if (h === 'kscw.ch' || h === 'www.kscw.ch') return 'https://directus.kscw.ch'
-    return 'https://directus-dev.kscw.ch'
+    if (h === 'localhost' || h === '127.0.0.1') return 'https://directus-dev.kscw.ch'
+    return 'https://directus.kscw.ch'
   }
-  return import.meta.env.DIRECTUS_URL || 'https://directus-dev.kscw.ch'
+  return import.meta.env.DIRECTUS_URL || 'https://directus.kscw.ch'
 }
 
 /** Build-time constant — use getDirectusUrl() for runtime-detected URL. */
