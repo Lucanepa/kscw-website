@@ -194,7 +194,7 @@
 
       // Referees
       if (game.referees && game.referees.length) {
-        var refNames = game.referees.map(function (r) { return r.name || (r.first_name + ' ' + r.last_name); }).join(', ');
+        var refNames = game.referees.map(function (r) { return [r.first_name, r.last_name].filter(Boolean).join(' '); }).join(', ');
         officials.appendChild(infoRow(
           game.referees.length > 1 ? (isDE ? 'Schiedsrichter' : 'Referees') : (isDE ? 'Schiedsrichter' : 'Referee'),
           refNames
