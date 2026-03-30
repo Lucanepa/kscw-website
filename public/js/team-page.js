@@ -54,8 +54,8 @@
     var container = document.getElementById('team-hero-container');
     if (!container) return;
 
-    // Resolve team color from API data or fallback
-    var color = teamData.color || 'var(--kscw-blue)';
+    // Always use KSCW brand blue for team hero
+    var color = 'var(--kscw-blue)';
 
     var section = document.createElement('section');
     section.className = 'team-hero';

@@ -436,17 +436,18 @@
 
     // Fetch rankings and team names from Directus
     Promise.all([
-      fetch(DIRECTUS_URL + '/items/rankings?sort=sport,league,rank&limit=-1')
+      fetch(DIRECTUS_URL + '/items/rankings?sort=league,rank&limit=-1')
         .then(function (r) { return r.json(); }),
-      fetch(DIRECTUS_URL + '/items/teams?filter=' + encodeURIComponent(JSON.stringify({ active: { _eq: true } })) + '&fields=id,name,sport&limit=-1')
+      fetch(DIRECTUS_URL + '/items/teams?filter=' + encodeURIComponent(JSON.stringify({ active: { _eq: true } })) + '&fields=id,name,sport,team_id&limit=-1')
         .then(function (r) { return r.json(); })
     ]).then(function (results) {
       var rankings = results[0].data || [];
       var teams = results[1].data || [];
 
-      // Build teamIdMap from teams data
+      // Build teamIdMap keyed by team_id (e.g. "vb_2743") for ranking lookup
       for (var ti = 0; ti < teams.length; ti++) {
         var tm = teams[ti];
+        if (tm.team_id) teamIdMap[tm.team_id] = tm.name;
         teamIdMap[String(tm.id)] = tm.name;
       }
 
