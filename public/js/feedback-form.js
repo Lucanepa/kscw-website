@@ -1,14 +1,15 @@
 /**
  * KSCW Feedback Form — Type selection, validation, file upload, submission
  *
- * Submits to POST /api/collections/feedback/records on PocketBase.
+ * Submits to POST /items/feedback on Directus.
  * Uses multipart/form-data for screenshot file upload.
- * Includes Turnstile CAPTCHA token.
+ * Includes Turnstile CAPTCHA token in form body.
  */
 (function () {
   'use strict';
 
-  var PB = 'https://api.kscw.ch';
+  var DIRECTUS_URL = (window.location.hostname === 'kscw.ch' || window.location.hostname === 'www.kscw.ch')
+    ? 'https://directus.kscw.ch' : 'https://directus-dev.kscw.ch';
   var TURNSTILE_SITE_KEY = '0x4AAAAAACoYmx3xiDfRbmv9';
   var MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
   var ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
@@ -252,9 +253,8 @@
       formData.append('screenshot', selectedFile);
     }
 
-    fetch(PB + '/api/collections/feedback/records', {
+    fetch(DIRECTUS_URL + '/items/feedback', {
       method: 'POST',
-      headers: { 'X-Turnstile-Token': data.turnstileResponse },
       body: formData,
     })
       .then(function (res) {
