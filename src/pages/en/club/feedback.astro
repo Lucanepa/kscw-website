@@ -122,8 +122,21 @@ const locale = 'en';
         <h2 class="changelog-heading">
           <i data-lucide="scroll-text"></i>
           {t(locale, 'changelogTitle')}
-          <span class="changelog-badge">v1.2.1</span>
+          <span class="changelog-badge">v2.0.0</span>
         </h2>
+
+        <div class="changelog-entry">
+          <div class="changelog-meta">v2.0.0 — 2026-03-30</div>
+          <div class="changelog-group">
+            <h3>Backend Migration</h3>
+            <ul>
+              <li>Complete migration from PocketBase to Directus API backend</li>
+              <li>New modular data fetching — each page loads only what it needs</li>
+              <li>Admin panel now uses Directus REST instead of PocketBase SDK</li>
+              <li>60 files (team photos, news images, sponsor logos) migrated to Directus</li>
+            </ul>
+          </div>
+        </div>
 
         <div class="changelog-entry">
           <div class="changelog-meta">v1.2.1 — 2026-03-20</div>

@@ -2,6 +2,39 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [2.0.0] — 2026-03-30
+
+### Breaking Changes
+- **PocketBase → Directus migration**: Entire API backend switched from PocketBase (`api.kscw.ch`) to Directus (`directus.kscw.ch` / `directus-dev.kscw.ch`), aligning with the wiedisync platform
+- Removed monolithic `data.js` global data layer — each page now fetches only what it needs
+- Removed `window.KSCW` global object and `kscw-data-ready` event
+
+### New
+- `src/lib/directus.ts` — thin typed Directus REST fetch wrapper (no SDK dependency)
+- 7 per-page fetch modules in `src/lib/fetch/` (teams, games, rankings, news, events, sponsors, team-detail)
+- `src/lib/utils.ts` — shared date/game helpers extracted from data.js
+- Runtime hostname detection for prod/dev Directus URL switching
+- `news` collection created in Directus (prod + dev) with public read access
+
+### Changed
+- Admin page rewritten: Directus REST auth + CRUD (replaces PocketBase SDK CDN)
+- Calendar island fetches games/teams directly from Directus REST
+- All team pages use `directusId` instead of `pbId`
+- Feedback form submits to Directus `/items/feedback`
+- Contact form uses Directus `/kscw/contact` custom endpoint
+- Sponsor pages fetch at build-time from Directus
+- CSP headers updated for `directus.kscw.ch` and `directus-dev.kscw.ch`
+
+### Removed
+- `public/js/data.js` (578 lines)
+- `src/lib/pocketbase.ts`
+- All `api.kscw.ch` references
+- PocketBase SDK CDN script tag
+
+### Data Migration
+- 60 file assets migrated to Directus storage (team photos, news images, sponsor logos)
+- 6 news records migrated from PocketBase to Directus `news` collection
+
 ## [1.2.1] — 2026-03-20
 
 ### Bug Fixes
