@@ -201,8 +201,23 @@
 
     fetch(DIRECTUS_URL + '/kscw/public/team/' + TEAM_DIRECTUS_ID)
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function (data) {
-        var teamData = data.team || {};
+      .then(function (resp) {
+        // Directus wraps response in { data: { ...team fields, roster, coaches, ... } }
+        var raw = resp.data || resp;
+        var teamData = {
+          id: raw.id,
+          name: raw.name,
+          full_name: raw.full_name,
+          team_id: raw.team_id,
+          sport: raw.sport,
+          league: raw.league,
+          season: raw.season,
+          color: raw.color,
+          active: raw.active,
+          team_picture: raw.team_picture,
+          team_picture_pos: raw.team_picture_pos,
+          social_url: raw.social_url
+        };
 
         // Detect women's team for gendered translations
         var name = (teamData.name || '').toLowerCase();
@@ -224,13 +239,55 @@
         renderInstagramEmbed(teamData);
         renderCTA(teamData);
 
+        // Map Directus field names to expected names
+        var roster = raw.roster || [];
+        var coaches = raw.coaches || [];
+        var captains = raw.captains || [];
+        var trainings = raw.upcoming_trainings || raw.trainings || [];
+        var rawUpcoming = raw.upcoming_games || raw.upcoming || [];
+        var rawResults = raw.results || [];
+        var rankings = raw.rankings || [];
+        var sponsors = raw.sponsors || [];
+
+        // Map raw game objects to the format buildGameRow expects
+        function mapGame(g) {
+          var score = (g.home_score != null && g.away_score != null)
+            ? g.home_score + ':' + g.away_score : (g.score || null);
+          var isHome = g.isHome != null ? g.isHome : g.type === 'home';
+          return {
+            game_id: g.game_id || g.id,
+            date: g.date,
+            time: g.time || '',
+            home_team: g.home_team,
+            away_team: g.away_team,
+            score: score,
+            isHome: isHome,
+            league: g.league || teamData.league || '',
+            season: g.season || teamData.season || '',
+            hall: g.hall || null,
+            sets_json: g.sets_json || null,
+            sport: g.sport || teamData.sport || 'volleyball',
+            status: g.status || (score ? 'completed' : 'scheduled'),
+            referees: g.referees || null,
+            scorer_team: g.scorer_team || null,
+            bb_officials: g.bb_officials || null
+          };
+        }
+        var upcoming = rawUpcoming.map(mapGame);
+        var results = rawResults.map(mapGame);
+
+        // Add sport field to rankings for frontend rendering
+        for (var ri = 0; ri < rankings.length; ri++) {
+          if (!rankings[ri].sport) rankings[ri].sport = teamData.sport || 'volleyball';
+        }
+
         // Render tab content
-        renderRoster(data.roster || [], data.coach || [], data.captain || []);
+        renderRoster(roster, coaches, captains);
         initRosterViewToggle();
-        renderTrainings(data.trainings || []);
-        renderHookGames(data.upcoming || [], data.results || [], teamData);
-        renderHookRankings(data.rankings || [], teamData);
-        renderSponsors(data.sponsors || []);
+        renderTrainings(trainings);
+        renderHookGames(upcoming, results, teamData);
+        renderHookRankings(rankings, teamData);
+        renderSponsors(sponsors);
 
         // Update static tab labels and headings with i18n
         updateStaticLabels();
@@ -320,9 +377,10 @@
         card = link;
       }
 
-      if (sp.logo_url) {
+      var logoRef = sp.logo_url || sp.logo;
+      if (logoRef) {
         var img = document.createElement('img');
-        img.src = sp.logo_url.indexOf('http') === 0 ? sp.logo_url : DIRECTUS_URL + '/assets/' + sp.logo_url + '?width=200&quality=80';
+        img.src = logoRef.indexOf('http') === 0 ? logoRef : DIRECTUS_URL + '/assets/' + logoRef + '?width=200&quality=80';
         img.alt = sp.name;
         img.className = 'sponsor-logo';
         img.loading = 'lazy';
@@ -369,9 +427,10 @@
       var card = document.createElement('div');
       card.className = 'roster-card' + (isCaptain ? ' captain-card' : '');
 
-      if (m.photo_url && m.website_visible !== false) {
+      var photoId = m.photo_url || m.photo;
+      if (photoId && m.website_visible !== false) {
         var img = document.createElement('img');
-        img.src = m.photo_url.indexOf('http') === 0 ? m.photo_url : DIRECTUS_URL + '/assets/' + m.photo_url + '?width=200&quality=80';
+        img.src = photoId.indexOf('http') === 0 ? photoId : DIRECTUS_URL + '/assets/' + photoId + '?width=200&quality=80';
         img.alt = '';
         img.className = 'roster-avatar';
         img.style.objectFit = 'cover';
@@ -441,9 +500,10 @@
           var cCard = document.createElement('div');
           cCard.className = 'roster-card';
 
-          if (c.photo_url) {
+          var cPhotoId = c.photo_url || c.photo;
+          if (cPhotoId) {
             var cImg = document.createElement('img');
-            cImg.src = c.photo_url.indexOf('http') === 0 ? c.photo_url : DIRECTUS_URL + '/assets/' + c.photo_url + '?width=200&quality=80';
+            cImg.src = cPhotoId.indexOf('http') === 0 ? cPhotoId : DIRECTUS_URL + '/assets/' + cPhotoId + '?width=200&quality=80';
             cImg.alt = '';
             cImg.className = 'roster-avatar';
             cImg.style.objectFit = 'cover';
@@ -476,14 +536,21 @@
     if (!el) return;
     if (!trainings.length) { hideSection('training'); return; }
 
-    // Filter to currently valid trainings (valid_from/valid_until from hall_slots)
+    // Filter out cancelled and past trainings
     var today = new Date().toISOString().slice(0, 10);
     trainings = trainings.filter(function (t) {
+      if (t.cancelled) return false;
+      // Filter by valid_from/valid_until if present (hall_slots)
       if (t.valid_from && today < t.valid_from.slice(0, 10)) return false;
       if (t.valid_until && today > t.valid_until.slice(0, 10)) return false;
+      // Filter past individual training dates
+      if (t.date && t.date.slice(0, 10) < today) return false;
       return true;
     });
     if (!trainings.length) { hideSection('training'); return; }
+
+    // Derive day name from date if no explicit day field
+    var dayNames = { de: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'], en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] };
 
     var frag = document.createDocumentFragment();
     for (var i = 0; i < trainings.length; i++) {
@@ -491,14 +558,27 @@
       var row = document.createElement('div');
       row.className = 'training-item';
 
+      // Resolve day label: use explicit t.day, or derive from t.date
+      var dayLabel = t.day || '';
+      if (!dayLabel && t.date) {
+        var lang = (i18n.getLang && i18n.getLang()) || 'de';
+        var names = dayNames[lang] || dayNames.de;
+        var dateObj = new Date(t.date);
+        dayLabel = names[dateObj.getUTCDay()];
+      }
+
+      // Format time: use start_time/end_time (may be "HH:MM:SS" or "HH:MM")
+      var startTime = (t.start_time || '').slice(0, 5);
+      var endTime = (t.end_time || '').slice(0, 5);
+
       var dayEl = document.createElement('span');
       dayEl.className = 'training-day';
-      dayEl.textContent = t.day + ' ' + t.start_time + '–' + t.end_time;
+      dayEl.textContent = dayLabel + ' ' + startTime + '–' + endTime;
       row.appendChild(dayEl);
 
       var hallEl = document.createElement('span');
       hallEl.className = 'training-hall';
-      hallEl.textContent = t.hall_name + (t.hall_address ? ' · ' + t.hall_address : '');
+      hallEl.textContent = (t.hall_name || '') + (t.hall_address ? ' · ' + t.hall_address : '');
       row.appendChild(hallEl);
 
       frag.appendChild(row);
@@ -704,7 +784,7 @@
       if (rw.team_id === myTeamId) tr.className = 'table-highlight';
 
       // Promotion/relegation color band (volleyball only)
-      var promoColor = isVB ? getPromotionColor(teamInfo.league || '', rw.rank, totalTeams, rw.team) : null;
+      var promoColor = isVB ? getPromotionColor(teamInfo.league || '', rw.rank, totalTeams, rw.team_name || rw.team) : null;
       if (promoColor) {
         tr.style.borderLeft = '4px solid ' + promoColor;
       }
@@ -728,7 +808,7 @@
       tdTeam.style.maxWidth = '180px';
       tdTeam.style.overflow = 'hidden';
       tdTeam.style.textOverflow = 'ellipsis';
-      tdTeam.textContent = rw.team || '?';
+      tdTeam.textContent = rw.team_name || rw.team || '?';
       tr.appendChild(tdTeam);
 
       // Played
