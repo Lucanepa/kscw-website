@@ -2,13 +2,14 @@
  * KSCW Contact Form — Dynamic Team Dropdown + Submission
  *
  * Reads URL params (?sport=volleyball&team=H1&teamId=xxx) to pre-fill.
- * Fetches active teams from PB when a sport subject is selected.
- * Submits to POST /api/contact with Turnstile CAPTCHA.
+ * Fetches active teams from Directus when a sport subject is selected.
+ * Submits to POST /kscw/contact with Turnstile CAPTCHA.
  */
 (function () {
   'use strict';
 
-  var PB = 'https://api.kscw.ch';
+  var DIRECTUS_URL = (window.location.hostname === 'kscw.ch' || window.location.hostname === 'www.kscw.ch')
+    ? 'https://directus.kscw.ch' : 'https://directus-dev.kscw.ch';
   var TURNSTILE_SITE_KEY = '0x4AAAAAACoYmx3xiDfRbmv9';
 
   var betreffSelect = document.getElementById('betreff');
@@ -56,16 +57,17 @@
   function fetchTeams(sport, callback) {
     if (teamCache[sport]) return callback(teamCache[sport]);
 
-    var url = PB + '/api/collections/teams/records'
-      + '?filter=(sport=%27' + sport + '%27%20%26%26%20active=true)'
+    var url = DIRECTUS_URL + '/items/teams'
+      + '?filter[sport][_eq]=' + sport
+      + '&filter[active][_eq]=true'
       + '&fields=id,name,league'
       + '&sort=name'
-      + '&perPage=50';
+      + '&limit=-1';
 
     fetch(url)
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
-        var teams = (data && data.items) ? data.items : [];
+        var teams = (data && data.data) ? data.data : [];
         teamCache[sport] = teams;
         callback(teams);
       })
@@ -192,7 +194,7 @@
 
     setLoading(true);
 
-    fetch(PB + '/api/contact', {
+    fetch(DIRECTUS_URL + '/kscw/contact', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
