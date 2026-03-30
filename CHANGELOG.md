@@ -2,7 +2,7 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
-## [2.0.0] — 2026-03-30
+## [3.0.0] — 2026-03-30
 
 ### Breaking Changes
 - **PocketBase → Directus migration**: Entire API backend switched from PocketBase (`api.kscw.ch`) to Directus (`directus.kscw.ch` / `directus-dev.kscw.ch`), aligning with the wiedisync platform
