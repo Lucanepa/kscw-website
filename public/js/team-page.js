@@ -549,16 +549,13 @@
     });
     if (!trainings.length) { hideSection('training'); return; }
 
-    // Derive day name from date if no explicit day field
+    // Deduplicate into weekly summary (group by day + time + hall)
     var dayNames = { de: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'], en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] };
-
-    var frag = document.createDocumentFragment();
+    var dayOrder = { So: 0, Mo: 1, Di: 2, Mi: 3, Do: 4, Fr: 5, Sa: 6, Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+    var seen = {};
+    var weekly = [];
     for (var i = 0; i < trainings.length; i++) {
       var t = trainings[i];
-      var row = document.createElement('div');
-      row.className = 'training-item';
-
-      // Resolve day label: use explicit t.day, or derive from t.date
       var dayLabel = t.day || '';
       if (!dayLabel && t.date) {
         var lang = (i18n.getLang && i18n.getLang()) || 'de';
@@ -566,19 +563,32 @@
         var dateObj = new Date(t.date);
         dayLabel = names[dateObj.getUTCDay()];
       }
-
-      // Format time: use start_time/end_time (may be "HH:MM:SS" or "HH:MM")
       var startTime = (t.start_time || '').slice(0, 5);
       var endTime = (t.end_time || '').slice(0, 5);
+      var hallName = t.hall_name || '';
+      var key = dayLabel + '|' + startTime + '|' + endTime + '|' + hallName;
+      if (!seen[key]) {
+        seen[key] = true;
+        weekly.push({ day: dayLabel, start: startTime, end: endTime, hall: hallName, address: t.hall_address || '' });
+      }
+    }
+    // Sort by day of week
+    weekly.sort(function (a, b) { return (dayOrder[a.day] || 0) - (dayOrder[b.day] || 0); });
+
+    var frag = document.createDocumentFragment();
+    for (var j = 0; j < weekly.length; j++) {
+      var w = weekly[j];
+      var row = document.createElement('div');
+      row.className = 'training-item';
 
       var dayEl = document.createElement('span');
       dayEl.className = 'training-day';
-      dayEl.textContent = dayLabel + ' ' + startTime + '–' + endTime;
+      dayEl.textContent = w.day + ' ' + w.start + '–' + w.end;
       row.appendChild(dayEl);
 
       var hallEl = document.createElement('span');
       hallEl.className = 'training-hall';
-      hallEl.textContent = (t.hall_name || '') + (t.hall_address ? ' · ' + t.hall_address : '');
+      hallEl.textContent = w.hall + (w.address ? ' · ' + w.address : '');
       row.appendChild(hallEl);
 
       frag.appendChild(row);
