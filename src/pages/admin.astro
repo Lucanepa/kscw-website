@@ -23,22 +23,51 @@ import '../styles/global.css';
   <div id="admin-app"></div>
 
   <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-  <script is:inline src="https://cdn.jsdelivr.net/npm/pocketbase@0.25.2/dist/pocketbase.umd.js" integrity="sha384-oHOUM+2J5F3LmkQ1sT6oObMGlQaBNjBadRL/tf1qAg6Hsd3o21JpTy1afjRxdYrl" crossorigin="anonymous"></script>
   <script is:inline src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js" integrity="sha384-utBUCeG4SYaCm4m7GQZYr8Hy8Fpy3V4KGjBZaf4WTKOcwhCYpt/0PfeEe3HNlwx8" crossorigin="anonymous"></script>
   <script is:inline src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js" integrity="sha384-eEu5CTj3qGvu9PdJuS+YlkNi7d2XxQROAFYOr59zgObtlcux1ae1Il3u7jvdCSWu" crossorigin="anonymous"></script>
   <script is:inline>
   (function() {
     'use strict';
 
-    var PB_URL = 'https://api.kscw.ch';
+    var DIRECTUS_URL = (window.location.hostname === 'kscw.ch' || window.location.hostname === 'www.kscw.ch')
+      ? 'https://directus.kscw.ch' : 'https://directus-dev.kscw.ch';
+    var AUTH_KEY = 'kscw_admin_auth';
     var TURNSTILE_SITE_KEY = '0x4AAAAAACoYmx3xiDfRbmv9';
-    var pb = new PocketBase(PB_URL);
     var app = document.getElementById('admin-app');
     var currentTab = 'news';
     var adminLang = localStorage.getItem('admin-lang') || 'de';
     var quillInstance = null;
     var turnstileWidgetId = null;
     var turnstileToken = '';
+
+    // ── Directus auth token management ───────────────────────
+    function storeAuth(result) {
+      sessionStorage.setItem(AUTH_KEY, JSON.stringify({
+        access_token: result.access_token,
+        refresh_token: result.refresh_token,
+        expires_at: Date.now() + result.expires,
+      }));
+    }
+    function getAuth() {
+      var raw = sessionStorage.getItem(AUTH_KEY);
+      if (!raw) return null;
+      try { return JSON.parse(raw); } catch(e) { return null; }
+    }
+    async function getValidToken() {
+      var auth = getAuth();
+      if (!auth) return null;
+      if (auth.expires_at - Date.now() < 30000) {
+        var res = await fetch(DIRECTUS_URL + '/auth/refresh', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: auth.refresh_token, mode: 'json' }),
+        });
+        if (!res.ok) { sessionStorage.removeItem(AUTH_KEY); return null; }
+        var data = await res.json();
+        storeAuth(data.data);
+        return data.data.access_token;
+      }
+      return auth.access_token;
+    }
 
     // ── i18n ─────────────────────────────────────────────────
     var i18n = {
@@ -168,24 +197,34 @@ import '../styles/global.css';
     // ── Data caches ───────────────────────────────────────────
     function fetchTeams() {
       if (cachedTeams) return Promise.resolve(cachedTeams);
-      return pb.collection('teams').getList(1, 100, { filter: 'active=true', sort: 'sport,name', fields: 'id,name,sport' })
-        .then(function(res) { cachedTeams = res.items; return cachedTeams; });
+      return getValidToken().then(function(token) {
+        return fetch(DIRECTUS_URL + '/items/teams?filter[active][_eq]=true&sort=sport,name&fields=id,name,sport&limit=-1', {
+          headers: { 'Authorization': 'Bearer ' + token },
+        });
+      }).then(function(res) { return res.json(); })
+        .then(function(data) { cachedTeams = data.data; return cachedTeams; });
     }
     function fetchMembers() {
       if (cachedMembers) return Promise.resolve(cachedMembers);
-      return pb.collection('members').getList(1, 500, { sort: 'first_name,last_name', fields: 'id,first_name,last_name,email' })
-        .then(function(res) { cachedMembers = res.items; return cachedMembers; });
+      return getValidToken().then(function(token) {
+        return fetch(DIRECTUS_URL + '/users?sort=first_name,last_name&fields=id,first_name,last_name,email&limit=-1', {
+          headers: { 'Authorization': 'Bearer ' + token },
+        });
+      }).then(function(res) { return res.json(); })
+        .then(function(data) { cachedMembers = data.data; return cachedMembers; });
     }
 
     // ── Auth helpers ──────────────────────────────────────────
-    function isAuthorized() {
-      if (!pb.authStore.isValid) return false;
-      var record = pb.authStore.record;
-      if (!record || !record.role) return false;
-      var roles = Array.isArray(record.role) ? record.role : [record.role];
-      return roles.some(function(r) {
-        return r === 'website_admin' || r === 'admin' || r === 'superuser';
+    async function isAuthorized() {
+      var token = await getValidToken();
+      if (!token) return false;
+      var res = await fetch(DIRECTUS_URL + '/users/me?fields=id,email,first_name,last_name,role.name', {
+        headers: { 'Authorization': 'Bearer ' + token },
       });
+      if (!res.ok) return false;
+      var user = (await res.json()).data;
+      var roleName = user.role ? user.role.name : '';
+      return ['website_admin', 'admin', 'superuser'].indexOf(roleName.toLowerCase()) !== -1;
     }
 
     // ── Escape helpers ────────────────────────────────────────
@@ -206,10 +245,10 @@ import '../styles/global.css';
     }
 
     // ── Render Router ─────────────────────────────────────────
-    function render() {
-      if (!pb.authStore.isValid) {
+    async function render() {
+      if (!getAuth()) {
         renderLogin();
-      } else if (!isAuthorized()) {
+      } else if (!(await isAuthorized())) {
         renderAccessDenied();
       } else {
         renderAdmin();
@@ -293,15 +332,26 @@ import '../styles/global.css';
         btn.disabled = true;
         btn.textContent = t('loggingIn');
 
-        var authHeaders = {};
-        if (turnstileToken) authHeaders['X-Turnstile-Token'] = turnstileToken;
+        var headers = { 'Content-Type': 'application/json' };
+        if (turnstileToken) headers['X-Turnstile-Token'] = turnstileToken;
 
-        pb.collection('members').authWithPassword(email, password, { headers: authHeaders })
-          .then(function() {
-            if (!isAuthorized()) {
+        fetch(DIRECTUS_URL + '/auth/login', {
+          method: 'POST', headers: headers,
+          body: JSON.stringify({ email: email, password: password }),
+        })
+          .then(function(res) {
+            if (!res.ok) throw new Error('Login failed');
+            return res.json();
+          })
+          .then(function(data) {
+            storeAuth(data.data);
+            return isAuthorized();
+          })
+          .then(function(authorized) {
+            if (!authorized) {
               errEl.textContent = t('loginDenied');
               errEl.style.display = 'block';
-              pb.authStore.clear();
+              sessionStorage.removeItem(AUTH_KEY);
               btn.disabled = false;
               btn.textContent = t('login');
             } else {
@@ -374,7 +424,11 @@ import '../styles/global.css';
         var btn = e.target.querySelector('button[type="submit"]');
         btn.disabled = true;
 
-        pb.collection('members').requestPasswordReset(email)
+        fetch(DIRECTUS_URL + '/kscw/password-request', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email }),
+        })
+          .then(function(res) { if (!res.ok) throw new Error('Reset failed'); })
           .then(function() {
             msgEl.textContent = t('resetPasswordSent');
             msgEl.style.display = 'block';
@@ -408,7 +462,7 @@ import '../styles/global.css';
         '</div>'
       );
       document.getElementById('denied-logout').addEventListener('click', function() {
-        pb.authStore.clear();
+        sessionStorage.removeItem(AUTH_KEY);
         render();
       });
     }
@@ -449,7 +503,7 @@ import '../styles/global.css';
       app.appendChild(modalDiv);
 
       document.getElementById('logout-btn').addEventListener('click', function() {
-        pb.authStore.clear();
+        sessionStorage.removeItem(AUTH_KEY);
         render();
       });
 
@@ -487,11 +541,16 @@ import '../styles/global.css';
       var collection = currentTab === 'news' ? 'news' : 'events';
       var sort = currentTab === 'news' ? '-published_at' : '-start_date';
 
-      pb.collection(collection).getList(1, 50, { sort: sort })
+      getValidToken().then(function(token) {
+        return fetch(DIRECTUS_URL + '/items/' + collection + '?sort=' + sort + '&limit=50', {
+          headers: { 'Authorization': 'Bearer ' + token },
+        });
+      }).then(function(res) { return res.json(); })
         .then(function(result) {
+          var items = result.data || [];
           content.textContent = '';
 
-          if (!result.items.length) {
+          if (!items.length) {
             var emptyDiv = document.createElement('div');
             emptyDiv.className = 'admin-empty';
             emptyDiv.textContent = t('noEntries');
@@ -502,7 +561,7 @@ import '../styles/global.css';
           var list = document.createElement('div');
           list.className = 'admin-list';
 
-          result.items.forEach(function(item) {
+          items.forEach(function(item) {
             var date = currentTab === 'news'
               ? (item.published_at || item.created || '').substring(0, 10)
               : (item.start_date || '').substring(0, 10);
@@ -549,7 +608,12 @@ import '../styles/global.css';
             editBtn.className = 'admin-btn admin-btn-sm';
             editBtn.textContent = t('edit');
             editBtn.addEventListener('click', function() {
-              pb.collection(collection).getOne(item.id).then(function(fullItem) { openModal(fullItem); });
+              getValidToken().then(function(token) {
+                return fetch(DIRECTUS_URL + '/items/' + collection + '/' + item.id, {
+                  headers: { 'Authorization': 'Bearer ' + token },
+                });
+              }).then(function(res) { return res.json(); })
+                .then(function(data) { openModal(data.data); });
             });
             actions.appendChild(editBtn);
 
@@ -558,9 +622,15 @@ import '../styles/global.css';
             deleteBtn.textContent = t('delete');
             deleteBtn.addEventListener('click', function() {
               if (confirm(t('confirmDelete'))) {
-                pb.collection(collection).delete(item.id)
-                  .then(function() { loadItems(); })
-                  .catch(function(err) { alert(t('deleteError') + err.message); });
+                getValidToken().then(function(token) {
+                  return fetch(DIRECTUS_URL + '/items/' + collection + '/' + item.id, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token },
+                  });
+                }).then(function(res) {
+                  if (!res.ok) throw new Error('HTTP ' + res.status);
+                  loadItems();
+                }).catch(function(err) { alert(t('deleteError') + err.message); });
               }
             });
             actions.appendChild(deleteBtn);
@@ -608,7 +678,7 @@ import '../styles/global.css';
         formHtml += fieldSelect('category', t('category'), ['club', 'volleyball', 'basketball'], item ? item.category : 'club');
         formHtml += fieldFile('image', t('image'));
         if (item && item.image) {
-          formHtml += '<div class="admin-field"><img src="' + escapeAttr(PB_URL + '/api/files/news/' + item.id + '/' + item.image) + '?thumb=200x0" style="max-height:100px;border-radius:var(--radius-md);"></div>';
+          formHtml += '<div class="admin-field"><img src="' + escapeAttr(DIRECTUS_URL + '/assets/' + item.image + '?width=200&quality=80') + '" style="max-height:100px;border-radius:var(--radius-md);"></div>';
         }
         formHtml += fieldDate('published_at', t('publishDate'), item ? (item.published_at || '').substring(0, 10) : new Date().toISOString().substring(0, 10));
         formHtml += fieldCheckbox('is_published', t('isPublished'), item ? item.is_published : true, { toggle: true });
@@ -769,7 +839,21 @@ import '../styles/global.css';
       quillInstance = null;
     }
 
-    function saveItem(existingItem) {
+    // ── Upload file to Directus ─────────────────────────────
+    async function uploadFile(token, file) {
+      var fd = new FormData();
+      fd.append('file', file);
+      var res = await fetch(DIRECTUS_URL + '/files', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: fd,
+      });
+      if (!res.ok) throw new Error('File upload failed: ' + res.status);
+      var data = await res.json();
+      return data.data.id;
+    }
+
+    async function saveItem(existingItem) {
       var form = document.getElementById('modal-form');
       var saveBtn = document.getElementById('modal-save');
       saveBtn.disabled = true;
@@ -777,92 +861,91 @@ import '../styles/global.css';
 
       var isNews = currentTab === 'news';
       var collection = isNews ? 'news' : 'events';
-      var formData = new FormData();
+      var payload = {};
 
       var rawTitle = form.querySelector('[name="title"]').value;
 
-      if (isNews) {
-        var translatedTitle = form.querySelector('[name="title_en"]').value;
-        // Admin typed in adminLang, translation is the other language
-        if (adminLang === 'en') {
-          formData.append('title_en', rawTitle);                      // input is EN
-          formData.append('title', translatedTitle || rawTitle);       // translation is DE
-        } else {
-          formData.append('title', rawTitle);                          // input is DE
-          if (translatedTitle) formData.append('title_en', translatedTitle); // translation is EN
-        }
-        formData.append('slug', form.querySelector('[name="slug"]').value);
-        formData.append('excerpt', form.querySelector('[name="excerpt"]').value);
-        formData.append('body', quillInstance ? DOMPurify.sanitize(quillInstance.root.innerHTML) : '');
-        formData.append('category', form.querySelector('[name="category"]').value);
-        formData.append('published_at', form.querySelector('[name="published_at"]').value);
-        formData.append('is_published', form.querySelector('[name="is_published"]').checked);
+      try {
+        var token = await getValidToken();
 
-        var imageInput = form.querySelector('[name="image"]');
-        if (imageInput && imageInput.files.length > 0) {
-          formData.append('image', imageInput.files[0]);
-        }
-      } else {
-        formData.append('title', rawTitle);
-        formData.append('event_type', form.querySelector('[name="event_type"]').value);
-        formData.append('start_date', form.querySelector('[name="start_date"]').value);
-        formData.append('end_date', form.querySelector('[name="end_date"]').value || form.querySelector('[name="start_date"]').value);
-        formData.append('all_day', form.querySelector('[name="all_day"]').checked);
-        formData.append('location', form.querySelector('[name="location"]').value);
-        formData.append('description', quillInstance ? DOMPurify.sanitize(quillInstance.root.innerHTML) : '');
-
-        var participationRequired = form.querySelector('[name="participation_required"]').checked;
-        if (participationRequired) {
-          formData.append('respond_by', form.querySelector('[name="respond_by"]').value);
-          var teamsVal = form.querySelector('[name="teams"]').value;
-          var teamsArr; try { teamsArr = JSON.parse(teamsVal || '[]'); } catch (_) { teamsArr = []; }
-          // PB expects relation fields as repeated values
-          if (teamsArr.length) {
-            teamsArr.forEach(function(tid) { formData.append('teams', tid); });
+        if (isNews) {
+          var translatedTitle = form.querySelector('[name="title_en"]').value;
+          // Admin typed in adminLang, translation is the other language
+          if (adminLang === 'en') {
+            payload.title_en = rawTitle;                      // input is EN
+            payload.title = translatedTitle || rawTitle;       // translation is DE
           } else {
-            formData.append('teams', '');
+            payload.title = rawTitle;                          // input is DE
+            if (translatedTitle) payload.title_en = translatedTitle; // translation is EN
           }
-          var minP = form.querySelector('[name="min_players"]').value;
-          var maxP = form.querySelector('[name="max_players"]').value;
-          formData.append('min_players', minP ? Number(minP) : 0);
-          formData.append('max_players', maxP ? Number(maxP) : 0);
-          formData.append('require_note_if_absent', form.querySelector('[name="require_note_if_absent"]').checked);
-          var reqParts; try { reqParts = JSON.parse(form.querySelector('[name="required_participants"]').value || '[]'); } catch (_) { reqParts = []; }
-          if (reqParts.length) {
-            reqParts.forEach(function(mid) { formData.append('required_participants', mid); });
-          } else {
-            formData.append('required_participants', '');
+          payload.slug = form.querySelector('[name="slug"]').value;
+          payload.excerpt = form.querySelector('[name="excerpt"]').value;
+          payload.body = quillInstance ? DOMPurify.sanitize(quillInstance.root.innerHTML) : '';
+          payload.category = form.querySelector('[name="category"]').value;
+          payload.published_at = form.querySelector('[name="published_at"]').value;
+          payload.is_published = form.querySelector('[name="is_published"]').checked;
+
+          var imageInput = form.querySelector('[name="image"]');
+          if (imageInput && imageInput.files.length > 0) {
+            payload.image = await uploadFile(token, imageInput.files[0]);
           }
         } else {
-          // Clear participation fields
-          formData.append('respond_by', '');
-          formData.append('teams', '');
-          formData.append('min_players', 0);
-          formData.append('max_players', 0);
-          formData.append('require_note_if_absent', false);
-          formData.append('required_participants', '');
+          payload.title = rawTitle;
+          payload.event_type = form.querySelector('[name="event_type"]').value;
+          payload.start_date = form.querySelector('[name="start_date"]').value;
+          payload.end_date = form.querySelector('[name="end_date"]').value || form.querySelector('[name="start_date"]').value;
+          payload.all_day = form.querySelector('[name="all_day"]').checked;
+          payload.location = form.querySelector('[name="location"]').value;
+          payload.description = quillInstance ? DOMPurify.sanitize(quillInstance.root.innerHTML) : '';
+
+          var participationRequired = form.querySelector('[name="participation_required"]').checked;
+          if (participationRequired) {
+            payload.respond_by = form.querySelector('[name="respond_by"]').value || null;
+            var teamsVal = form.querySelector('[name="teams"]').value;
+            var teamsArr; try { teamsArr = JSON.parse(teamsVal || '[]'); } catch (_) { teamsArr = []; }
+            payload.teams = teamsArr;
+            var minP = form.querySelector('[name="min_players"]').value;
+            var maxP = form.querySelector('[name="max_players"]').value;
+            payload.min_players = minP ? Number(minP) : 0;
+            payload.max_players = maxP ? Number(maxP) : 0;
+            payload.require_note_if_absent = form.querySelector('[name="require_note_if_absent"]').checked;
+            var reqParts; try { reqParts = JSON.parse(form.querySelector('[name="required_participants"]').value || '[]'); } catch (_) { reqParts = []; }
+            payload.required_participants = reqParts;
+          } else {
+            // Clear participation fields
+            payload.respond_by = null;
+            payload.teams = [];
+            payload.min_players = 0;
+            payload.max_players = 0;
+            payload.require_note_if_absent = false;
+            payload.required_participants = [];
+          }
         }
 
-        if (!existingItem && pb.authStore.record) {
-          formData.append('created_by', pb.authStore.record.id);
-        }
-      }
+        var url = existingItem
+          ? DIRECTUS_URL + '/items/' + collection + '/' + existingItem.id
+          : DIRECTUS_URL + '/items/' + collection;
+        var method = existingItem ? 'PATCH' : 'POST';
 
-      var promise = existingItem
-        ? pb.collection(collection).update(existingItem.id, formData)
-        : pb.collection(collection).create(formData);
-
-      promise
-        .then(function() {
-          closeModal();
-          loadItems();
-        })
-        .catch(function(err) {
-          var msg = err.response && err.response.message ? err.response.message : err.message;
-          alert(t('saveError') + msg);
-          saveBtn.disabled = false;
-          saveBtn.textContent = t('save');
+        var res = await fetch(url, {
+          method: method,
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
         });
+        if (!res.ok) {
+          var errData = await res.json().catch(function() { return {}; });
+          throw new Error(errData.errors ? errData.errors[0].message : 'HTTP ' + res.status);
+        }
+        closeModal();
+        loadItems();
+      } catch(err) {
+        alert(t('saveError') + (err.message || err));
+        saveBtn.disabled = false;
+        saveBtn.textContent = t('save');
+      }
     }
 
     // ── Form field helpers (all values escaped) ───────────────
