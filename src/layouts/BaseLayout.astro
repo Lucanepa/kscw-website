@@ -30,6 +30,7 @@ const altLocale = locale === 'de' ? 'en' : 'de';
   <link rel="icon" href="/images/kscw_trio.png" type="image/png">
   <link rel="alternate" hreflang={locale} href={Astro.url.pathname}>
   <link rel="alternate" hreflang={altLocale} href={altUrl}>
+  <script is:inline src="/js/error-logger.js"></script>
   <script is:inline>
     // Theme: dark by default, light if saved
     (function() {

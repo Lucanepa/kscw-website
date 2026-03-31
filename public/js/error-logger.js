@@ -1,0 +1,106 @@
+/**
+ * KSCW Website — Client Error Logger
+ *
+ * Catches ALL JS errors (unhandled exceptions, promise rejections, fetch failures)
+ * and sends them to the Directus JSONL error log via POST /kscw/client-error.
+ *
+ * This makes website errors visible alongside wiedisync errors in a single
+ * admin API endpoint: GET /kscw/admin/error-logs?project=kscw-website
+ */
+;(function () {
+  'use strict'
+
+  var API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'https://directus-dev.kscw.ch'
+    : 'https://directus.kscw.ch'
+
+  var ENDPOINT = API_URL + '/kscw/client-error'
+  var sent = 0
+  var MAX_PER_PAGE = 20 // don't flood the endpoint
+
+  function send(entry) {
+    if (sent >= MAX_PER_PAGE) return
+    sent++
+    try {
+      entry.project = 'kscw-website'
+      entry.source = 'frontend'
+      entry.page = window.location.pathname
+      entry.userAgent = navigator.userAgent
+      navigator.sendBeacon
+        ? navigator.sendBeacon(ENDPOINT, JSON.stringify(entry))
+        : fetch(ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(entry),
+            keepalive: true,
+          }).catch(function () {})
+    } catch (_) { /* never throw from error logger */ }
+  }
+
+  // ── Unhandled JS errors ──────────────────────────────────────────
+  window.addEventListener('error', function (e) {
+    send({
+      event: 'unhandled_error',
+      error: e.message || 'Unknown error',
+      type: 'Error',
+      stack: e.filename
+        ? e.filename + ':' + e.lineno + ':' + e.colno
+        : null,
+    })
+  })
+
+  // ── Unhandled promise rejections ─────────────────────────────────
+  window.addEventListener('unhandledrejection', function (e) {
+    var msg = e.reason instanceof Error ? e.reason.message : String(e.reason || 'Promise rejected')
+    var stack = e.reason instanceof Error ? e.reason.stack : null
+    send({
+      event: 'unhandled_rejection',
+      error: msg,
+      type: 'UnhandledRejection',
+      stack: stack ? stack.slice(0, 2000) : null,
+    })
+  })
+
+  // ── Patch fetch to catch API errors ──────────────────────────────
+  var origFetch = window.fetch
+  window.fetch = function (url, opts) {
+    return origFetch.apply(this, arguments).then(function (res) {
+      // Only log Directus API errors (not external resources)
+      if (!res.ok && typeof url === 'string' && url.indexOf('directus') !== -1) {
+        send({
+          event: 'api_error',
+          endpoint: url.replace(API_URL, ''),
+          method: (opts && opts.method) || 'GET',
+          status: res.status,
+        })
+      }
+      return res
+    }).catch(function (err) {
+      // Network errors (offline, CORS, DNS)
+      if (typeof url === 'string' && url.indexOf('directus') !== -1) {
+        send({
+          event: 'network_error',
+          endpoint: url.replace(API_URL, ''),
+          method: (opts && opts.method) || 'GET',
+          error: err.message || 'Network error',
+        })
+      }
+      throw err
+    })
+  }
+
+  // ── Console.error capture (optional — catches library errors) ────
+  var origConsoleError = console.error
+  console.error = function () {
+    origConsoleError.apply(console, arguments)
+    var msg = Array.prototype.map.call(arguments, function (a) {
+      return typeof a === 'string' ? a : (a instanceof Error ? a.message : '')
+    }).join(' ').slice(0, 500)
+    if (msg && msg.indexOf('[error-logger]') === -1) {
+      send({
+        event: 'console_error',
+        error: msg,
+      })
+    }
+  }
+})()
