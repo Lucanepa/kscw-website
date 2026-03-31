@@ -4,17 +4,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import SectionHeader from '../../components/SectionHeader.astro';
 import { t } from '../../lib/i18n';
 import heroLogo from '../../assets/images/kscw_trio.png';
-import { getLatestNews } from '../../lib/fetch/news';
 import { getUpcomingEvents } from '../../lib/fetch/events';
 
 const locale = 'de';
-
-let newsArticles: any[] = [];
-try {
-  newsArticles = await getLatestNews(6);
-} catch (e) {
-  console.warn('Failed to fetch news:', e);
-}
 
 let upcomingEvents: any[] = [];
 try {
@@ -85,33 +77,8 @@ try {
   <section class="section-alt" id="news">
     <div class="container">
       <SectionHeader title={t(locale, 'homeNews')} />
-      <div class="grid grid-3">
-        {newsArticles.length > 0 ? (
-          newsArticles.map(n => (
-            <article class="card news-card fade-in" data-news-id={n.id}>
-              <div class="card-img-placeholder">
-                {n.imageUrl ? (
-                  <img src={n.imageUrl} alt={n.title} />
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
-                )}
-              </div>
-              <div class="card-body">
-                <div class="flex items-center gap-sm mb-md">
-                  <span class="news-date">{new Date(n.date).toLocaleDateString('de-CH')}</span>
-                  <span class={`badge ${n.category === 'volleyball' ? 'badge-blue' : n.category === 'basketball' ? 'badge-orange' : ''}`}>
-                    {n.category === 'volleyball' ? 'Volleyball' : n.category === 'basketball' ? 'Basketball' : 'Club'}
-                  </span>
-                </div>
-                <h3>{n.title}</h3>
-                <p class="news-excerpt">{n.excerpt}</p>
-              </div>
-              <script type="application/json" class="news-data" set:html={JSON.stringify({ title: n.title, body: n.body, date: n.date, category: n.category, image: n.imageUrl, author: n.author })} />
-            </article>
-          ))
-        ) : (
-          <p>Keine News vorhanden.</p>
-        )}
+      <div class="grid grid-3" id="news-grid">
+        <p id="news-empty">Keine News vorhanden.</p>
       </div>
     </div>
   </section>
@@ -432,7 +399,87 @@ try {
         els.forEach(function(el) { obs.observe(el); });
       }
 
+      // ── News (client-side) ──
+      function fetchNews() {
+        var grid = document.getElementById('news-grid');
+        var empty = document.getElementById('news-empty');
+        if (!grid) return;
+        var newsFields = 'id,title,title_en,slug,excerpt,body,category,author,published_at,image,date_created';
+        var newsFilter = JSON.stringify({ is_published: { _eq: true } });
+        fetch(DIRECTUS_URL + '/items/news?fields=' + encodeURIComponent(newsFields) + '&filter=' + encodeURIComponent(newsFilter) + '&sort=-published_at&limit=6')
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            var articles = data.data || [];
+            if (!articles.length) return;
+            if (empty) empty.style.display = 'none';
+            var locale = document.documentElement.lang || 'de';
+            var frag = document.createDocumentFragment();
+            var svgIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>';
+            for (var i = 0; i < articles.length; i++) {
+              var n = articles[i];
+              var imageUrl = n.image ? (DIRECTUS_URL + '/assets/' + n.image + '?width=800&quality=80') : '';
+              var date = n.published_at || n.date_created;
+              var title = (locale === 'en' && n.title_en) ? n.title_en : n.title;
+              var badgeClass = n.category === 'volleyball' ? 'badge-blue' : n.category === 'basketball' ? 'badge-orange' : '';
+              var catLabel = n.category === 'volleyball' ? 'Volleyball' : n.category === 'basketball' ? 'Basketball' : 'Club';
+
+              var article = document.createElement('article');
+              article.className = 'card news-card fade-in';
+              article.setAttribute('data-news-id', n.id);
+
+              var imgDiv = document.createElement('div');
+              imgDiv.className = 'card-img-placeholder';
+              if (imageUrl) {
+                var img = document.createElement('img');
+                img.src = imageUrl;
+                img.alt = title;
+                imgDiv.appendChild(img);
+              } else {
+                imgDiv.innerHTML = svgIcon;
+              }
+              article.appendChild(imgDiv);
+
+              var body = document.createElement('div');
+              body.className = 'card-body';
+              var meta = document.createElement('div');
+              meta.className = 'flex items-center gap-sm mb-md';
+              var dateSpan = document.createElement('span');
+              dateSpan.className = 'news-date';
+              dateSpan.textContent = new Date(date).toLocaleDateString(locale === 'en' ? 'en-CH' : 'de-CH');
+              meta.appendChild(dateSpan);
+              var badge = document.createElement('span');
+              badge.className = 'badge ' + badgeClass;
+              badge.textContent = catLabel;
+              meta.appendChild(badge);
+              body.appendChild(meta);
+
+              var h3 = document.createElement('h3');
+              h3.textContent = title;
+              body.appendChild(h3);
+
+              if (n.excerpt) {
+                var p = document.createElement('p');
+                p.className = 'news-excerpt';
+                p.textContent = n.excerpt;
+                body.appendChild(p);
+              }
+              article.appendChild(body);
+
+              var script = document.createElement('script');
+              script.type = 'application/json';
+              script.className = 'news-data';
+              script.textContent = JSON.stringify({ title: title, body: n.body, date: date, category: n.category, image: imageUrl, author: n.author });
+              article.appendChild(script);
+
+              frag.appendChild(article);
+            }
+            grid.appendChild(frag);
+            requestAnimationFrame(observeNewFadeIns);
+          }).catch(function() {});
+      }
+
       // ── Init ──
+      fetchNews();
       fetchGames();
       fetchSponsors();
 
