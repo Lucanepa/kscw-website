@@ -299,7 +299,7 @@ import '../styles/global.css';
         '</div>'
       );
 
-      // Render invisible Turnstile widget
+      // Render Turnstile widget
       var adminTurnstileEl = document.getElementById('admin-turnstile');
       function renderAdminTurnstile() {
         if (!adminTurnstileEl || !window.turnstile) return;
@@ -307,7 +307,7 @@ import '../styles/global.css';
         turnstileWidgetId = window.turnstile.render(adminTurnstileEl, {
           sitekey: TURNSTILE_SITE_KEY,
           theme: 'auto',
-          size: 'invisible',
+          size: 'compact',
           callback: function(token) { turnstileToken = token; },
           'expired-callback': function() { turnstileToken = ''; },
         });
