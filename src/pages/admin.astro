@@ -590,7 +590,7 @@ import '../styles/global.css';
             if (category) {
               var catBadge = document.createElement('span');
               catBadge.className = 'admin-badge';
-              catBadge.textContent = category;
+              catBadge.textContent = category.charAt(0).toUpperCase() + category.slice(1);
               meta.appendChild(catBadge);
             }
             if (currentTab === 'news') {
