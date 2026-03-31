@@ -444,11 +444,17 @@
       var rankings = results[0].data || [];
       var teams = results[1].data || [];
 
-      // Build teamIdMap keyed by team_id (e.g. "vb_2743") for ranking lookup
+      // Build teamIdMap from teams collection (keyed by numeric id)
       for (var ti = 0; ti < teams.length; ti++) {
         var tm = teams[ti];
-        if (tm.team_id) teamIdMap[tm.team_id] = tm.name;
         teamIdMap[String(tm.id)] = tm.name;
+      }
+      // Also populate from rankings team_name for KSCW teams
+      for (var ri = 0; ri < rankings.length; ri++) {
+        var rk = rankings[ri];
+        if (rk.team_id && rk.team_name && rk.team_name.indexOf('KSC Wiedikon') !== -1) {
+          teamIdMap[rk.team_id] = rk.team_name;
+        }
       }
 
       for (var i = 0; i < containers.length; i++) {
