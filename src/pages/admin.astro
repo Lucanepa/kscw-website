@@ -73,6 +73,7 @@ import '../styles/global.css';
     var i18n = {
       de: {
         websiteAdmin: 'Websiteverwaltung',
+        loginHint: 'Bitte melde dich mit deinem WiediSync-Login an.',
         login: 'Anmelden',
         loggingIn: 'Wird angemeldet...',
         logout: 'Abmelden',
@@ -133,6 +134,7 @@ import '../styles/global.css';
       },
       en: {
         websiteAdmin: 'Website Management',
+        loginHint: 'Please log in with your WiediSync credentials.',
         login: 'Login',
         loggingIn: 'Logging in...',
         logout: 'Logout',
@@ -271,6 +273,7 @@ import '../styles/global.css';
             '</div>' +
             '<h1>KSCW Admin</h1>' +
             '<p class="admin-login-subtitle">' + t('websiteAdmin') + '</p>' +
+            '<p class="admin-login-hint">' + t('loginHint') + '</p>' +
             '<form id="login-form">' +
               '<div class="admin-field">' +
                 '<label for="email">' + t('email') + '</label>' +
@@ -296,7 +299,7 @@ import '../styles/global.css';
               '<div id="admin-turnstile"></div>' +
               '<button type="submit" class="admin-login-btn">' + t('login') + '</button>' +
             '</form>' +
-            '<button type="button" id="forgot-pw-link" class="admin-forgot-link">' + t('forgotPassword') + '</button>' +
+            '<a href="https://wiedisync.kscw.ch/auth/forgot-password" target="_blank" rel="noopener noreferrer" class="admin-forgot-link">' + t('forgotPassword') + '</a>' +
           '</div>' +
         '</div>'
       );
@@ -387,9 +390,6 @@ import '../styles/global.css';
         }
       });
 
-      document.getElementById('forgot-pw-link').addEventListener('click', function() {
-        renderForgotPassword();
-      });
     }
 
     // ── Forgot Password Page ─────────────────────────────────
@@ -1552,9 +1552,16 @@ import '../styles/global.css';
   .admin-login-subtitle {
     font-size: var(--text-xs);
     color: var(--text-muted);
-    margin-bottom: var(--space-xl);
+    margin-bottom: var(--space-sm);
     letter-spacing: 0.04em;
     text-transform: uppercase;
+  }
+
+  .admin-login-hint {
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    margin-bottom: var(--space-xl);
+    opacity: 0.7;
   }
 
   .admin-login-btn {
