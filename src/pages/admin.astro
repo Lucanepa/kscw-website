@@ -92,6 +92,7 @@ import '../styles/global.css';
         deleteError: 'Fehler beim Löschen: ',
         loadError: 'Fehler beim Laden: ',
         loginError: 'Anmeldung fehlgeschlagen. Bitte prüfe E-Mail und Passwort.',
+        networkError: 'Verbindungsfehler — bitte versuche es erneut.',
         loginDenied: 'Zugang verweigert — fehlende Berechtigung.',
         newItem: 'Neu erstellen',
         title: 'Titel',
@@ -151,6 +152,7 @@ import '../styles/global.css';
         deleteError: 'Error deleting: ',
         loadError: 'Error loading: ',
         loginError: 'Login failed. Please check your email and password.',
+        networkError: 'Connection error — please try again.',
         loginDenied: 'Access denied — insufficient permissions.',
         newItem: 'Create new',
         title: 'Title',
@@ -358,8 +360,8 @@ import '../styles/global.css';
               render();
             }
           })
-          .catch(function() {
-            errEl.textContent = t('loginError');
+          .catch(function(err) {
+            errEl.textContent = (err && err.message === 'Login failed') ? t('loginError') : t('networkError');
             errEl.style.display = 'block';
             btn.disabled = false;
             btn.textContent = t('login');
