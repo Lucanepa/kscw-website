@@ -228,7 +228,7 @@ import '../styles/global.css';
       if (!res.ok) return false;
       var user = (await res.json()).data;
       var roleName = user.role ? user.role.name : '';
-      return ['website_admin', 'admin', 'superuser'].indexOf(roleName.toLowerCase()) !== -1;
+      return ['website_admin', 'admin', 'administrator', 'superuser'].indexOf(roleName.toLowerCase()) !== -1;
     }
 
     // ── Escape helpers ────────────────────────────────────────
