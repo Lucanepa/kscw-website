@@ -337,14 +337,17 @@
 
     function setView(mode) {
       var coachEl = document.getElementById('coach-grid');
+      var guestEl = document.getElementById('guest-grid');
       if (mode === 'list') {
         rosterEl.classList.add('roster-list');
         if (coachEl) coachEl.classList.add('roster-list');
+        if (guestEl) guestEl.classList.add('roster-list');
         listBtn.classList.add('active');
         gridBtn.classList.remove('active');
       } else {
         rosterEl.classList.remove('roster-list');
         if (coachEl) coachEl.classList.remove('roster-list');
+        if (guestEl) guestEl.classList.remove('roster-list');
         gridBtn.classList.add('active');
         listBtn.classList.remove('active');
       }
@@ -481,7 +484,10 @@
     if (metaEl) {
       metaEl.textContent = '';
 
-      // Coach cards
+      // Coach cards (sorted alphabetically by last name)
+      coach.sort(function (a, b) {
+        return (a.last_name || '').localeCompare(b.last_name || '');
+      });
       if (coach.length) {
         var label = document.createElement('p');
         label.style.fontWeight = '600';
@@ -530,6 +536,73 @@
         }
 
         metaEl.appendChild(coachGrid);
+      }
+
+      // Guest cards (guest_level 1, 2, or 3)
+      var guests = [];
+      for (var gi = 0; gi < roster.length; gi++) {
+        if (roster[gi].guest_level > 0) guests.push(roster[gi]);
+      }
+      if (guests.length) {
+        var gLabel = document.createElement('p');
+        gLabel.style.fontWeight = '600';
+        gLabel.style.fontSize = 'var(--text-sm)';
+        gLabel.style.color = 'var(--text-secondary)';
+        gLabel.style.marginTop = 'var(--space-lg)';
+        gLabel.textContent = i18n.t(guests.length === 1 ? 'teamGuest' : 'teamGuests') + ':';
+        metaEl.appendChild(gLabel);
+
+        var guestGrid = document.createElement('div');
+        var isListMode2 = false;
+        try { isListMode2 = localStorage.getItem('kscw-roster-view') === 'list'; } catch (e) {}
+        guestGrid.className = 'roster-grid' + (isListMode2 ? ' roster-list' : '');
+        guestGrid.id = 'guest-grid';
+        guestGrid.style.marginTop = 'var(--space-sm)';
+
+        for (var gj = 0; gj < guests.length; gj++) {
+          var g = guests[gj];
+          var gCard = document.createElement('div');
+          gCard.className = 'roster-card';
+
+          var gPhotoId = g.photo_url || g.photo;
+          if (gPhotoId && g.website_visible !== false) {
+            var gImg = document.createElement('img');
+            gImg.src = gPhotoId.indexOf('http') === 0 ? gPhotoId : DIRECTUS_URL + '/assets/' + gPhotoId + '?width=200&quality=80';
+            gImg.alt = '';
+            gImg.className = 'roster-avatar';
+            gImg.style.objectFit = 'cover';
+            gImg.loading = 'lazy';
+            gCard.appendChild(gImg);
+          } else {
+            var gAv = document.createElement('img');
+            gAv.className = 'roster-avatar';
+            gAv.src = '/images/kscw_weiss.png';
+            gAv.alt = '';
+            gAv.loading = 'lazy';
+            gCard.appendChild(gAv);
+          }
+
+          var gInfo = document.createElement('div');
+          var gName = document.createElement('div');
+          gName.className = 'roster-name';
+          gName.textContent = g.first_name + ' ' + g.last_name;
+          gInfo.appendChild(gName);
+
+          var gPosText = positionText(g.position);
+          var gNumText = g.number ? ' · #' + g.number : '';
+          var gSubtitle = gPosText + gNumText;
+          if (gSubtitle) {
+            var gPosEl = document.createElement('div');
+            gPosEl.className = 'roster-position';
+            gPosEl.textContent = gSubtitle;
+            gInfo.appendChild(gPosEl);
+          }
+
+          gCard.appendChild(gInfo);
+          guestGrid.appendChild(gCard);
+        }
+
+        metaEl.appendChild(guestGrid);
       }
     }
   }

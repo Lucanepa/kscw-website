@@ -146,6 +146,8 @@
   "teamCaptain": "Captain",
   "teamCaptainF": "Captain",
   "teamCoach": "Coach",
+  "teamGuest": "Guest",
+  "teamGuests": "Guests",
   "teamSeason": "Season",
   "teamPhoto": "Team Photo",
   "teamBadgeHome": "Home",

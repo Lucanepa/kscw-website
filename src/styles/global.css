@@ -833,7 +833,7 @@ button.nav-link {
   width: 100%;
   display: flex;
   justify-content: center;
-  background: linear-gradient(135deg, var(--kscw-blue) 0%, var(--kscw-blue) 40%, var(--kscw-gold) 100%);
+  background: var(--bg-white);
   overflow: hidden;
 }
 .team-photo {
