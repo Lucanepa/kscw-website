@@ -438,7 +438,7 @@
     Promise.all([
       fetch(DIRECTUS_URL + '/items/rankings?sort=league,rank&limit=-1')
         .then(function (r) { return r.json(); }),
-      fetch(DIRECTUS_URL + '/items/teams?filter=' + encodeURIComponent(JSON.stringify({ active: { _eq: true } })) + '&fields=id,name,sport,team_id&limit=-1')
+      fetch(DIRECTUS_URL + '/items/teams?filter=' + encodeURIComponent(JSON.stringify({ active: { _eq: true } })) + '&fields=id,name,sport&limit=-1')
         .then(function (r) { return r.json(); })
     ]).then(function (results) {
       var rankings = results[0].data || [];

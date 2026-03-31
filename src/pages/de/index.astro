@@ -364,7 +364,7 @@ try {
       function fetchSponsors() {
         var sponsorTrack = document.getElementById('sponsor-track');
         if (!sponsorTrack) return;
-        fetch(DIRECTUS_URL + '/items/sponsors?fields=id,name,logo,logo_url,website_url&sort=name&limit=-1')
+        fetch(DIRECTUS_URL + '/items/sponsors?fields=id,name,logo,website_url&sort=name&limit=-1')
           .then(function (res) { return res.json(); })
           .then(function (data) {
             var allSponsors = data.data || [];
@@ -378,7 +378,7 @@ try {
                 link.className = 'sponsor-item';
                 if (sp.website_url) { link.target = '_blank'; link.rel = 'noopener noreferrer'; }
                 link.title = sp.name;
-                var logoSrc = sp.logo ? (DIRECTUS_URL + '/assets/' + sp.logo + '?width=300&quality=80') : sp.logo_url;
+                var logoSrc = sp.logo ? (DIRECTUS_URL + '/assets/' + sp.logo + '?width=300&quality=80') : null;
                 if (logoSrc) {
                   var img = document.createElement('img');
                   img.src = logoSrc;
