@@ -42,7 +42,8 @@ describe('teams.ts', () => {
 
   it('every team has required fields', () => {
     for (const team of allTeamDefs) {
-      expect(team.pbId, `Missing pbId for ${team.displayName}`).toBeTruthy();
+      // directusId may be empty for website-only teams not yet in Directus
+      expect(typeof team.directusId, `Invalid directusId type for ${team.displayName}`).toBe('string');
       expect(team.slug, `Missing slug for ${team.displayName}`).toBeTruthy();
       expect(team.sport, `Missing sport for ${team.displayName}`).toBeTruthy();
       expect(team.displayName, `Missing displayName`).toBeTruthy();

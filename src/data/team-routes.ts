@@ -3,8 +3,6 @@ export interface TeamRoute {
   directusId: string;
   short: string;
   sport: 'volleyball' | 'basketball';
-  /** @deprecated Use directusId instead */
-  pbId?: string;
 }
 
 export const volleyballTeams: TeamRoute[] = [
