@@ -844,7 +844,13 @@ button.nav-link {
   cursor: zoom-in;
 }
 img.roster-avatar {
+  object-fit: cover;
   cursor: zoom-in;
+}
+img.roster-avatar[src*="kscw_weiss"] {
+  object-fit: contain;
+  padding: 8px;
+  cursor: default;
 }
 
 /* ── Image Lightbox ───────────────────────────────────────── */

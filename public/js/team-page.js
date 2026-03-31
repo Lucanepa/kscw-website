@@ -437,9 +437,11 @@
         img.loading = 'lazy';
         card.appendChild(img);
       } else {
-        var av = document.createElement('div');
+        var av = document.createElement('img');
         av.className = 'roster-avatar';
-        av.textContent = m.initials || '?';
+        av.src = '/images/kscw_weiss.png';
+        av.alt = '';
+        av.loading = 'lazy';
         card.appendChild(av);
       }
 
@@ -510,9 +512,11 @@
             cImg.loading = 'lazy';
             cCard.appendChild(cImg);
           } else {
-            var cAv = document.createElement('div');
+            var cAv = document.createElement('img');
             cAv.className = 'roster-avatar';
-            cAv.textContent = c.initials || '?';
+            cAv.src = '/images/kscw_weiss.png';
+            cAv.alt = '';
+            cAv.loading = 'lazy';
             cCard.appendChild(cAv);
           }
 
