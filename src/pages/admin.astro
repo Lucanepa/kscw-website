@@ -25,6 +25,7 @@ import '../styles/global.css';
   <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <script is:inline src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js" integrity="sha384-utBUCeG4SYaCm4m7GQZYr8Hy8Fpy3V4KGjBZaf4WTKOcwhCYpt/0PfeEe3HNlwx8" crossorigin="anonymous"></script>
   <script is:inline src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js" integrity="sha384-eEu5CTj3qGvu9PdJuS+YlkNi7d2XxQROAFYOr59zgObtlcux1ae1Il3u7jvdCSWu" crossorigin="anonymous"></script>
+  <script is:inline src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script is:inline>
   (function() {
     'use strict';
@@ -1038,12 +1039,116 @@ import '../styles/global.css';
       loadItems();
     }
 
-    function generateLizenzantrag(item) {
-      alert('PDF generation coming soon');
+    function getRegistrationModalValues() {
+      return {
+        vorname: getModalVal('f-reg-vorname'),
+        nachname: getModalVal('f-reg-nachname'),
+        email: getModalVal('f-reg-email'),
+        adresse: getModalVal('f-reg-adresse'),
+        plz: getModalVal('f-reg-plz'),
+        ort: getModalVal('f-reg-ort'),
+        geburtsdatum: getModalVal('f-reg-dob'),
+        geschlecht: getModalVal('f-reg-gender'),
+        nationalitaet: getModalVal('f-reg-nation'),
+      };
     }
 
-    function generateFIBAPDFs(item) {
-      alert('FIBA PDF generation coming soon');
+    function getModalVal(id) {
+      var el = document.getElementById(id);
+      return el ? (el.value || '').trim() : '';
+    }
+
+    function downloadPdfBlob(bytes, filename) {
+      var blob = new Blob([bytes], { type: 'application/pdf' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function generateLizenzantrag(item) {
+      var data = getRegistrationModalValues();
+
+      var pdfBytes = await fetch('/docs/demande_licence_d_new.pdf').then(function(r) { return r.arrayBuffer(); });
+      var pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+      var form = pdfDoc.getForm();
+
+      // Fill text fields (try/catch each in case field names change)
+      try { form.getTextField('undefined').setText('KSC Wiedikon'); } catch(e) {}
+      try { form.getTextField('undefined_3').setText(data.nachname); } catch(e) {}
+      try { form.getTextField('undefined_4').setText(data.vorname); } catch(e) {}
+      try { form.getTextField('undefined_5').setText(data.adresse); } catch(e) {}
+      try { form.getTextField('undefined_6').setText(data.plz); } catch(e) {}
+      try { form.getTextField('undefined_7').setText(data.ort); } catch(e) {}
+      try { form.getTextField('undefined_2').setText(data.email); } catch(e) {}
+
+      // Date of birth (split to avoid timezone issues)
+      if (data.geburtsdatum) {
+        var dobParts = data.geburtsdatum.split('-'); // YYYY-MM-DD
+        try { form.getTextField('Tag').setText(dobParts[2]); } catch(e) {}
+        try { form.getTextField('Monat').setText(dobParts[1]); } catch(e) {}
+        try { form.getTextField('Jahr').setText(dobParts[0]); } catch(e) {}
+      }
+
+      // Gender checkboxes
+      try {
+        if (data.geschlecht === 'männlich') form.getCheckBox('Mann').check();
+        else if (data.geschlecht === 'weiblich') form.getCheckBox('Frau').check();
+      } catch(e) {}
+
+      // Nationality
+      try {
+        if (data.nationalitaet === 'Schweiz' || data.nationalitaet === 'Schweizerin, Schweizer') {
+          form.getCheckBox('Schweiz').check();
+        } else {
+          form.getCheckBox('Andere').check();
+          form.getTextField('KOPIE DES PASSES ODER DER ID BEILAGEN').setText(data.nationalitaet);
+        }
+      } catch(e) {}
+
+      // New member + player checkboxes
+      try { form.getCheckBox('Neues Mitglied Swiss Basketball').check(); } catch(e) {}
+      try { form.getCheckBox('undefined10').check(); } catch(e) {} // Spieler
+
+      form.flatten();
+
+      var filledPdf = await pdfDoc.save();
+      downloadPdfBlob(filledPdf, 'Lizenzantrag_' + data.nachname + '_' + data.vorname + '.pdf');
+    }
+
+    async function generateFIBAPDFs(item) {
+      var data = getRegistrationModalValues();
+
+      // Player's Self Declaration
+      var pdf1Bytes = await fetch('/docs/player-self-declaration.pdf').then(function(r) { return r.arrayBuffer(); });
+      var pdf1 = await PDFLib.PDFDocument.load(pdf1Bytes);
+      var form1 = pdf1.getForm();
+      try { form1.getTextField('Last Name').setText(data.nachname); } catch(e) {}
+      try { form1.getTextField('First Name').setText(data.vorname); } catch(e) {}
+      try { form1.getTextField('Nationality').setText(data.nationalitaet); } catch(e) {}
+      try { form1.getTextField('Current Club').setText('KSC Wiedikon'); } catch(e) {}
+      try { form1.getTextField('Season').setText('2025/2026'); } catch(e) {}
+      form1.flatten();
+      downloadPdfBlob(await pdf1.save(), 'SelfDeclaration_' + data.nachname + '_' + data.vorname + '.pdf');
+
+      // National Team Declaration
+      var pdf2Bytes = await fetch('/docs/national-team-declaration.pdf').then(function(r) { return r.arrayBuffer(); });
+      var pdf2 = await PDFLib.PDFDocument.load(pdf2Bytes);
+      var form2 = pdf2.getForm();
+      try { form2.getTextField('Last Name Nom Nachname').setText(data.nachname); } catch(e) {}
+      try { form2.getTextField('First Name Prénom Vorname').setText(data.vorname); } catch(e) {}
+      try {
+        if (data.geburtsdatum) {
+          var parts = data.geburtsdatum.split('-');
+          form2.getTextField('Date of birth Date de Naissance Geburtsdatum').setText(parts[2] + '.' + parts[1] + '.' + parts[0]);
+        }
+      } catch(e) {}
+      try { form2.getTextField('Nationality Nationalité Nationalität').setText(data.nationalitaet); } catch(e) {}
+      try { form2.getTextField('New Club Nouveau club Neuer Club').setText('KSC Wiedikon'); } catch(e) {}
+      form2.flatten();
+      downloadPdfBlob(await pdf2.save(), 'NationalTeamDecl_' + data.nachname + '_' + data.vorname + '.pdf');
     }
 
     function exportCSV(items) {
