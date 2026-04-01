@@ -168,7 +168,7 @@
 
   // ── Build a sport section ───────────────────────────────────────────
   function buildSection(sportKey, rows, metrics, container) {
-    var state = { mode: 'absolute', expanded: {} };
+    var state = { mode: 'perGame', expanded: {} };
 
     var card = document.createElement('div');
     card.className = 'scoreboard-card card';
