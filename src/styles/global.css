@@ -929,6 +929,11 @@ img.roster-avatar[src*="kscw_weiss"] {
   transition: all var(--transition-base);
   min-height: 44px;
   white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn > * {
+  pointer-events: none;
 }
 .btn-primary {
   background: var(--kscw-blue);
