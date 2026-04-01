@@ -2866,6 +2866,15 @@ button:focus-visible {
   outline: 2px solid var(--kscw-blue);
   outline-offset: 2px;
 }
+.cal-filter-reset {
+  color: var(--text-muted) !important;
+  border-style: dashed !important;
+}
+.cal-filter-reset:hover {
+  color: var(--kscw-blue) !important;
+  border-color: var(--kscw-blue) !important;
+  border-style: solid !important;
+}
 
 /* Sport dot on calendar entries */
 .cal-sport-dot {

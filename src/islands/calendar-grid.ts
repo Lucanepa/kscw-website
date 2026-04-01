@@ -454,7 +454,7 @@ if (container) {
 
     const filters = el('div', 'cal-filters')
 
-    // -- Type filter --
+    // -- Type filter (dropdown index 0) --
     filters.appendChild(makeDropdown(
       filterType.size === 2 ? `${homeLabel}, ${awayLabel}` : filterType.has('home') ? homeLabel : awayLabel,
       filterType.size < 2,
@@ -466,11 +466,11 @@ if (container) {
       (id, checked) => {
         if (checked) filterType.add(id); else filterType.delete(id)
         if (filterType.size === 0) filterType.add(id) // prevent empty
-        render()
+        applyFilterUpdate(0)
       }
     ))
 
-    // -- Sport filter --
+    // -- Sport filter (dropdown index 1) --
     filters.appendChild(makeDropdown(
       filterSport.size === 2 ? 'Volleyball, Basketball' : filterSport.has('volleyball') ? 'Volleyball' : 'Basketball',
       filterSport.size < 2,
@@ -482,11 +482,11 @@ if (container) {
       (id, checked) => {
         if (checked) filterSport.add(id); else filterSport.delete(id)
         if (filterSport.size === 0) filterSport.add(id)
-        render()
+        applyFilterUpdate(1)
       }
     ))
 
-    // -- Team filter --
+    // -- Team filter (dropdown index 2) --
     const vbTeams = allTeams.filter(t => t.sport === 'volleyball')
     const bbTeams = allTeams.filter(t => t.sport === 'basketball')
     const teamOptions = [
@@ -520,9 +520,25 @@ if (container) {
         if (filterTeams.size >= allTeams.length) {
           filterTeams.clear()
         }
-        render()
+        applyFilterUpdate(2)
       }
     ))
+
+    // -- Reset button (only show when filters are active) --
+    const hasActiveFilters = filterType.size < 2 || filterSport.size < 2 || filterTeams.size > 0
+    if (hasActiveFilters) {
+      const resetBtn = document.createElement('button')
+      resetBtn.type = 'button'
+      resetBtn.className = 'cal-filter-btn cal-filter-reset'
+      resetBtn.textContent = lang === 'de' ? 'Zurücksetzen' : 'Reset'
+      resetBtn.addEventListener('click', () => {
+        filterType = new Set(['home', 'away'])
+        filterSport = new Set(['volleyball', 'basketball'])
+        filterTeams.clear()
+        applyFilterUpdate(-1)
+      })
+      filters.appendChild(resetBtn)
+    }
 
     toolbar.appendChild(filters)
 
@@ -615,12 +631,56 @@ if (container) {
     return wrap
   }
 
-  // -- Render calendar --
+  // Track which dropdown index is open so we can restore after filter update
+  let openDropdownIdx = -1
+
+  // -- Lightweight re-render for filter changes (no re-fetch, keeps dropdown open) --
+  function applyFilterUpdate(dropdownIdx: number): void {
+    openDropdownIdx = dropdownIdx
+
+    // Rebuild toolbar in place
+    const oldToolbar = container!.querySelector('.cal-toolbar')
+    const newToolbar = renderToolbar()
+    if (oldToolbar) {
+      oldToolbar.replaceWith(newToolbar)
+    }
+
+    // Restore dropdown that was open
+    if (openDropdownIdx >= 0) {
+      const wraps = newToolbar.querySelectorAll('.cal-filter-wrap')
+      if (wraps[openDropdownIdx]) {
+        const btn = wraps[openDropdownIdx].querySelector('.cal-filter-btn')
+        const dd = wraps[openDropdownIdx].querySelector('.cal-filter-dropdown') as HTMLElement
+        if (btn && dd) {
+          btn.classList.add('open')
+          dd.style.display = 'block'
+        }
+      }
+    }
+
+    // Rebuild grid in place (everything after toolbar)
+    const toolbar = container!.querySelector('.cal-toolbar')
+    while (toolbar && toolbar.nextSibling) {
+      toolbar.nextSibling.remove()
+    }
+    buildCalendarGrid()
+
+    openDropdownIdx = -1
+  }
+
+  // -- Full render (used for month navigation and initial load) --
   async function render(): Promise<void> {
     container!.textContent = ''
     container!.appendChild(el('div', 'cal-loading', loadingLabel))
     await fetchGames(currentMonth)
 
+    container!.textContent = ''
+    container!.appendChild(renderToolbar())
+    buildCalendarGrid()
+  }
+
+  // -- Build calendar header + grid and append to container --
+  function buildCalendarGrid(): void {
     const mStart = startOfMonth(currentMonth)
     const mEnd = endOfMonth(currentMonth)
     const gridStart = startOfWeek(mStart)
@@ -628,10 +688,8 @@ if (container) {
     const days = eachDay(gridStart, gridEnd)
     const today = new Date()
 
-    // Apply filters
     const filteredGames = applyFilters(games)
 
-    // Group games by date key
     const gamesByDate = new Map<string, DirectusGame[]>()
     for (const g of filteredGames) {
       const key = g.date.slice(0, 10)
@@ -639,18 +697,12 @@ if (container) {
       gamesByDate.get(key)!.push(g)
     }
 
-    // Group events by date key
     const eventsByDate = new Map<string, CalendarEvent[]>()
     for (const ev of calEvents) {
       const key = ev.date.slice(0, 10)
       if (!eventsByDate.has(key)) eventsByDate.set(key, [])
       eventsByDate.get(key)!.push(ev)
     }
-
-    container!.textContent = ''
-
-    // Toolbar (filters + subscribe)
-    container!.appendChild(renderToolbar())
 
     // Header: prev / month-year + today / next
     const header = el('div', 'cal-header')
