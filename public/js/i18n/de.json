@@ -362,5 +362,15 @@
   "scorerCoursesSwissVolley": "Weitere Informationen zur Schreiber-Ausbildung findest du auf der offiziellen Seite von Swiss Volley.",
   "scorerCoursesSwissVolleyLink": "Swiss Volley Schreiber-Seite",
   "scorerCoursesDownload": "Herunterladen",
-  "scorerCoursesOpen": "Öffnen"
+  "scorerCoursesOpen": "Öffnen",
+  "registrationTeamPlaceholder": "Team auswählen…",
+  "registrationSubmit": "Anmeldung absenden",
+  "registrationSending": "Wird gesendet…",
+  "registrationSuccess": "Deine Anmeldung wurde erfolgreich eingereicht! Du erhältst eine Bestätigung per E-Mail.",
+  "registrationError": "Fehler beim Senden. Bitte versuche es erneut.",
+  "registrationValidationRequired": "Bitte fülle alle Pflichtfelder aus.",
+  "registrationValidationEmail": "Bitte gib eine gültige E-Mail-Adresse ein.",
+  "registrationValidationCaptcha": "Bitte bestätige, dass du kein Roboter bist.",
+  "registrationValidationConsent": "Bitte akzeptiere die Datenschutzerklärung.",
+  "registrationValidationID": "Bitte lade Vorder- und Rückseite deines Ausweises hoch."
 }

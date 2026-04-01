@@ -361,5 +361,15 @@
   "scorerCoursesSwissVolley": "For more information about scorer training, visit the official Swiss Volley page.",
   "scorerCoursesSwissVolleyLink": "Swiss Volley Scorer Page",
   "scorerCoursesDownload": "Download",
-  "scorerCoursesOpen": "Open"
+  "scorerCoursesOpen": "Open",
+  "registrationTeamPlaceholder": "Select team…",
+  "registrationSubmit": "Submit Registration",
+  "registrationSending": "Sending…",
+  "registrationSuccess": "Your registration has been submitted successfully! You will receive a confirmation by email.",
+  "registrationError": "Error sending. Please try again.",
+  "registrationValidationRequired": "Please fill in all required fields.",
+  "registrationValidationEmail": "Please enter a valid email address.",
+  "registrationValidationCaptcha": "Please confirm that you are not a robot.",
+  "registrationValidationConsent": "Please accept the privacy policy.",
+  "registrationValidationID": "Please upload the front and back of your ID."
 }
