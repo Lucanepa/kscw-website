@@ -30,12 +30,13 @@ const altText = locale === 'de' ? 'Teamfoto' : 'Team photo';
 ---
 <a href={href} class={cardClass} style={cardStyle}>
   {hasPhoto && (
-    <img
-      src={team.photoUrl!}
-      alt={altText}
-      class="team-card-img"
-      loading="lazy"
-    />
+    <div class="team-card-bg">
+      <img
+        src={team.photoUrl!}
+        alt={altText}
+        loading="lazy"
+      />
+    </div>
   )}
   <div class="card-body">
     <div class="team-card-header">

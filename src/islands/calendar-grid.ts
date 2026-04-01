@@ -510,6 +510,10 @@ if (container) {
         if (checked) {
           filterTeams.add(id)
         } else {
+          // If empty set (= all), populate with all team IDs first
+          if (filterTeams.size === 0) {
+            for (const t of allTeams) filterTeams.add(String(t.id))
+          }
           filterTeams.delete(id)
         }
         // If all teams selected, reset to empty (= all)

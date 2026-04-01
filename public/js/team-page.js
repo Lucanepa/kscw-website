@@ -998,7 +998,6 @@
         return null;
       case 4:
         if (rank === 1) return green;
-        if (rank === totalTeams) return red;
         return null;
       case 3:
         if (rank === 1) return green;
