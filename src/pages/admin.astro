@@ -1047,8 +1047,67 @@ import '../styles/global.css';
     }
 
     function exportCSV(items) {
-      // Implemented in Task 8
-      alert('CSV export coming soon');
+      var headers = [
+        'Nachname', 'Vorname', 'Anrede', 'E-Mail', 'Telefon Mobil',
+        'Adresse', 'PLZ', 'Ort', 'Geburtsdatum', 'Nationalität',
+        'Geschlecht', 'AHV Nummer', 'Sektion', 'Status',
+        'Beitragskategorie', '[Gruppen]', 'Mittelschule ZH',
+        'Funktion', 'Bemerkungen', 'Land'
+      ];
+
+      var rows = items.map(function(item) {
+        // Format date DD.MM.YYYY (timezone-safe string split, NOT new Date())
+        var dob = '';
+        if (item.geburtsdatum) {
+          var parts = item.geburtsdatum.split('-'); // YYYY-MM-DD from Directus
+          dob = parts[2] + '.' + parts[1] + '.' + parts[0];
+        }
+
+        var sektion = item.membership_type === 'volleyball' ? 'Volleyball'
+          : item.membership_type === 'basketball' ? 'Basketball' : 'KSCW';
+        var status = item.membership_type === 'passive' ? 'Passivmitglied' : 'Aktivmitglied';
+
+        return [
+          item.nachname || '',
+          item.vorname || '',
+          item.anrede || '',
+          item.email || '',
+          item.telefon_mobil || '',
+          item.adresse || '',
+          item.plz || '',
+          item.ort || '',
+          dob,
+          item.nationalitaet || '',
+          item.geschlecht || '',
+          item.ahv_nummer || '',
+          sektion,
+          status,
+          item.beitragskategorie || '',
+          item.team || '',
+          item.kantonsschule || '',
+          item.rolle || '',
+          item.bemerkungen || '',
+          'Schweiz',
+        ].map(csvEscape).join(';');
+      });
+
+      // UTF-8 BOM + header + rows
+      var csv = '\uFEFF' + headers.join(';') + '\n' + rows.join('\n');
+      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'kscw_anmeldungen_' + new Date().toISOString().substring(0, 10) + '.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function csvEscape(val) {
+      val = String(val);
+      if (val.indexOf(';') !== -1 || val.indexOf('"') !== -1 || val.indexOf('\n') !== -1) {
+        return '"' + val.replace(/"/g, '""') + '"';
+      }
+      return val;
     }
 
     // ── Modal (Create / Edit) ─────────────────────────────────
