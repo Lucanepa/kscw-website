@@ -310,7 +310,7 @@
         }
 
         // Render tab content
-        renderRoster(roster, coaches, captains);
+        renderRoster(roster, coaches, captains, raw.show_guests_on_website !== false);
         initRosterViewToggle();
         renderTrainings(trainings);
         renderHookGames(upcoming, results, teamData);
@@ -433,7 +433,7 @@
   }
 
   // ── Render Roster ─────────────────────────────────────────────────
-  function renderRoster(roster, coach, captain) {
+  function renderRoster(roster, coach, captain, showGuests) {
     var el = document.getElementById('roster-grid');
     if (!el) return;
     if (!roster.length) { hideSection('kader'); return; }
@@ -566,10 +566,12 @@
         metaEl.appendChild(coachGrid);
       }
 
-      // Guest cards (guest_level 1, 2, or 3)
+      // Guest cards (guest_level 1, 2, or 3) — only if team allows it
       var guests = [];
-      for (var gi = 0; gi < roster.length; gi++) {
-        if (roster[gi].guest_level > 0) guests.push(roster[gi]);
+      if (showGuests) {
+        for (var gi = 0; gi < roster.length; gi++) {
+          if (roster[gi].guest_level > 0) guests.push(roster[gi]);
+        }
       }
       if (guests.length) {
         var gLabel = document.createElement('p');
