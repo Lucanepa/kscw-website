@@ -1,7 +1,7 @@
 import { fetchAllItems, assetUrl } from '../directus'
 
 interface DirectusSponsor {
-  id: number; name: string; logo: string | null; logo_url: string | null; website_url: string | null;
+  id: number; name: string; logo: string | null; website_url: string | null;
 }
 
 export interface Sponsor {
@@ -11,11 +11,12 @@ export interface Sponsor {
 export async function getSponsors(): Promise<Sponsor[]> {
   const items = await fetchAllItems<DirectusSponsor>('sponsors', {
     sort: ['name'],
-    fields: ['id', 'name', 'logo', 'logo_url', 'website_url'],
+    fields: ['id', 'name', 'logo', 'website_url'],
+    filter: { team_page_only: { _eq: false } },
   })
   return items.map(s => ({
     id: String(s.id), name: s.name,
-    logoUrl: s.logo ? assetUrl(s.logo, 'width=300&quality=80') : (s.logo_url ?? ''),
+    logoUrl: s.logo ? assetUrl(s.logo, 'width=300&quality=80') : '',
     websiteUrl: s.website_url,
   }))
 }

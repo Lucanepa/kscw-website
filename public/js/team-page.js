@@ -769,7 +769,7 @@
     tr.appendChild(makeCell(formatDateLocal(g.date), 'gt-date'));
 
     // Time
-    tr.appendChild(makeCell(g.time || '', 'gt-time'));
+    tr.appendChild(makeCell(g.time ? g.time.slice(0, 5) : '', 'gt-time'));
 
     // Home/Away badge
     var badge = document.createElement('span');

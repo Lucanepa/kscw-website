@@ -108,7 +108,7 @@ try {
                   {ev.description && <span class="event-expand-icon" aria-hidden="true">&#x25BC;</span>}
                 </div>
                 <h3>{ev.title}</h3>
-                {ev.time && <p class="event-location">{ev.time}</p>}
+                {ev.time && <p class="event-location">{ev.time.slice(0, 5)}</p>}
                 {ev.location && <p class="event-location">{ev.location}</p>}
               </div>
               {ev.description && (
@@ -316,7 +316,7 @@ try {
       function fetchSponsors() {
         var sponsorTrack = document.getElementById('sponsor-track');
         if (!sponsorTrack) return;
-        fetch(DIRECTUS_URL + '/items/sponsors?fields=id,name,logo,website_url&sort=name&limit=-1')
+        fetch(DIRECTUS_URL + '/items/sponsors?fields=id,name,logo,website_url&sort=name&limit=-1&filter[team_page_only][_eq]=false')
           .then(function (res) { return res.json(); })
           .then(function (data) {
             var allSponsors = data.data || [];

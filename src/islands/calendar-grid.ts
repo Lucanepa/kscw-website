@@ -268,7 +268,7 @@ if (container) {
     btn.className = 'cal-entry cal-entry--event'
 
     if (ev.time) {
-      btn.appendChild(el('span', 'cal-entry-time', ev.time))
+      btn.appendChild(el('span', 'cal-entry-time', ev.time.slice(0, 5)))
     }
 
     btn.appendChild(el('span', 'cal-entry-title', ev.title))
@@ -397,7 +397,7 @@ if (container) {
     })
     const infoList = el('div', 'cal-detail-info')
     infoList.appendChild(makeInfoRow('\uD83D\uDCC5', dateStr))
-    if (ev.time) infoList.appendChild(makeInfoRow('\u23F0', ev.time))
+    if (ev.time) infoList.appendChild(makeInfoRow('\u23F0', ev.time.slice(0, 5)))
     if (ev.location) infoList.appendChild(makeInfoRow('\uD83D\uDCCD', ev.location))
     modal.appendChild(infoList)
 
@@ -834,7 +834,7 @@ if (container) {
       const rowHdr = el('div', 'cal-modal-row-header')
       const catLabel = ev.category.charAt(0).toUpperCase() + ev.category.slice(1)
       rowHdr.appendChild(el('span', 'cal-tooltip-sport cal-tooltip-sport--event', catLabel))
-      if (ev.time) rowHdr.appendChild(el('span', 'cal-modal-time', ev.time))
+      if (ev.time) rowHdr.appendChild(el('span', 'cal-modal-time', ev.time.slice(0, 5)))
       row.appendChild(rowHdr)
 
       row.appendChild(el('div', 'cal-modal-teams', ev.title))
