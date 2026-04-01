@@ -2,6 +2,23 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [3.1.0] — 2026-04-01
+
+### New
+- **Unified registration form** (`/de/weiteres/anmeldung`, `/en/weiteres/anmeldung`) for Volleyball, Basketball, and Passive memberships — replaces external ClubDesk form + Google Forms
+- **Admin registrations tab** (`/admin` → Anmeldungen) with list view, status filters (pending/approved/rejected), detail/edit modal, approve/reject workflow
+- **ClubDesk CSV export** from admin panel — semicolon-separated, UTF-8 with BOM, exact ClubDesk column headers for auto-mapping (no manual column assignment)
+- **Basketball PDF pre-fill** — generates pre-filled Swiss Basketball Lizenzantrag + optional FIBA Player's Self Declaration and National Team Declaration using pdf-lib (client-side)
+- **File uploads** for basketball ID copies (front/back) with download + auto-delete from admin
+- **Confirmation emails** on registration: sport-specific content (VB: welcome + fees + volleymanager link, BB: next steps, Passive: invoice info)
+- **Admin notification email** on each new registration
+- **Privacy notice** inline on form with consent checkbox (90-day auto-deletion, right to early deletion)
+- **Auto-deletion Flow** in Directus — daily cron deletes registrations + files older than 90 days
+- **Expiring badge** in admin list for registrations approaching 90-day deletion
+
+### Changed
+- Mitgliedschaft page CTA buttons now link to internal registration form (previously: external kscw.ch + Google Forms)
+
 ## [3.0.0] — 2026-03-30
 
 ### Breaking Changes
