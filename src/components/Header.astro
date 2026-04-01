@@ -128,6 +128,7 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
                   <a href={l('/basketball/teams/nachwuchs')} class="dropdown-link">{t(locale, 'navAllYouthTeams')}</a>
                 </div>
               </div>
+              <a href={l(locale === 'de' ? '/basketball/spielplanung' : '/basketball/scheduling')} class="dropdown-link">{t(locale, 'navScheduling')}</a>
             </div>
           </div>
 
@@ -271,6 +272,7 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
               <a href={l('/basketball/teams/nachwuchs')} class="mobile-sublink">{t(locale, 'navAllYouthTeams')}</a>
             </div>
           </div>
+          <a href={l(locale === 'de' ? '/basketball/spielplanung' : '/basketball/scheduling')} class="mobile-sublink">{t(locale, 'navScheduling')}</a>
         </div>
       </div>
 
