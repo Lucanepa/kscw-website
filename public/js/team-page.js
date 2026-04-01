@@ -903,7 +903,7 @@
       if (rw.team_id === myTeamId) tr.className = 'table-highlight';
 
       // Promotion/relegation color band (volleyball only)
-      var promoColor = isVB ? getPromotionColor(teamInfo.league || '', rw.rank, totalTeams, rw.team_name || rw.team) : null;
+      var promoColor = isVB ? getPromotionColor(teamInfo.league || '', rw.rank, totalTeams, rw.team_name || rw.team, IS_WOMEN) : null;
       if (promoColor) {
         tr.style.borderLeft = '4px solid ' + promoColor;
       }
@@ -980,7 +980,7 @@
   }
 
   // ── Promotion / relegation colors (volleyball) ─────────────────────
-  function getPromotionColor(league, rank, totalTeams, teamName) {
+  function getPromotionColor(league, rank, totalTeams, teamName, isWomen) {
     // Skip youth, classics, cup, etc.
     if (/U\d|Jugend|Junior|Classics|Cup|Turnier|Plausch|Mini/i.test(league)) return null;
     // Skip "talents" teams
@@ -998,6 +998,8 @@
         return null;
       case 4:
         if (rank === 1) return green;
+        // Men have 4 leagues (4L is lowest), women have 5 — only women can relegate from 4L
+        if (isWomen && rank === totalTeams) return red;
         return null;
       case 3:
         if (rank === 1) return green;
