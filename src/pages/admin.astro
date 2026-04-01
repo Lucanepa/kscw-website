@@ -130,7 +130,20 @@ import '../styles/global.css';
         resetPassword: 'Passwort zurücksetzen',
         resetPasswordSent: 'Falls ein Konto mit dieser E-Mail existiert, wurde ein Link zum Zurücksetzen gesendet.',
         resetPasswordError: 'Fehler beim Senden. Bitte versuche es erneut.',
-        backToLogin: 'Zurück zur Anmeldung'
+        backToLogin: 'Zurück zur Anmeldung',
+        registrations: 'Anmeldungen',
+        registrationsPending: 'Ausstehend',
+        registrationsApproved: 'Genehmigt',
+        registrationsRejected: 'Abgelehnt',
+        registrationsApprove: 'Genehmigen',
+        registrationsReject: 'Ablehnen',
+        registrationsConfirmReject: 'Anmeldung wirklich ablehnen? Die Daten werden unwiderruflich gelöscht.',
+        registrationsExportCSV: 'CSV Export (ClubDesk)',
+        registrationsGeneratePDF: 'Lizenzantrag generieren',
+        registrationsGenerateFIBA: 'FIBA PDFs generieren',
+        registrationsDownloadFiles: 'Dateien herunterladen',
+        registrationsNoEntries: 'Keine Anmeldungen vorhanden.',
+        registrationsExpiring: 'Wird bald gelöscht'
       },
       en: {
         websiteAdmin: 'Website Management',
@@ -191,7 +204,20 @@ import '../styles/global.css';
         resetPassword: 'Reset password',
         resetPasswordSent: 'If an account with this email exists, a reset link has been sent.',
         resetPasswordError: 'Error sending reset email. Please try again.',
-        backToLogin: 'Back to login'
+        backToLogin: 'Back to login',
+        registrations: 'Registrations',
+        registrationsPending: 'Pending',
+        registrationsApproved: 'Approved',
+        registrationsRejected: 'Rejected',
+        registrationsApprove: 'Approve',
+        registrationsReject: 'Reject',
+        registrationsConfirmReject: 'Really reject this registration? Data will be permanently deleted.',
+        registrationsExportCSV: 'CSV Export (ClubDesk)',
+        registrationsGeneratePDF: 'Generate Lizenzantrag',
+        registrationsGenerateFIBA: 'Generate FIBA PDFs',
+        registrationsDownloadFiles: 'Download Files',
+        registrationsNoEntries: 'No registrations found.',
+        registrationsExpiring: 'Expiring soon'
       }
     };
     function t(key) { return (i18n[adminLang] || i18n.de)[key] || key; }
@@ -491,6 +517,7 @@ import '../styles/global.css';
           '<div class="admin-tabs">' +
             '<button class="admin-tab' + (currentTab === 'news' ? ' active' : '') + '" data-tab="news">News</button>' +
             '<button class="admin-tab' + (currentTab === 'events' ? ' active' : '') + '" data-tab="events">Events</button>' +
+            '<button class="admin-tab' + (currentTab === 'registrations' ? ' active' : '') + '" data-tab="registrations">' + t('registrations') + '</button>' +
           '</div>' +
           '<div class="admin-content" id="admin-content"></div>' +
           '<button class="admin-fab" id="fab-btn" title="' + t('create') + '">+</button>' +
@@ -520,6 +547,8 @@ import '../styles/global.css';
           currentTab = this.getAttribute('data-tab');
           document.querySelectorAll('.admin-tab').forEach(function(t) { t.classList.remove('active'); });
           this.classList.add('active');
+          // Hide FAB for registrations (no manual creation)
+          document.getElementById('fab-btn').style.display = currentTab === 'registrations' ? 'none' : '';
           loadItems();
         });
       });
@@ -539,6 +568,30 @@ import '../styles/global.css';
       loadingDiv.className = 'admin-loading';
       loadingDiv.textContent = t('loading');
       content.appendChild(loadingDiv);
+
+      // ── Registrations tab ──
+      if (currentTab === 'registrations') {
+        var regStatusFilter = window._regStatusFilter || 'pending';
+        getValidToken().then(function(token) {
+          var url = DIRECTUS_URL + '/items/registrations'
+            + '?filter[status][_eq]=' + regStatusFilter
+            + '&sort=-submitted_at&limit=50';
+          return fetch(url, {
+            headers: { 'Authorization': 'Bearer ' + token },
+          });
+        }).then(function(r) { return r.json(); })
+          .then(function(data) {
+            renderRegistrationsList(data.data || [], regStatusFilter);
+          })
+          .catch(function(err) {
+            content.textContent = '';
+            var errDiv = document.createElement('div');
+            errDiv.className = 'admin-error';
+            errDiv.textContent = t('loadError') + err.message;
+            content.appendChild(errDiv);
+          });
+        return;
+      }
 
       var collection = currentTab === 'news' ? 'news' : 'events';
       var sort = currentTab === 'news' ? '-published_at' : '-start_date';
@@ -650,6 +703,122 @@ import '../styles/global.css';
           errDiv.textContent = t('loadError') + err.message;
           content.appendChild(errDiv);
         });
+    }
+
+    // ── Registrations List ──────────────────────────────────────
+    function renderRegistrationsList(items, statusFilter) {
+      var listContainer = document.getElementById('admin-content');
+      if (!listContainer) return;
+
+      // Build filter buttons
+      var filterDiv = document.createElement('div');
+      filterDiv.style.cssText = 'display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;';
+
+      ['pending', 'approved', 'rejected'].forEach(function(s) {
+        var btn = document.createElement('button');
+        btn.className = 'admin-btn admin-btn-sm' + (statusFilter === s ? ' active' : '');
+        btn.textContent = t('registrations' + s.charAt(0).toUpperCase() + s.slice(1));
+        btn.addEventListener('click', function() {
+          window._regStatusFilter = s;
+          loadItems();
+        });
+        filterDiv.appendChild(btn);
+      });
+
+      // CSV export button (only for approved, when there are items)
+      if (statusFilter === 'approved' && items.length > 0) {
+        var csvBtn = document.createElement('button');
+        csvBtn.className = 'admin-btn admin-btn-sm';
+        csvBtn.textContent = t('registrationsExportCSV');
+        csvBtn.style.marginLeft = 'auto';
+        csvBtn.addEventListener('click', function() { exportCSV(items); });
+        filterDiv.appendChild(csvBtn);
+      }
+
+      listContainer.innerHTML = '';
+      listContainer.appendChild(filterDiv);
+
+      if (!items.length) {
+        var empty = document.createElement('div');
+        empty.className = 'admin-empty';
+        empty.textContent = t('registrationsNoEntries');
+        listContainer.appendChild(empty);
+        return;
+      }
+
+      var list = document.createElement('div');
+      list.className = 'admin-list';
+
+      items.forEach(function(item) {
+        var row = document.createElement('div');
+        row.className = 'admin-list-item';
+
+        var info = document.createElement('div');
+        info.className = 'admin-list-info';
+
+        var title = document.createElement('h3');
+        title.className = 'admin-list-title';
+        title.textContent = item.vorname + ' ' + item.nachname;
+
+        var meta = document.createElement('div');
+        meta.className = 'admin-list-meta';
+
+        var typeBadge = document.createElement('span');
+        typeBadge.className = 'admin-badge';
+        typeBadge.textContent = item.membership_type;
+        meta.appendChild(typeBadge);
+
+        if (item.team) {
+          var teamSpan = document.createElement('span');
+          teamSpan.textContent = item.team;
+          meta.appendChild(teamSpan);
+        }
+
+        var dateSpan = document.createElement('span');
+        dateSpan.textContent = item.submitted_at ? item.submitted_at.substring(0, 10) : '';
+        meta.appendChild(dateSpan);
+
+        // Expiring warning (>75 days old)
+        var ageMs = Date.now() - new Date(item.submitted_at).getTime();
+        var ageDays = Math.floor(ageMs / 86400000);
+        if (ageDays > 75) {
+          var warn = document.createElement('span');
+          warn.className = 'admin-badge admin-badge-danger';
+          warn.textContent = t('registrationsExpiring');
+          meta.appendChild(warn);
+        }
+
+        info.appendChild(title);
+        info.appendChild(meta);
+        row.appendChild(info);
+
+        var actions = document.createElement('div');
+        actions.className = 'admin-list-actions';
+
+        var editBtn = document.createElement('button');
+        editBtn.className = 'admin-btn admin-btn-sm';
+        editBtn.textContent = t('edit');
+        editBtn.addEventListener('click', function() {
+          openRegistrationDetail(item);
+        });
+        actions.appendChild(editBtn);
+
+        row.appendChild(actions);
+        list.appendChild(row);
+      });
+
+      listContainer.appendChild(list);
+    }
+
+    // ── Registration stubs (implemented in later tasks) ────────
+    function openRegistrationDetail(item) {
+      // Implemented in Task 7
+      alert('Detail view coming soon');
+    }
+
+    function exportCSV(items) {
+      // Implemented in Task 8
+      alert('CSV export coming soon');
     }
 
     // ── Modal (Create / Edit) ─────────────────────────────────
@@ -1355,6 +1524,7 @@ import '../styles/global.css';
   }
   .admin-badge-green { background: rgba(34,197,94,0.15); color: #16a34a; }
   .admin-badge-gray { background: var(--bg-light); color: var(--text-muted); }
+  .admin-badge-danger { background: rgba(239,68,68,0.15); color: #dc2626; }
 
   /* ── Buttons ──────────────────────────────────────────────── */
   .admin-btn {
@@ -1384,6 +1554,7 @@ import '../styles/global.css';
   .admin-btn-ghost { border: none; background: none; }
   .admin-btn-ghost:hover { background: var(--bg-light); }
   .admin-btn-sm { padding: 4px 10px; font-size: var(--text-xs); }
+  .admin-btn-sm.active { background: var(--kscw-blue); color: #fff; border-color: var(--kscw-blue); }
   .admin-btn-danger { color: #dc2626; border-color: #fecaca; }
   .admin-btn-danger:hover { background: #fef2f2; }
 
