@@ -62,7 +62,7 @@ const l = (path: string) => `/${locale}${path}`;
             <div class="footer-links">
               <a href={l('/weiteres/kalender')}>{t(locale, 'footerCalendar')}</a>
               <a href={l('/weiteres/mitgliedschaft')}>{t(locale, 'footerMembership')}</a>
-              <a href={l('/weiteres/spielplanung')}>{t(locale, 'footerScheduling')}</a>
+              <a href={l(locale === 'de' ? '/volleyball/spielplanung' : '/volleyball/scheduling')}>{t(locale, 'footerScheduling')}</a>
               <a href={l('/weiteres/schreiberkurse')}>{t(locale, 'footerScorerCourses')}</a>
               <a href={l('/weiteres/logos')}>{t(locale, 'footerLogos')}</a>
               <a href={l('/weiteres/partner')}>{t(locale, 'footerPartner')}</a>

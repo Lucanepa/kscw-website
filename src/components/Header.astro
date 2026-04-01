@@ -86,6 +86,7 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
               </div>
               <div class="dropdown-divider"></div>
               <a href={l(locale === 'de' ? '/volleyball/reglemente' : '/volleyball/regulations')} class="dropdown-link">{t(locale, 'navRegulations')}</a>
+              <a href={l(locale === 'de' ? '/volleyball/spielplanung' : '/volleyball/scheduling')} class="dropdown-link">{t(locale, 'navScheduling')}</a>
             </div>
           </div>
 
@@ -142,7 +143,6 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
             <div class="nav-dropdown">
               <a href={l('/weiteres/kalender')} class="dropdown-link">{t(locale, 'navCalendar')}</a>
               <a href={l('/weiteres/mitgliedschaft')} class="dropdown-link">{t(locale, 'navMembership')}</a>
-              <a href={l('/weiteres/spielplanung')} class="dropdown-link">{t(locale, 'navScheduling')}</a>
               <a href={l('/weiteres/schreiberkurse')} class="dropdown-link">{t(locale, 'navScorerCourses')}</a>
               <a href={l('/weiteres/logos')} class="dropdown-link">{t(locale, 'navLogos')}</a>
               <a href={l('/weiteres/partner')} class="dropdown-link">{t(locale, 'navPartner')}</a>
@@ -230,6 +230,7 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
             </div>
           </div>
           <a href={l(locale === 'de' ? '/volleyball/reglemente' : '/volleyball/regulations')} class="mobile-sublink">{t(locale, 'navRegulations')}</a>
+          <a href={l(locale === 'de' ? '/volleyball/spielplanung' : '/volleyball/scheduling')} class="mobile-sublink">{t(locale, 'navScheduling')}</a>
         </div>
       </div>
 
@@ -285,7 +286,6 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
         <div class="mobile-subnav">
           <a href={l('/weiteres/kalender')} class="mobile-sublink">{t(locale, 'navCalendar')}</a>
           <a href={l('/weiteres/mitgliedschaft')} class="mobile-sublink">{t(locale, 'navMembership')}</a>
-          <a href={l('/weiteres/spielplanung')} class="mobile-sublink">{t(locale, 'navScheduling')}</a>
           <a href={l('/weiteres/schreiberkurse')} class="mobile-sublink">{t(locale, 'navScorerCourses')}</a>
           <a href={l('/weiteres/logos')} class="mobile-sublink">{t(locale, 'navLogos')}</a>
           <a href={l('/weiteres/partner')} class="mobile-sublink">{t(locale, 'navPartner')}</a>

@@ -71,41 +71,23 @@ const locale = 'en';
     </div>
   </section>
 
-  <!-- For Opponents -->
+  <!-- Contact -->
   <section class="section">
     <div class="container">
       <div class="section-header">
         <div>
-          <h2>{t(locale, 'schedulingOpponents')}</h2>
+          <h2>Contact</h2>
           <div class="gold-bar"></div>
         </div>
       </div>
       <div style="max-width: 720px;">
-        <p style="font-size: 1.125rem; line-height: 1.8; color: var(--text-secondary); margin-bottom: var(--space-md);">
-          {t(locale, 'schedulingOpponentsText')}
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+          For questions about game scheduling, contact our scheduling team directly:
         </p>
-        <div style="background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg);">
-          <h3 style="margin-bottom: var(--space-md);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--kscw-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px;"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>
-            <span>{t(locale, 'schedulingHowItWorks')}</span>
-          </h3>
-          <ol style="color: var(--text-secondary); line-height: 1.8; padding-left: var(--space-lg); margin: 0;">
-            <li>{t(locale, 'schedulingStep1')}</li>
-            <li>{t(locale, 'schedulingStep2')}</li>
-            <li>{t(locale, 'schedulingStep3')}</li>
-            <li>{t(locale, 'schedulingStep4')}</li>
-            <li>{t(locale, 'schedulingStep5')}</li>
-          </ol>
-        </div>
-        <div style="text-align: center; margin-bottom: var(--space-xl);">
-          <a href="https://wiedisync.kscw.ch/terminplanung" class="btn btn-gold" style="font-size: 1.125rem; padding: var(--space-md) var(--space-xl);" target="_blank" rel="noopener noreferrer">
-            <i data-lucide="calendar-plus" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px;"></i>
-            <span>{t(locale, 'schedulingGoTo')}</span>
-          </a>
-          <p style="margin-top: var(--space-sm); font-size: 0.875rem; color: var(--text-secondary);">
-            {t(locale, 'schedulingAccessNote')}
-          </p>
-        </div>
+        <a href="mailto:spielplanung_vb@mail.kscw.ch" class="contact-email-card">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--kscw-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          <span>spielplanung_vb@mail.kscw.ch</span>
+        </a>
       </div>
     </div>
   </section>
@@ -166,3 +148,23 @@ const locale = 'en';
     </div>
   </section>
 </PageLayout>
+
+<style is:global>
+  .contact-email-card {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-lg);
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    color: var(--kscw-gold);
+    font-size: 1.125rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: border-color 0.2s;
+  }
+  .contact-email-card:hover {
+    border-color: var(--kscw-gold);
+  }
+</style>
