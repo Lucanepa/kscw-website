@@ -13,7 +13,8 @@ export function formatDate(isoDate: string, locale = 'de-CH'): string {
   if (!isoDate) return '–';
 
   try {
-    const date = new Date(isoDate + 'T12:00:00');
+    const dateOnly = isoDate.length > 10 ? isoDate.slice(0, 10) : isoDate;
+    const date = new Date(dateOnly + 'T12:00:00');
     return date.toLocaleDateString(locale, {
       day: '2-digit',
       month: '2-digit',
@@ -34,7 +35,8 @@ export function formatDateLong(isoDate: string, locale = 'de-CH'): string {
   if (!isoDate) return '–';
 
   try {
-    const date = new Date(isoDate + 'T12:00:00');
+    const dateOnly = isoDate.length > 10 ? isoDate.slice(0, 10) : isoDate;
+    const date = new Date(dateOnly + 'T12:00:00');
     return date.toLocaleDateString(locale, {
       weekday: 'short',
       day: 'numeric',

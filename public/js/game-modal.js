@@ -173,7 +173,8 @@
     var info = el('div', 'gm-section');
     info.appendChild(el('div', 'gm-section-title', isDE ? 'Spielinfo' : 'Game Info'));
     var dateLocale = isDE ? 'de-CH' : 'en-GB';
-    var dateLong = game.date ? new Date(game.date + 'T12:00:00').toLocaleDateString(dateLocale, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }) : '\u2013';
+    var dateStr = game.date ? (game.date.length > 10 ? game.date.slice(0, 10) : game.date) : '';
+    var dateLong = dateStr ? new Date(dateStr + 'T12:00:00').toLocaleDateString(dateLocale, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }) : '\u2013';
     info.appendChild(infoRow(isDE ? 'Datum' : 'Date', dateLong));
     info.appendChild(infoRow(isDE ? 'Anpfiff' : 'Kickoff', game.time ? game.time.slice(0, 5) : '\u2013'));
     var gameIsHome = game.type === 'home' || game.isHome;

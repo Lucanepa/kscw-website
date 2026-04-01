@@ -117,9 +117,37 @@
   }
 
   // ── Render CTA section ─────────────────────────────────────────────
-  function renderCTA(teamData) {
+  function renderCTA(teamData, raw) {
     var container = document.getElementById('cta-container');
     if (!container) return;
+
+    // Only show CTA if team is open for new players
+    if (!raw.open_for_players) return;
+
+    var coaches = raw.coaches || [];
+    var sport = raw.sport || '';
+
+    // Build mailto: coach email(s) as TO, sport responsible as CC
+    var coachEmails = coaches.map(function (c) { return c.email; }).filter(Boolean);
+    var ccEmails = [];
+    if (sport === 'volleyball') {
+      ccEmails = ['volleyball@kscw.ch'];
+    } else if (sport === 'basketball') {
+      ccEmails = ['anja.jimenez@kscw.ch', 'rachel.moser@kscw.ch'];
+    }
+
+    // If no coach emails, use sport responsible as TO instead
+    var toEmails = coachEmails.length > 0 ? coachEmails : ccEmails;
+    var finalCc = coachEmails.length > 0 ? ccEmails : [];
+
+    if (toEmails.length === 0) return;
+
+    var teamName = teamData.full_name || teamData.name || TEAM;
+    var subject = encodeURIComponent(i18n.t('teamCTAMailSubject', { team: teamName }));
+    var mailto = 'mailto:' + toEmails.join(',');
+    var params = ['subject=' + subject];
+    if (finalCc.length > 0) params.push('cc=' + finalCc.join(','));
+    mailto += '?' + params.join('&');
 
     var section = document.createElement('section');
     section.className = 'cta-section';
@@ -136,7 +164,7 @@
     inner.appendChild(p);
 
     var btn = document.createElement('a');
-    btn.href = '/club/kontakt.html';
+    btn.href = mailto;
     btn.className = 'btn btn-gold';
     btn.textContent = i18n.t('teamCTAButton');
     inner.appendChild(btn);
@@ -237,7 +265,7 @@
         renderHero(teamData);
         renderTeamPhoto(teamData);
         renderInstagramEmbed(teamData);
-        renderCTA(teamData);
+        renderCTA(teamData, raw);
 
         // Map Directus field names to expected names
         var roster = raw.roster || [];
@@ -725,7 +753,9 @@
   function formatDateLocal(iso) {
     if (!iso) return '\u2013';
     try {
-      var d = new Date(iso + 'T12:00:00');
+      var dateOnly = iso.length > 10 ? iso.slice(0, 10) : iso;
+      var d = new Date(dateOnly + 'T12:00:00');
+      if (isNaN(d.getTime())) return '\u2013';
       return d.toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric' });
     } catch (e) { return '\u2013'; }
   }

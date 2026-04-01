@@ -4,7 +4,8 @@ export interface TeamDetail {
   id: string; name: string; fullName: string; sport: string; league: string;
   color: string; photoUrl: string; season: string; collectionId: string;
   roster: Array<{ id: string; firstName: string; lastName: string; position: string | null }>;
-  coaches: Array<{ id: string; firstName: string; lastName: string }>;
+  coaches: Array<{ id: string; firstName: string; lastName: string; email: string | null }>;
+  openForPlayers: boolean;
   trainings: Array<{ day: string; time: string; location: string }>;
   sponsors: Array<{ id: string; name: string; logoUrl: string; websiteUrl: string | null }>;
 }
@@ -21,8 +22,9 @@ export async function getTeamDetail(teamId: string): Promise<TeamDetail> {
       id: String(m.id), firstName: m.first_name, lastName: m.last_name, position: m.position ?? null,
     })),
     coaches: (data.coaches ?? []).map((c: any) => ({
-      id: String(c.id), firstName: c.first_name, lastName: c.last_name,
+      id: String(c.id), firstName: c.first_name, lastName: c.last_name, email: c.email ?? null,
     })),
+    openForPlayers: data.open_for_players ?? false,
     trainings: data.trainings ?? [],
     sponsors: (data.sponsors ?? []).map((s: any) => ({
       id: String(s.id), name: s.name,

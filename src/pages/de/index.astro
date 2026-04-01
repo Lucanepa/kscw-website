@@ -76,8 +76,12 @@ try {
   <!-- News -->
   <section class="section-alt" id="news">
     <div class="container">
-      <SectionHeader title={t(locale, 'homeNews')} />
-      <div class="grid grid-3" id="news-grid">
+      <SectionHeader
+        title={t(locale, 'homeNews')}
+        actionHref={`/${locale}/news/`}
+        actionLabel={t(locale, 'homeAllNews')}
+      />
+      <div class="grid grid-2" id="news-grid">
         <p id="news-empty">Keine News vorhanden.</p>
       </div>
     </div>
@@ -213,7 +217,9 @@ try {
       function formatDate(iso) {
         if (!iso) return '\u2013';
         try {
-          var d = new Date(iso + 'T12:00:00');
+          var dateOnly = iso.length > 10 ? iso.slice(0, 10) : iso;
+          var d = new Date(dateOnly + 'T12:00:00');
+          if (isNaN(d.getTime())) return '\u2013';
           return d.toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric' });
         } catch (e) { return '\u2013'; }
       }
@@ -413,7 +419,7 @@ try {
         if (!grid) return;
         var newsFields = 'id,title,title_en,slug,excerpt,body,category,author,published_at,image,date_created';
         var newsFilter = JSON.stringify({ is_published: { _eq: true } });
-        fetch(DIRECTUS_URL + '/items/news?fields=' + encodeURIComponent(newsFields) + '&filter=' + encodeURIComponent(newsFilter) + '&sort=-published_at&limit=6')
+        fetch(DIRECTUS_URL + '/items/news?fields=' + encodeURIComponent(newsFields) + '&filter=' + encodeURIComponent(newsFilter) + '&sort=-published_at&limit=2')
           .then(function(res) { return res.json(); })
           .then(function(data) {
             var articles = data.data || [];

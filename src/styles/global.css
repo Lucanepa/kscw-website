@@ -1519,6 +1519,52 @@ tr:hover td {
 .nm-body li {
   margin-bottom: var(--space-xs);
 }
+/* ── News Modal — Share Bar ──────────────────────────────── */
+.nm-share {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  border-top: 1px solid var(--border);
+}
+.nm-share-label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: var(--space-xs);
+}
+.nm-share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  padding: 0;
+  font: inherit;
+}
+.nm-share-btn svg {
+  width: 16px;
+  height: 16px;
+}
+.nm-share-btn:hover {
+  color: #fff;
+  border-color: transparent;
+}
+.nm-share-whatsapp:hover { background: #25D366; }
+.nm-share-facebook:hover { background: #1877F2; }
+.nm-share-x:hover { background: #000; }
+.nm-share-email:hover { background: var(--kscw-blue); }
+.nm-share-copy:hover { background: var(--kscw-gold); color: #1a1a2e; }
+.nm-share-copy.copied { background: #22c55e; color: #fff; border-color: transparent; }
 
 /* ── Team Cards (sport overview) ───────────────────────────── */
 .team-card {

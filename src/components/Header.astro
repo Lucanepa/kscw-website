@@ -34,6 +34,7 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
               <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </button>
             <div class="nav-dropdown">
+              <a href={l('/news/')} class="dropdown-link">{t(locale, 'navNews')}</a>
               <a href={l('/club/ueber-uns')} class="dropdown-link">{t(locale, 'navAbout')}</a>
               <a href={l('/club/vorstand')} class="dropdown-link">{t(locale, 'navBoard')}</a>
               <a href={l('/club/kontakt')} class="dropdown-link">{t(locale, 'navContact')}</a>
@@ -178,6 +179,7 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
           <svg class="mobile-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </button>
         <div class="mobile-subnav">
+          <a href={l('/news/')} class="mobile-sublink">{t(locale, 'navNews')}</a>
           <a href={l('/club/ueber-uns')} class="mobile-sublink">{t(locale, 'navAbout')}</a>
           <a href={l('/club/vorstand')} class="mobile-sublink">{t(locale, 'navBoard')}</a>
           <a href={l('/club/kontakt')} class="mobile-sublink">{t(locale, 'navContact')}</a>

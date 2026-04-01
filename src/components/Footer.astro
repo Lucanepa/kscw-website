@@ -27,10 +27,10 @@ const l = (path: string) => `/${locale}${path}`;
               <p><a href="mailto:kscw@kscw.ch" style="color: inherit;">kscw@kscw.ch</a></p>
             </div>
             <div class="footer-social">
-              <a href="https://facebook.com/kscwiedikon" aria-label="Facebook" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.facebook.com/people/KSC-Wiedikon/100063701642888" aria-label="Facebook" target="_blank" rel="noopener noreferrer">
                 <i data-lucide="facebook"></i>
               </a>
-              <a href="https://instagram.com/kscwiedikon" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.instagram.com/ksc_wiedikon" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
                 <i data-lucide="instagram"></i>
               </a>
             </div>
@@ -40,6 +40,7 @@ const l = (path: string) => `/${locale}${path}`;
           <div>
             <div class="footer-heading">{t(locale, 'footerClub')}</div>
             <div class="footer-links">
+              <a href={l('/news/')}>{t(locale, 'navNews')}</a>
               <a href={l('/club/ueber-uns')}>{t(locale, 'footerAbout')}</a>
               <a href={l('/club/vorstand')}>{t(locale, 'footerBoard')}</a>
               <a href={l('/club/kontakt')}>{t(locale, 'footerContact')}</a>

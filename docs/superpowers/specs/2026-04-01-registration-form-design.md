@@ -203,6 +203,35 @@ On approval, send email to a configurable processing address containing:
 - Membership type + team
 - Reference number
 
+### 3.3 Confirmation Email (to user, on submission)
+
+Sent immediately after successful submission to the email address provided.
+
+**Volleyball confirmation email:**
+- Summary of submitted data (name, team, fee category)
+- Welcome message + important info:
+  - Licensing process takes at least 1 week after fee payment
+  - Fee schedule (Erwerbstätige CHF 440, Studenten/Lernende CHF 380, Schüler*in Meisterschaft CHF 310, Schüler*in Turniere CHF 210, Schüler*in Turniere 1. Saison CHF 110)
+  - Invoice will arrive in the next few days (or in August during main billing period)
+  - Licence is only ordered once payment is received — pay promptly
+  - Must create a login at https://volleymanager.volleyball.ch/login if they don't have one
+  - For questions: contact coach or club administration
+  - Closing: "Sportliche Grüsse"
+
+**Basketball confirmation email:**
+- Summary of submitted data (name, team, fee category)
+- Next steps:
+  - Registration is being reviewed by the admin
+  - Reminder of required documents (signed Lizenzantrag, ID copy) if not yet uploaded
+  - Timeline expectation for processing
+  - Contact info for questions
+
+**Passive confirmation email:**
+- Summary + confirmation of passive membership registration
+- Invoice info
+
+All emails sent via Directus Flows (same email infrastructure as approval emails). DE/EN based on the form locale.
+
 ---
 
 ## 4. Privacy
