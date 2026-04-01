@@ -163,51 +163,58 @@
 
     setLoading(true);
 
-    // Build FormData (multipart for file support)
-    var fd = new FormData();
-    fd.append('membership_type', type);
-    fd.append('vorname', val('vorname'));
-    fd.append('nachname', val('nachname'));
-    fd.append('email', val('email'));
-    fd.append('telefon_mobil', val('telefon'));
-    fd.append('adresse', val('adresse'));
-    fd.append('plz', val('plz'));
-    fd.append('ort', val('ort'));
-    fd.append('geburtsdatum', val('geburtsdatum'));
-    fd.append('nationalitaet', getNationality());
-    fd.append('geschlecht', val('geschlecht'));
-    fd.append('bemerkungen', val('bemerkungen'));
-    fd.append('turnstile_token', turnstileToken);
+    // Build JSON payload (not FormData — files uploaded separately)
+    var payload = {
+      membership_type: type,
+      vorname: val('vorname'),
+      nachname: val('nachname'),
+      email: val('email'),
+      telefon_mobil: val('telefon'),
+      adresse: val('adresse'),
+      plz: val('plz'),
+      ort: val('ort'),
+      geburtsdatum: val('geburtsdatum'),
+      nationalitaet: getNationality(),
+      geschlecht: val('geschlecht'),
+      bemerkungen: val('bemerkungen'),
+      turnstile_token: turnstileToken,
+    };
 
     if (type === 'volleyball') {
-      fd.append('anrede', val('anrede'));
-      fd.append('team', val('vb-team'));
-      fd.append('beitragskategorie', val('vb-fee'));
-      fd.append('ahv_nummer', val('vb-ahv'));
-      fd.append('kantonsschule', val('kantonsschule-vb'));
+      payload.anrede = val('anrede');
+      payload.team = val('vb-team');
+      payload.beitragskategorie = val('vb-fee');
+      payload.ahv_nummer = val('vb-ahv');
+      payload.kantonsschule = val('kantonsschule-vb');
       var rollen = [];
       form.querySelectorAll('input[name="rolle"]:checked').forEach(function (cb) {
         rollen.push(cb.value);
       });
-      if (rollen.length) fd.append('rolle', rollen.join(', '));
+      if (rollen.length) payload.rolle = rollen.join(', ');
     }
 
     if (type === 'basketball') {
-      fd.append('team', val('bb-team'));
-      fd.append('beitragskategorie', val('bb-fee'));
-      fd.append('ahv_nummer', val('bb-ahv'));
-      fd.append('kantonsschule', val('kantonsschule-bb'));
-      fd.append('id_front', document.getElementById('id-front').files[0]);
-      fd.append('id_back', document.getElementById('id-back').files[0]);
+      payload.team = val('bb-team');
+      payload.beitragskategorie = val('bb-fee');
+      payload.ahv_nummer = val('bb-ahv');
+      payload.kantonsschule = val('kantonsschule-bb');
     }
 
+    // Step 1: Create registration (JSON)
     fetch(DIRECTUS_URL + '/kscw/registration', {
       method: 'POST',
-      body: fd,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
     })
       .then(function (r) {
-        if (!r.ok) return r.json().then(function (d) { throw new Error(d.message || i18n.t('registrationError')); });
+        if (!r.ok) return r.json().then(function (d) { throw new Error(d.message || d.error || i18n.t('registrationError')); });
         return r.json();
+      })
+      .then(function (data) {
+        // Step 2: Upload files for basketball (if any)
+        if (type === 'basketball') {
+          return uploadIDFiles(data.id);
+        }
       })
       .then(function () {
         showFeedback('success', i18n.t('registrationSuccess'));
@@ -225,6 +232,46 @@
         setLoading(false);
       });
   });
+
+  // ── File upload (basketball) ───────────────────────────────
+  function uploadIDFiles(registrationId) {
+    var frontFile = document.getElementById('id-front').files[0];
+    var backFile = document.getElementById('id-back').files[0];
+    if (!frontFile && !backFile) return Promise.resolve();
+
+    var uploads = [];
+    if (frontFile) uploads.push(uploadSingleFile(frontFile, 'front'));
+    if (backFile) uploads.push(uploadSingleFile(backFile, 'back'));
+
+    return Promise.all(uploads).then(function (fileIds) {
+      var body = {};
+      if (fileIds[0]) body.id_upload_front = fileIds[0];
+      if (fileIds[1]) body.id_upload_back = fileIds[1];
+
+      return fetch(DIRECTUS_URL + '/kscw/registration/' + registrationId + '/files', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+    });
+  }
+
+  function uploadSingleFile(file) {
+    var fd = new FormData();
+    fd.append('file', file);
+    fd.append('folder', 'registrations');
+    return fetch(DIRECTUS_URL + '/files', {
+      method: 'POST',
+      body: fd,
+    })
+      .then(function (r) {
+        if (!r.ok) throw new Error('File upload failed');
+        return r.json();
+      })
+      .then(function (data) {
+        return data.data.id;
+      });
+  }
 
   // ── Helpers ───────────────────────────────────────────────
   function val(id) {
