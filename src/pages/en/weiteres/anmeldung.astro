@@ -1,0 +1,390 @@
+---
+import PageLayout from '../../../layouts/PageLayout.astro';
+import { t } from '../../../lib/i18n';
+
+const locale = 'en';
+---
+<PageLayout
+  title="Registration — KSC Wiedikon"
+  description="Become a member of KSC Wiedikon — Registration for Volleyball, Basketball and passive membership."
+  locale={locale}
+  pageTitle={t(locale, 'registrationTitle')}
+  pageSubtitle={t(locale, 'registrationSubtitle')}
+>
+  <section class="section">
+    <div class="container" style="max-width: 720px;">
+
+      <!-- Coach Note -->
+      <div class="card" style="border-left: 4px solid var(--kscw-gold); margin-bottom: var(--space-xl);">
+        <div class="card-body">
+          <p style="color: var(--text-secondary); display: flex; align-items: flex-start; gap: var(--space-sm); margin: 0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--kscw-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            <span>{t(locale, 'registrationCoachNote')}</span>
+          </p>
+        </div>
+      </div>
+
+      <form id="registration-form">
+
+        <!-- Membership Type -->
+        <div class="form-group">
+          <label>{t(locale, 'registrationType')} *</label>
+          <div style="display: flex; gap: var(--space-md); flex-wrap: wrap; margin-top: var(--space-xs);">
+            <label class="radio-card">
+              <input type="radio" name="membership_type" value="volleyball" required>
+              <span>{t(locale, 'registrationTypeVolleyball')}</span>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="membership_type" value="basketball" required>
+              <span>{t(locale, 'registrationTypeBasketball')}</span>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="membership_type" value="passive" required>
+              <span>{t(locale, 'registrationTypePassive')}</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Common Fields -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="vorname">{t(locale, 'registrationFirstName')} *</label>
+            <input type="text" id="vorname" name="vorname" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label for="nachname">{t(locale, 'registrationLastName')} *</label>
+            <input type="text" id="nachname" name="nachname" class="form-input" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">{t(locale, 'registrationEmail')} *</label>
+          <input type="email" id="email" name="email" class="form-input" required>
+        </div>
+
+        <div class="form-group">
+          <label for="telefon">{t(locale, 'registrationPhone')} *</label>
+          <input type="tel" id="telefon" name="telefon" class="form-input" required>
+        </div>
+
+        <div class="form-group">
+          <label for="adresse">{t(locale, 'registrationAddress')} *</label>
+          <input type="text" id="adresse" name="adresse" class="form-input" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex: 0 0 120px; min-width: 0;">
+            <label for="plz">{t(locale, 'registrationPLZ')} *</label>
+            <input type="text" id="plz" name="plz" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label for="ort">{t(locale, 'registrationCity')} *</label>
+            <input type="text" id="ort" name="ort" class="form-input" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="geburtsdatum">{t(locale, 'registrationDOB')} *</label>
+            <input type="date" id="geburtsdatum" name="geburtsdatum" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label for="geschlecht">{t(locale, 'registrationGender')} *</label>
+            <select id="geschlecht" name="geschlecht" class="form-select" required>
+              <option value="" disabled selected>—</option>
+              <option value="männlich">{t(locale, 'registrationGenderMale')}</option>
+              <option value="weiblich">{t(locale, 'registrationGenderFemale')}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="nationalitaet">{t(locale, 'registrationNationality')} *</label>
+          <select id="nationalitaet" name="nationalitaet" class="form-select" required>
+            <option value="" disabled selected>—</option>
+            <option value="Schweiz">{t(locale, 'registrationNationalitySwiss')}</option>
+            <option value="other">{t(locale, 'registrationNationalityOther')}</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="nationality-other-group" style="display: none;">
+          <input type="text" id="nationalitaet-other" name="nationalitaet_other" class="form-input" placeholder="Nationalität eingeben…">
+        </div>
+
+        <!-- ═══ VOLLEYBALL-ONLY FIELDS ═══ -->
+        <div id="vb-fields" style="display: none;">
+          <div class="form-group">
+            <label for="anrede">{t(locale, 'registrationAnrede')} *</label>
+            <select id="anrede" name="anrede" class="form-select" data-conditional-required>
+              <option value="" disabled selected>—</option>
+              <option value="Herr">{t(locale, 'registrationAnredeHerr')}</option>
+              <option value="Frau">{t(locale, 'registrationAnredeFrau')}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="vb-team">{t(locale, 'registrationTeam')} *</label>
+            <select id="vb-team" name="vb_team" class="form-select" data-conditional-required>
+              <option value="" disabled selected>{t(locale, 'registrationTeamPlaceholder')}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="vb-fee">{t(locale, 'registrationFeeCategory')} *</label>
+            <select id="vb-fee" name="vb_fee" class="form-select" data-conditional-required>
+              <option value="" disabled selected>{t(locale, 'registrationFeeCategoryPlaceholder')}</option>
+              <option value="VB Turnier KWI">{t(locale, 'registrationVBFeeTournamentKWI')}</option>
+              <option value="VB Lernende/Studi Meisterschaft">{t(locale, 'registrationVBFeeTournament')}</option>
+              <option value="VB Schüler*in Meisterschaft">{t(locale, 'registrationVBFeeHighSchool')}</option>
+              <option value="VB Student*in Meisterschaft">{t(locale, 'registrationVBFeeStudent')}</option>
+              <option value="VB Erwerbstätige">{t(locale, 'registrationVBFeeWorking')}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="vb-ahv">{t(locale, 'registrationAHV')} *</label>
+            <input type="text" id="vb-ahv" name="vb_ahv" class="form-input" data-conditional-required>
+            <small style="color: var(--text-secondary);">{t(locale, 'registrationAHVNote')}</small>
+          </div>
+
+          <div class="form-group">
+            <label for="kantonsschule-vb">{t(locale, 'registrationKantonsschule')} *</label>
+            <select id="kantonsschule-vb" name="kantonsschule_vb" class="form-select" data-conditional-required>
+              <option value="" disabled selected>—</option>
+              <option value="Nein">{t(locale, 'registrationKantonsschuleNo')}</option>
+              <option value="KS Rämibühl">{t(locale, 'registrationKantonsschuleWiedikon')}</option>
+              <option value="Andere Kantonsschule">{t(locale, 'registrationKantonsschuleOther')}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>{t(locale, 'registrationRole')}</label>
+            <div style="display: flex; gap: var(--space-lg); flex-wrap: wrap; margin-top: var(--space-xs);">
+              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
+                <input type="checkbox" name="rolle" value="Schreiber">
+                <span>{t(locale, 'registrationRoleSchreiber')}</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
+                <input type="checkbox" name="rolle" value="Schiedsrichter">
+                <span>{t(locale, 'registrationRoleSchiedsrichter')}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ BASKETBALL-ONLY FIELDS ═══ -->
+        <div id="bb-fields" style="display: none;">
+          <div class="form-group">
+            <label for="bb-team">{t(locale, 'registrationTeam')} *</label>
+            <select id="bb-team" name="bb_team" class="form-select" data-conditional-required>
+              <option value="" disabled selected>{t(locale, 'registrationTeamPlaceholder')}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="bb-fee">{t(locale, 'registrationFeeCategory')} *</label>
+            <select id="bb-fee" name="bb_fee" class="form-select" data-conditional-required>
+              <option value="" disabled selected>{t(locale, 'registrationFeeCategoryPlaceholder')}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="bb-ahv">{t(locale, 'registrationAHV')} *</label>
+            <input type="text" id="bb-ahv" name="bb_ahv" class="form-input" data-conditional-required>
+            <small style="color: var(--text-secondary);">{t(locale, 'registrationAHVNote')}</small>
+          </div>
+
+          <div class="form-group">
+            <label for="kantonsschule-bb">{t(locale, 'registrationKantonsschule')} *</label>
+            <select id="kantonsschule-bb" name="kantonsschule_bb" class="form-select" data-conditional-required>
+              <option value="" disabled selected>—</option>
+              <option value="Nein">{t(locale, 'registrationKantonsschuleNo')}</option>
+              <option value="KS Rämibühl">{t(locale, 'registrationKantonsschuleWiedikon')}</option>
+              <option value="Andere Kantonsschule">{t(locale, 'registrationKantonsschuleOther')}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>{t(locale, 'registrationIDUpload')} *</label>
+            <small style="color: var(--text-secondary); display: block; margin-bottom: var(--space-sm);">{t(locale, 'registrationIDUploadNote')}</small>
+            <div style="display: flex; gap: var(--space-md); flex-wrap: wrap;">
+              <div>
+                <label for="id-front" style="font-size: var(--text-sm); font-weight: 600; display: block; margin-bottom: var(--space-xs);">{t(locale, 'registrationIDFront')}</label>
+                <input type="file" id="id-front" name="id_front" accept="image/*,.pdf" data-conditional-required>
+              </div>
+              <div>
+                <label for="id-back" style="font-size: var(--text-sm); font-weight: 600; display: block; margin-bottom: var(--space-xs);">{t(locale, 'registrationIDBack')}</label>
+                <input type="file" id="id-back" name="id_back" accept="image/*,.pdf" data-conditional-required>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bemerkungen (all types) -->
+        <div class="form-group">
+          <label for="bemerkungen">{t(locale, 'registrationComments')}</label>
+          <textarea id="bemerkungen" name="bemerkungen" class="form-textarea" placeholder={t(locale, 'registrationCommentsPlaceholder')}></textarea>
+        </div>
+
+        <!-- Privacy Notice (collapsible) -->
+        <details style="margin-bottom: var(--space-lg);">
+          <summary style="cursor: pointer; font-weight: 600; color: var(--kscw-blue);">{t(locale, 'registrationPrivacyTitle')}</summary>
+          <p style="margin-top: var(--space-sm); color: var(--text-secondary); font-size: var(--text-sm); line-height: 1.7;">{t(locale, 'registrationPrivacyText')}</p>
+        </details>
+
+        <!-- Consent Checkbox -->
+        <div class="form-group">
+          <label style="display: flex; align-items: flex-start; gap: var(--space-sm); cursor: pointer; font-weight: normal;">
+            <input type="checkbox" id="consent" name="consent" required style="margin-top: 4px; flex-shrink: 0;">
+            <span style="font-size: var(--text-sm);">{t(locale, 'registrationConsent')}</span>
+          </label>
+        </div>
+
+        <!-- Turnstile -->
+        <div id="turnstile-container" class="form-group"></div>
+
+        <!-- Submit -->
+        <button type="submit" class="form-submit" style="width: 100%; font-size: 1rem; padding: var(--space-md) var(--space-xl); justify-content: center;">
+          {t(locale, 'registrationSubmit')}
+        </button>
+      </form>
+
+      <div id="form-feedback" style="display: none;"></div>
+    </div>
+  </section>
+
+  <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script is:inline src="/js/i18n.js"></script>
+  <script is:inline>i18n.init();</script>
+  <script is:inline src="/js/registration-form.js"></script>
+  <script src="../../../islands/scroll-animations.ts"></script>
+</PageLayout>
+
+<style>
+  .form-group {
+    margin-bottom: var(--space-md);
+  }
+  .form-group label {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-xs);
+  }
+  .form-input,
+  .form-select,
+  .form-textarea {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    font-size: var(--text-sm);
+    font-family: 'Inter', sans-serif;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md, 8px);
+    background: var(--bg-white);
+    color: var(--text-primary);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+  }
+  .form-input:focus,
+  .form-select:focus,
+  .form-textarea:focus {
+    outline: none;
+    border-color: var(--kscw-blue, #4A55A2);
+    box-shadow: 0 0 0 3px rgba(74, 85, 162, 0.15);
+  }
+  .form-textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+  }
+  @media (max-width: 480px) {
+    .form-row { grid-template-columns: 1fr; }
+  }
+  .form-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: 0.75rem 1.5rem;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    color: #ffffff;
+    background: var(--kscw-blue, #4A55A2);
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+  }
+  .form-submit:hover {
+    background: #3b4590;
+  }
+  .form-submit:active {
+    transform: scale(0.98);
+  }
+  .form-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  /* Radio card pills */
+  .radio-card {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg-white);
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+    user-select: none;
+  }
+  .radio-card input[type="radio"] {
+    display: none;
+  }
+  .radio-card:has(input:checked) {
+    border-color: var(--kscw-blue, #4A55A2);
+    color: var(--kscw-blue, #4A55A2);
+    background: rgba(74, 85, 162, 0.06);
+  }
+  .radio-card:hover {
+    border-color: var(--kscw-blue, #4A55A2);
+    color: var(--kscw-blue, #4A55A2);
+  }
+  /* Form feedback states */
+  #form-feedback {
+    padding: 0.875rem 1rem;
+    border-radius: var(--radius-md, 8px);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    margin-top: var(--space-md);
+  }
+  #form-feedback.success {
+    background: rgba(34, 197, 94, 0.1);
+    color: #16a34a;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+  #form-feedback.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+  @media (prefers-color-scheme: dark) {
+    #form-feedback.success { color: #4ade80; }
+    #form-feedback.error { color: #f87171; }
+  }
+  #turnstile-container {
+    min-height: 0;
+  }
+  small {
+    display: block;
+    font-size: var(--text-xs, 0.75rem);
+    margin-top: var(--space-xs);
+  }
+</style>
