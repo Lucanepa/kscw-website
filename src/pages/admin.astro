@@ -810,10 +810,240 @@ import '../styles/global.css';
       listContainer.appendChild(list);
     }
 
-    // ── Registration stubs (implemented in later tasks) ────────
+    // ── Registration detail / edit / approve / reject ─────────
     function openRegistrationDetail(item) {
-      // Implemented in Task 7
-      alert('Detail view coming soon');
+      var modal = document.getElementById('admin-modal');
+
+      var html = '<div class="admin-modal-content">' +
+        '<div class="admin-modal-header">' +
+          '<h2>' + escapeHtml((item.vorname || '') + ' ' + (item.nachname || '')) + '</h2>' +
+          '<button class="admin-modal-close" id="modal-close">&times;</button>' +
+        '</div>' +
+        '<form id="modal-form" class="admin-modal-body">' +
+        '<div style="margin-bottom:16px;">' +
+          '<span class="admin-badge">' + escapeHtml(item.membership_type || '') + '</span> ' +
+          '<span class="admin-badge ' + (item.status === 'approved' ? 'admin-badge-green' : item.status === 'rejected' ? 'admin-badge-danger' : '') + '">' + escapeHtml(item.status || '') + '</span>' +
+        '</div>' +
+
+        fieldInput('reg-vorname', 'Vorname', item.vorname, true) +
+        fieldInput('reg-nachname', 'Nachname', item.nachname, true) +
+        fieldInput('reg-email', 'E-Mail', item.email, true) +
+        fieldInput('reg-telefon', 'Telefon', item.telefon_mobil) +
+        fieldInput('reg-adresse', 'Adresse', item.adresse) +
+        fieldInput('reg-plz', 'PLZ', item.plz) +
+        fieldInput('reg-ort', 'Ort', item.ort) +
+        fieldDate('reg-dob', 'Geburtsdatum', item.geburtsdatum ? item.geburtsdatum.substring(0, 10) : '') +
+        fieldInput('reg-nation', 'Nationalität', item.nationalitaet) +
+        fieldInput('reg-gender', 'Geschlecht', item.geschlecht) +
+        fieldInput('reg-team', 'Team', item.team) +
+        fieldInput('reg-fee', 'Beitragskategorie', item.beitragskategorie) +
+        fieldInput('reg-ahv', 'AHV', item.ahv_nummer) +
+        fieldInput('reg-ks', 'Kantonsschule', item.kantonsschule) +
+        fieldInput('reg-rolle', 'Rolle', item.rolle) +
+        fieldTextarea('reg-bemerkungen', 'Bemerkungen', item.bemerkungen) +
+
+        (item.id_upload_front ? '<div class="admin-field"><label>ID Vorderseite</label>' +
+          '<a href="' + escapeAttr(DIRECTUS_URL + '/assets/' + item.id_upload_front) + '" target="_blank" class="admin-btn admin-btn-sm">Ansehen</a></div>' : '') +
+        (item.id_upload_back ? '<div class="admin-field"><label>ID Rückseite</label>' +
+          '<a href="' + escapeAttr(DIRECTUS_URL + '/assets/' + item.id_upload_back) + '" target="_blank" class="admin-btn admin-btn-sm">Ansehen</a></div>' : '') +
+
+        '<div class="admin-modal-footer">' +
+        '<button type="button" class="admin-btn" id="modal-cancel">' + t('cancel') + '</button>' +
+
+        ((item.id_upload_front || item.id_upload_back) ?
+          '<button type="button" id="reg-download-files" class="admin-btn admin-btn-sm">' + t('registrationsDownloadFiles') + '</button>' : '') +
+
+        (item.membership_type === 'basketball' ?
+          '<button type="button" id="reg-gen-pdf" class="admin-btn admin-btn-sm">' + t('registrationsGeneratePDF') + '</button>' +
+          '<button type="button" id="reg-gen-fiba" class="admin-btn admin-btn-sm">' + t('registrationsGenerateFIBA') + '</button>' : '') +
+
+        (item.status === 'pending' ?
+          '<button type="button" id="reg-reject" class="admin-btn admin-btn-danger">' + t('registrationsReject') + '</button>' +
+          '<button type="button" id="reg-approve" class="admin-btn admin-btn-primary">' + t('registrationsApprove') + '</button>' : '') +
+
+        '<button type="submit" class="admin-btn admin-btn-primary" id="modal-save">' + t('save') + '</button>' +
+        '</div></form></div>';
+
+      modal.innerHTML = html;
+      modal.style.display = 'flex';
+
+      document.getElementById('modal-close').addEventListener('click', closeModal);
+      document.getElementById('modal-cancel').addEventListener('click', closeModal);
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeModal();
+      });
+
+      document.getElementById('modal-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveRegistration(item.id);
+      });
+
+      var approveBtn = document.getElementById('reg-approve');
+      if (approveBtn) {
+        approveBtn.addEventListener('click', function() {
+          updateRegistrationStatus(item.id, 'approved');
+        });
+      }
+
+      var rejectBtn = document.getElementById('reg-reject');
+      if (rejectBtn) {
+        rejectBtn.addEventListener('click', function() {
+          if (confirm(t('registrationsConfirmReject'))) {
+            updateRegistrationStatus(item.id, 'rejected');
+          }
+        });
+      }
+
+      var dlBtn = document.getElementById('reg-download-files');
+      if (dlBtn) {
+        dlBtn.addEventListener('click', function() {
+          downloadRegistrationFiles(item);
+        });
+      }
+
+      var pdfBtn = document.getElementById('reg-gen-pdf');
+      if (pdfBtn) {
+        pdfBtn.addEventListener('click', function() {
+          generateLizenzantrag(item);
+        });
+      }
+      var fibaBtn = document.getElementById('reg-gen-fiba');
+      if (fibaBtn) {
+        fibaBtn.addEventListener('click', function() {
+          generateFIBAPDFs(item);
+        });
+      }
+    }
+
+    async function saveRegistration(id) {
+      var saveBtn = document.getElementById('modal-save');
+      saveBtn.disabled = true;
+      saveBtn.textContent = t('saving');
+
+      var payload = {
+        vorname: document.getElementById('f-reg-vorname').value.trim(),
+        nachname: document.getElementById('f-reg-nachname').value.trim(),
+        email: document.getElementById('f-reg-email').value.trim(),
+        telefon_mobil: document.getElementById('f-reg-telefon').value.trim(),
+        adresse: document.getElementById('f-reg-adresse').value.trim(),
+        plz: document.getElementById('f-reg-plz').value.trim(),
+        ort: document.getElementById('f-reg-ort').value.trim(),
+        geburtsdatum: document.getElementById('f-reg-dob').value.trim(),
+        nationalitaet: document.getElementById('f-reg-nation').value.trim(),
+        geschlecht: document.getElementById('f-reg-gender').value.trim(),
+        team: document.getElementById('f-reg-team').value.trim(),
+        beitragskategorie: document.getElementById('f-reg-fee').value.trim(),
+        ahv_nummer: document.getElementById('f-reg-ahv').value.trim(),
+        kantonsschule: document.getElementById('f-reg-ks').value.trim(),
+        rolle: document.getElementById('f-reg-rolle').value.trim(),
+        bemerkungen: document.getElementById('f-reg-bemerkungen').value.trim(),
+      };
+
+      try {
+        var token = await getValidToken();
+        var res = await fetch(DIRECTUS_URL + '/items/registrations/' + id, {
+          method: 'PATCH',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        closeModal();
+        loadItems();
+      } catch(err) {
+        alert(t('saveError') + err.message);
+        saveBtn.disabled = false;
+        saveBtn.textContent = t('save');
+      }
+    }
+
+    async function updateRegistrationStatus(id, status) {
+      try {
+        var token = await getValidToken();
+        var payload = { status: status };
+        if (status === 'approved') {
+          payload.approved_at = new Date().toISOString();
+          var userRes = await fetch(DIRECTUS_URL + '/users/me?fields=first_name,last_name', {
+            headers: { 'Authorization': 'Bearer ' + token },
+          });
+          var user = (await userRes.json()).data;
+          payload.approved_by = user.first_name + ' ' + user.last_name;
+        }
+
+        var res = await fetch(DIRECTUS_URL + '/items/registrations/' + id, {
+          method: 'PATCH',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+
+        if (status === 'rejected') {
+          var itemRes = await fetch(DIRECTUS_URL + '/items/registrations/' + id, {
+            headers: { 'Authorization': 'Bearer ' + token },
+          });
+          var itemData = (await itemRes.json()).data;
+
+          if (itemData.id_upload_front) {
+            await fetch(DIRECTUS_URL + '/files/' + itemData.id_upload_front, {
+              method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token },
+            });
+          }
+          if (itemData.id_upload_back) {
+            await fetch(DIRECTUS_URL + '/files/' + itemData.id_upload_back, {
+              method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token },
+            });
+          }
+
+          await fetch(DIRECTUS_URL + '/items/registrations/' + id, {
+            method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token },
+          });
+        }
+
+        closeModal();
+        loadItems();
+      } catch(err) {
+        alert(t('saveError') + err.message);
+      }
+    }
+
+    async function downloadRegistrationFiles(item) {
+      var token = await getValidToken();
+      var files = [];
+      if (item.id_upload_front) files.push({ id: item.id_upload_front, name: 'ID_front' });
+      if (item.id_upload_back) files.push({ id: item.id_upload_back, name: 'ID_back' });
+
+      for (var i = 0; i < files.length; i++) {
+        var res = await fetch(DIRECTUS_URL + '/assets/' + files[i].id, {
+          headers: { 'Authorization': 'Bearer ' + token },
+        });
+        var blob = await res.blob();
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = item.nachname + '_' + item.vorname + '_' + files[i].name;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        await fetch(DIRECTUS_URL + '/files/' + files[i].id, {
+          method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token },
+        });
+      }
+
+      await fetch(DIRECTUS_URL + '/items/registrations/' + item.id, {
+        method: 'PATCH',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_upload_front: null, id_upload_back: null }),
+      });
+
+      closeModal();
+      loadItems();
+    }
+
+    function generateLizenzantrag(item) {
+      alert('PDF generation coming soon');
+    }
+
+    function generateFIBAPDFs(item) {
+      alert('FIBA PDF generation coming soon');
     }
 
     function exportCSV(items) {
