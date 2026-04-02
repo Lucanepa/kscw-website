@@ -589,18 +589,41 @@
       })
       .catch(function (err) {
         showFeedback('error', err.message || i18n.t('registrationError'));
+        if (window.turnstile && turnstileWidgetId !== null) {
+          window.turnstile.reset(turnstileWidgetId);
+        }
       })
       .finally(function () {
         setLoading(false);
       });
   });
 
-  // ── File upload (basketball) ───────────────────────────────
+  // ── File validation + upload (basketball) ──────────────────
+  var ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
+  var MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
+  function validateFile(file) {
+    if (ALLOWED_TYPES.indexOf(file.type) === -1) {
+      throw new Error(locale === 'de'
+        ? 'Ungültiger Dateityp. Erlaubt: JPG, PNG, WebP, PDF.'
+        : 'Invalid file type. Allowed: JPG, PNG, WebP, PDF.');
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      throw new Error(locale === 'de'
+        ? 'Datei zu gross (max. 10 MB).'
+        : 'File too large (max 10 MB).');
+    }
+  }
+
   function uploadIDFiles(registrationId) {
     var frontFile = document.getElementById('id-front').files[0];
     var backEl = document.getElementById('id-back');
     var backFile = backEl ? backEl.files[0] : null;
     if (!frontFile && !backFile) return Promise.resolve();
+
+    // Validate before uploading
+    if (frontFile) validateFile(frontFile);
+    if (backFile) validateFile(backFile);
 
     var uploads = [];
     if (frontFile) uploads.push(uploadSingleFile(frontFile));
@@ -644,7 +667,7 @@
     if (pdfLibLoaded) return Promise.resolve();
     return new Promise(function (resolve, reject) {
       var script = document.createElement('script');
-      script.src = 'https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js';
+      script.src = '/js/pdf-lib.min.js';
       script.onload = function () { pdfLibLoaded = true; resolve(); };
       script.onerror = reject;
       document.head.appendChild(script);

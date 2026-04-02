@@ -2,6 +2,28 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [3.2.0] — 2026-04-02
+
+### New
+- **Searchable nationality dropdown** with 5 favorites (CH, DE, FR, AT, IT) + all world countries with live search filter
+- **Phone country code selector** with all countries (default +41 CH), favorites first
+- **Basketball fee categories** populated: Aktiv Erwachsene (CHF 350), Junioren U18 (CHF 200), Passiv (CHF 50), Familie (CHF 600)
+- **Basketball licence dropdown** (OTR 1, OTR 2, OTN) — replaces old Funktion checkboxes
+- **Swiss Basketball PDF documents** section with download links: Lizenzantrag (mandatory), Player's Self Declaration + National Team Declaration (non-Swiss only, shown dynamically)
+- **PDF pre-fill** via self-hosted pdf-lib — form data auto-fills downloaded PDFs
+
+### Changed
+- Anrede field auto-derived from Geschlecht (männlich→Herr, weiblich→Frau) — dropdown removed
+- Funktion → Lizenz: Volleyball gets single "Schreiber" checkbox, Basketball gets OTR dropdown
+- Gender options capitalised (Männlich/Weiblich, Male/Female)
+- Privacy notice text justified
+- ID upload: only front side required, back side optional
+
+### Security
+- Self-hosted pdf-lib (was unpkg CDN without SRI)
+- Client-side file type + size validation before upload (JPG/PNG/WebP/PDF, max 10 MB)
+- Turnstile CAPTCHA token reset on failed submission (previously stuck on retry)
+
 ## [3.1.0] — 2026-04-01
 
 ### New
