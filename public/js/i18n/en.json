@@ -371,5 +371,16 @@
   "registrationValidationEmail": "Please enter a valid email address.",
   "registrationValidationCaptcha": "Please confirm that you are not a robot.",
   "registrationValidationConsent": "Please accept the privacy policy.",
-  "registrationValidationID": "Please upload the front and back of your ID."
+  "registrationValidationID": "Please upload the front and back of your ID.",
+  "newsletterTitle": "Subscribe to Newsletter",
+  "newsletterText": "Get a monthly summary of the latest news, game results, and upcoming events.",
+  "newsletterEmail": "Email address",
+  "newsletterCategories": "Categories",
+  "newsletterSubscribe": "Subscribe",
+  "newsletterRss": "or subscribe via RSS",
+  "newsletterSuccess": "Almost there! Please confirm your subscription via the link in the email.",
+  "newsletterAlreadySubscribed": "This email is already registered.",
+  "newsletterError": "Something went wrong. Please try again.",
+  "newsletterVerified": "Subscription confirmed! You'll receive the newsletter starting next month.",
+  "newsletterUnsubscribed": "You have been successfully unsubscribed."
 }

@@ -372,5 +372,16 @@
   "registrationValidationEmail": "Bitte gib eine gültige E-Mail-Adresse ein.",
   "registrationValidationCaptcha": "Bitte bestätige, dass du kein Roboter bist.",
   "registrationValidationConsent": "Bitte akzeptiere die Datenschutzerklärung.",
-  "registrationValidationID": "Bitte lade Vorder- und Rückseite deines Ausweises hoch."
+  "registrationValidationID": "Bitte lade Vorder- und Rückseite deines Ausweises hoch.",
+  "newsletterTitle": "Newsletter abonnieren",
+  "newsletterText": "Erhalte jeden Monat eine Zusammenfassung der neuesten News, Spielresultate und kommenden Events.",
+  "newsletterEmail": "E-Mail-Adresse",
+  "newsletterCategories": "Kategorien",
+  "newsletterSubscribe": "Abonnieren",
+  "newsletterRss": "oder per RSS abonnieren",
+  "newsletterSuccess": "Fast geschafft! Bitte bestätige dein Abo über den Link in der E-Mail.",
+  "newsletterAlreadySubscribed": "Diese E-Mail ist bereits registriert.",
+  "newsletterError": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+  "newsletterVerified": "Abo bestätigt! Du erhältst ab nächstem Monat den Newsletter.",
+  "newsletterUnsubscribed": "Du wurdest erfolgreich abgemeldet."
 }

@@ -555,5 +555,16 @@
   "registrationVBFeeTournament": "VB Lernende/Studi Meisterschaft (CHF 210)",
   "registrationVBFeeHighSchool": "VB Schüler*in Meisterschaft (CHF 310)",
   "registrationVBFeeStudent": "VB Student*in Meisterschaft (CHF 380)",
-  "registrationVBFeeWorking": "VB Erwerbstätige (CHF 440)"
+  "registrationVBFeeWorking": "VB Erwerbstätige (CHF 440)",
+  "newsletterTitle": "Newsletter abonnieren",
+  "newsletterText": "Erhalte jeden Monat eine Zusammenfassung der neuesten News, Spielresultate und kommenden Events.",
+  "newsletterEmail": "E-Mail-Adresse",
+  "newsletterCategories": "Kategorien",
+  "newsletterSubscribe": "Abonnieren",
+  "newsletterRss": "oder per RSS abonnieren",
+  "newsletterSuccess": "Fast geschafft! Bitte bestätige dein Abo über den Link in der E-Mail.",
+  "newsletterAlreadySubscribed": "Diese E-Mail ist bereits registriert.",
+  "newsletterError": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+  "newsletterVerified": "Abo bestätigt! Du erhältst ab nächstem Monat den Newsletter.",
+  "newsletterUnsubscribed": "Du wurdest erfolgreich abgemeldet."
 }
