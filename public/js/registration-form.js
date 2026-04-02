@@ -328,13 +328,13 @@
     var phoneSelect = document.createElement('select');
     phoneSelect.className = 'form-select';
     phoneSelect.id = 'phone-country';
-    phoneSelect.style.cssText = 'width: auto; min-width: 100px; border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: none; flex-shrink: 0;';
+    phoneSelect.style.cssText = 'width: auto; border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: none; flex-shrink: 0; padding-right: 1.5rem;';
 
-    // Build phone options: favorites first, then rest
+    // Build phone options: dial code only, favorites first, then rest
     function addPhoneOpt(c) {
       var opt = document.createElement('option');
       opt.value = c.dial;
-      opt.textContent = c.dial + ' ' + countryName(c);
+      opt.textContent = c.dial;
       opt.dataset.code = c.code;
       phoneSelect.appendChild(opt);
     }
