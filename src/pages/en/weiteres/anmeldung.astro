@@ -116,10 +116,8 @@ const locale = 'en';
           <input type="hidden" id="anrede" name="anrede">
 
           <div class="form-group">
-            <label for="vb-team">{t(locale, 'registrationTeam')} *</label>
-            <select id="vb-team" name="vb_team" class="form-select" data-conditional-required>
-              <option value="" disabled selected>{t(locale, 'registrationTeamPlaceholder')}</option>
-            </select>
+            <label>{t(locale, 'registrationTeam')} *</label>
+            <div id="vb-team" class="team-checkbox-group" data-conditional-required></div>
           </div>
 
           <div class="form-group">
@@ -134,9 +132,9 @@ const locale = 'en';
             </select>
           </div>
 
-          <div class="form-group">
-            <label for="vb-ahv">{t(locale, 'registrationAHV')} *</label>
-            <input type="text" id="vb-ahv" name="vb_ahv" class="form-input" data-conditional-required>
+          <div class="form-group" id="vb-ahv-group">
+            <label for="vb-ahv">{t(locale, 'registrationAHV')} <span id="vb-ahv-star">*</span></label>
+            <input type="text" id="vb-ahv" name="vb_ahv" class="form-input">
             <small style="color: var(--text-secondary);">{t(locale, 'registrationAHVNote')}</small>
           </div>
 
@@ -183,10 +181,8 @@ const locale = 'en';
         <!-- ═══ BASKETBALL-ONLY FIELDS ═══ -->
         <div id="bb-fields" style="display: none;">
           <div class="form-group">
-            <label for="bb-team">{t(locale, 'registrationTeam')} *</label>
-            <select id="bb-team" name="bb_team" class="form-select" data-conditional-required>
-              <option value="" disabled selected>{t(locale, 'registrationTeamPlaceholder')}</option>
-            </select>
+            <label>{t(locale, 'registrationTeam')} *</label>
+            <div id="bb-team" class="team-checkbox-group" data-conditional-required></div>
           </div>
 
           <div class="form-group">
@@ -200,9 +196,9 @@ const locale = 'en';
             </select>
           </div>
 
-          <div class="form-group">
-            <label for="bb-ahv">{t(locale, 'registrationAHV')} *</label>
-            <input type="text" id="bb-ahv" name="bb_ahv" class="form-input" data-conditional-required>
+          <div class="form-group" id="bb-ahv-group">
+            <label for="bb-ahv">{t(locale, 'registrationAHV')} <span id="bb-ahv-star">*</span></label>
+            <input type="text" id="bb-ahv" name="bb_ahv" class="form-input">
             <small style="color: var(--text-secondary);">{t(locale, 'registrationAHVNote')}</small>
           </div>
 
@@ -217,14 +213,32 @@ const locale = 'en';
           </div>
 
           <div class="form-group">
-            <label for="bb-lizenz">{t(locale, 'registrationLicence')} *</label>
-            <select id="bb-lizenz" name="bb_lizenz" class="form-select" data-conditional-required>
-              <option value="" disabled selected>{t(locale, 'registrationLicenceBBPlaceholder')}</option>
-              <option value="OTR 1">{t(locale, 'registrationLicenceOTR1')}</option>
-              <option value="OTR 2">{t(locale, 'registrationLicenceOTR2')}</option>
-              <option value="OTN">{t(locale, 'registrationLicenceOTN')}</option>
-              <option value="Schiedsrichter">{t(locale, 'registrationLicenceSchiedsrichter')}</option>
-            </select>
+            <label>{t(locale, 'registrationLicenceBBScorer')}</label>
+            <div style="display: flex; gap: var(--space-lg); flex-wrap: wrap; margin-top: var(--space-xs);">
+              <label class="radio-card">
+                <input type="radio" name="bb_scorer_licence" value="">
+                <span>{t(locale, 'registrationLicenceNone')}</span>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="bb_scorer_licence" value="OTR 1">
+                <span>{t(locale, 'registrationLicenceOTR1')}</span>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="bb_scorer_licence" value="OTR 2">
+                <span>{t(locale, 'registrationLicenceOTR2')}</span>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="bb_scorer_licence" value="OTN">
+                <span>{t(locale, 'registrationLicenceOTN')}</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
+              <input type="checkbox" name="bb_referee" value="Schiedsrichter" id="bb-ref-check">
+              <span style="font-weight: 600;">{t(locale, 'registrationLicenceBBReferee')}</span>
+            </label>
           </div>
 
           <div class="form-group">
@@ -493,6 +507,9 @@ const locale = 'en';
     cursor: pointer;
     text-align: left;
     appearance: none;
+    font-family: inherit;
+    font-size: var(--text-base);
+    color: var(--text-primary);
   }
   .nationality-trigger svg {
     flex-shrink: 0;
@@ -551,6 +568,13 @@ const locale = 'en';
     border: none;
     border-top: 1px solid var(--border);
     margin: 0;
+  }
+  /* Team checkbox group */
+  .team-checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-top: var(--space-xs);
   }
   /* BB docs download list */
   .bb-docs-list {

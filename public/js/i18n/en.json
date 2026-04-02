@@ -372,6 +372,7 @@
   "registrationValidationCaptcha": "Please confirm that you are not a robot.",
   "registrationValidationConsent": "Please accept the privacy policy.",
   "registrationValidationID": "Please upload the front and back of your ID.",
+  "registrationValidationTeam": "Please select at least one team.",
   "newsletterTitle": "Subscribe to Newsletter",
   "newsletterText": "Get a monthly summary of the latest news, game results, and upcoming events.",
   "newsletterEmail": "Email address",

@@ -393,6 +393,37 @@
   setupRefToggle('vb-ref-check', 'vb-ref-level-group', 'vb-ref-level');
   setupRefToggle('passive-vb-ref-check', 'passive-vb-ref-level-group', 'passive-vb-ref-level');
 
+  // ── Age-based AHV required logic ───────────────────────────
+  // AHV is only mandatory if member is under 25 at registration time
+  var dobInput = document.getElementById('geburtsdatum');
+
+  function isUnder25(dobStr) {
+    if (!dobStr) return false;
+    var dob = new Date(dobStr);
+    var today = new Date();
+    var age = today.getFullYear() - dob.getFullYear();
+    var m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+    return age < 25;
+  }
+
+  function updateAhvRequired() {
+    var under25 = isUnder25(dobInput ? dobInput.value : '');
+    var vbAhv = document.getElementById('vb-ahv');
+    var bbAhv = document.getElementById('bb-ahv');
+    var vbStar = document.getElementById('vb-ahv-star');
+    var bbStar = document.getElementById('bb-ahv-star');
+    if (vbAhv) { if (under25) vbAhv.setAttribute('required', ''); else vbAhv.removeAttribute('required'); }
+    if (bbAhv) { if (under25) bbAhv.setAttribute('required', ''); else bbAhv.removeAttribute('required'); }
+    if (vbStar) vbStar.style.display = under25 ? '' : 'none';
+    if (bbStar) bbStar.style.display = under25 ? '' : 'none';
+  }
+
+  if (dobInput) {
+    dobInput.addEventListener('change', updateAhvRequired);
+    updateAhvRequired();
+  }
+
   // ── Membership type switching ─────────────────────────────
   var typeRadios = form.querySelectorAll('input[name="membership_type"]');
 
@@ -408,6 +439,9 @@
     // Toggle required attributes based on type
     toggleRequired(vbFields, type === 'volleyball');
     toggleRequired(bbFields, type === 'basketball');
+
+    // AHV required only if under 25 (override the conditional-required)
+    updateAhvRequired();
 
     // Fetch teams for selected sport
     if (type === 'volleyball' || type === 'basketball') {
@@ -457,12 +491,12 @@
   var teamCache = {};
 
   function fetchTeams(sport) {
-    var selectId = sport === 'volleyball' ? 'vb-team' : 'bb-team';
-    var teamSelect = document.getElementById(selectId);
-    if (!teamSelect) return;
+    var containerId = sport === 'volleyball' ? 'vb-team' : 'bb-team';
+    var container = document.getElementById(containerId);
+    if (!container) return;
 
     if (teamCache[sport]) {
-      populateTeams(teamSelect, teamCache[sport]);
+      populateTeams(container, teamCache[sport]);
       return;
     }
 
@@ -472,18 +506,26 @@
       .then(function (data) {
         var teams = (data && data.data) ? data.data : [];
         teamCache[sport] = teams;
-        populateTeams(teamSelect, teams);
+        populateTeams(container, teams);
       })
       .catch(function () { /* silent */ });
   }
 
-  function populateTeams(select, teams) {
-    while (select.options.length > 1) select.remove(1);
+  function populateTeams(container, teams) {
+    container.innerHTML = '';
+    var sport = container.id === 'vb-team' ? 'vb' : 'bb';
     for (var i = 0; i < teams.length; i++) {
-      var opt = document.createElement('option');
-      opt.value = teams[i].name;
-      opt.textContent = teams[i].name + (teams[i].league ? ' — ' + teams[i].league : '');
-      select.appendChild(opt);
+      var label = document.createElement('label');
+      label.style.cssText = 'display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;';
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.name = 'team_' + sport;
+      cb.value = teams[i].name;
+      var span = document.createElement('span');
+      span.textContent = teams[i].name + (teams[i].league ? ' — ' + teams[i].league : '');
+      label.appendChild(cb);
+      label.appendChild(span);
+      container.appendChild(label);
     }
   }
 
@@ -535,6 +577,15 @@
       }
     }
 
+    // Validate at least one team selected (VB or BB)
+    if (type === 'volleyball' || type === 'basketball') {
+      var teamName = type === 'volleyball' ? 'team_vb' : 'team_bb';
+      var checked = form.querySelectorAll('input[name="' + teamName + '"]:checked');
+      if (!checked.length) {
+        return showFeedback('error', i18n.t('registrationValidationTeam'));
+      }
+    }
+
     setLoading(true);
 
     // Build full phone number with country code
@@ -561,7 +612,9 @@
 
     if (type === 'volleyball') {
       payload.anrede = anredeHidden ? anredeHidden.value : '';
-      payload.team = val('vb-team');
+      var vbTeams = [];
+      form.querySelectorAll('input[name="team_vb"]:checked').forEach(function (cb) { vbTeams.push(cb.value); });
+      payload.team = vbTeams.join(', ');
       payload.beitragskategorie = val('vb-fee');
       payload.ahv_nummer = val('vb-ahv');
       payload.kantonsschule = val('kantonsschule-vb');
@@ -578,13 +631,20 @@
     }
 
     if (type === 'basketball') {
-      payload.team = val('bb-team');
+      var bbTeams = [];
+      form.querySelectorAll('input[name="team_bb"]:checked').forEach(function (cb) { bbTeams.push(cb.value); });
+      payload.team = bbTeams.join(', ');
       payload.beitragskategorie = val('bb-fee');
       payload.ahv_nummer = val('bb-ahv');
       payload.kantonsschule = val('kantonsschule-bb');
-      var bbLiz = val('bb-lizenz');
-      payload.lizenz = bbLiz;
-      payload.rolle = bbLiz;
+      // BB licence: scorer (radio, single choice) + referee (checkbox, combinable)
+      var bbLicParts = [];
+      var scorerRadio = form.querySelector('input[name="bb_scorer_licence"]:checked');
+      if (scorerRadio && scorerRadio.value) bbLicParts.push(scorerRadio.value);
+      var refCheck = document.getElementById('bb-ref-check');
+      if (refCheck && refCheck.checked) bbLicParts.push('Schiedsrichter');
+      payload.lizenz = bbLicParts.join(', ') || '';
+      payload.rolle = payload.lizenz;
     }
 
     if (type === 'passive') {

@@ -373,6 +373,7 @@
   "registrationValidationCaptcha": "Bitte bestätige, dass du kein Roboter bist.",
   "registrationValidationConsent": "Bitte akzeptiere die Datenschutzerklärung.",
   "registrationValidationID": "Bitte lade Vorder- und Rückseite deines Ausweises hoch.",
+  "registrationValidationTeam": "Bitte wähle mindestens ein Team aus.",
   "newsletterTitle": "Newsletter abonnieren",
   "newsletterText": "Erhalte jeden Monat eine Zusammenfassung der neuesten News, Spielresultate und kommenden Events.",
   "newsletterEmail": "E-Mail-Adresse",
