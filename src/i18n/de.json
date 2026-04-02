@@ -526,7 +526,7 @@
   "registrationBBFeePassive": "Passiv (CHF 50)",
   "registrationBBFeeFamily": "Familie (CHF 600)",
   "registrationIDUpload": "Vorder- und Rückseite von Identitätskarte oder Pass (Bild/PDF)",
-  "registrationIDUploadNote": "Achtung, Ausländerausweis geht nicht!",
+  "registrationIDUploadNote": "Achtung, Ausländerausweis geht nicht! Erlaubte Formate: JPG, PNG, WebP, PDF (max. 10 MB).",
   "registrationIDFront": "Vorderseite",
   "registrationIDBack": "Rückseite (optional)",
   "registrationBBDocs": "Dokumente für Swiss Basketball",

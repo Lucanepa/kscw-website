@@ -526,7 +526,7 @@
   "registrationBBFeePassive": "Passive (CHF 50)",
   "registrationBBFeeFamily": "Family (CHF 600)",
   "registrationIDUpload": "Front and back of identity card or passport (image/PDF)",
-  "registrationIDUploadNote": "Note: foreign residence permits are not accepted!",
+  "registrationIDUploadNote": "Note: foreign residence permits are not accepted! Allowed formats: JPG, PNG, WebP, PDF (max. 10 MB).",
   "registrationIDFront": "Front Side",
   "registrationIDBack": "Back Side (optional)",
   "registrationBBDocs": "Documents for Swiss Basketball",
