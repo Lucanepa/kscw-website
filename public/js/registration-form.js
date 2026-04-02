@@ -1085,9 +1085,9 @@
             try { f.getTextField('Date of birth Date de Naissance Geburtsdatum').setText(dp[2] + '.' + dp[1] + '.' + dp[0]); } catch(e) {}
           }
           // Text1/2/3 = "National Team of ..." blanks in EN/FR/DE paragraphs
-          try { f.getTextField('Text1').setText(d.nationalitaet); } catch(e) {}
-          try { f.getTextField('Text2').setText(d.nationalitaet); } catch(e) {}
-          try { f.getTextField('Text3').setText(d.nationalitaet); } catch(e) {}
+          try { f.getTextField('Text1').setText('Switzerland'); } catch(e) {}
+          try { f.getTextField('Text2').setText('Suisse'); } catch(e) {}
+          try { f.getTextField('Text3').setText('Schweiz'); } catch(e) {}
           // Date
           try { f.getTextField('Date Date Datum').setText(todayDDMMYYYY()); } catch(e) {}
         } catch (ex) {}
