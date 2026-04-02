@@ -992,6 +992,8 @@
       formData._font = ctx.font;
       formData._fontSize = 10;
       fillFn(ctx.pdfDoc, formData);
+      // Mark appearances as up-to-date so viewers show our rendered text
+      ctx.pdfDoc.getForm().acroForm.dict.set(PDFLib.PDFName.of('NeedAppearances'), PDFLib.PDFBool.False);
       return ctx.pdfDoc.save();
     }).then(function (pdfBytes) {
       var blob = new Blob([pdfBytes], { type: 'application/pdf' });
