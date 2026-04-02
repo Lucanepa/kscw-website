@@ -937,14 +937,7 @@
     return new Promise(function (resolve, reject) {
       var script = document.createElement('script');
       script.src = '/js/pdf-lib.min.js';
-      script.onload = function () {
-        // Load fontkit for custom font embedding
-        var fk = document.createElement('script');
-        fk.src = '/js/fontkit.min.js';
-        fk.onload = function () { pdfLibLoaded = true; resolve(); };
-        fk.onerror = function () { pdfLibLoaded = true; resolve(); }; // proceed without fontkit
-        document.head.appendChild(fk);
-      };
+      script.onload = function () { pdfLibLoaded = true; resolve(); };
       script.onerror = reject;
       document.head.appendChild(script);
     });
@@ -965,25 +958,12 @@
     };
   }
 
-  var interFontBytes = null;
-
-  function loadInterFont() {
-    if (interFontBytes) return Promise.resolve(interFontBytes);
-    return fetch('/fonts/InterDisplay-Regular.otf')
-      .then(function (r) { return r.arrayBuffer(); })
-      .then(function (bytes) { interFontBytes = bytes; return bytes; });
-  }
-
   function downloadPrefilled(pdfUrl, filename, fillFn) {
     loadPdfLib().then(function () {
-      return Promise.all([
-        fetch(pdfUrl).then(function (r) { return r.arrayBuffer(); }),
-        loadInterFont()
-      ]);
-    }).then(function (results) {
-      return PDFLib.PDFDocument.load(results[0], { ignoreEncryption: true }).then(function (pdfDoc) {
-        if (window.fontkit) pdfDoc.registerFontkit(window.fontkit);
-        return pdfDoc.embedFont(results[1], { subset: true }).then(function (font) {
+      return fetch(pdfUrl).then(function (r) { return r.arrayBuffer(); });
+    }).then(function (pdfBytes) {
+      return PDFLib.PDFDocument.load(pdfBytes, { ignoreEncryption: true }).then(function (pdfDoc) {
+        return pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica).then(function (font) {
           return { pdfDoc: pdfDoc, font: font };
         });
       });
@@ -992,8 +972,6 @@
       formData._font = ctx.font;
       formData._fontSize = 10;
       fillFn(ctx.pdfDoc, formData);
-      // Mark appearances as up-to-date so viewers show our rendered text
-      ctx.pdfDoc.getForm().acroForm.dict.set(PDFLib.PDFName.of('NeedAppearances'), PDFLib.PDFBool.False);
       return ctx.pdfDoc.save();
     }).then(function (pdfBytes) {
       var blob = new Blob([pdfBytes], { type: 'application/pdf' });
@@ -1016,13 +994,13 @@
       String(d.getMonth() + 1).padStart(2, '0') + '.' + d.getFullYear();
   }
 
-  // Helper: set text field with Inter Display font at smaller size
+  // Helper: set text field with font at smaller size
   function setField(form, fieldName, value, font, fontSize) {
     try {
       var field = form.getTextField(fieldName);
       field.setText(value);
       field.setFontSize(fontSize);
-      field.updateAppearances(font);
+      if (font) field.updateAppearances(font);
     } catch (e) { /* field not found or read-only */ }
   }
 
