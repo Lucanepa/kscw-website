@@ -546,8 +546,11 @@
       payload.beitragskategorie = val('vb-fee');
       payload.ahv_nummer = val('vb-ahv');
       payload.kantonsschule = val('kantonsschule-vb');
-      var lizenzVb = form.querySelector('input[name="lizenz_vb"]:checked');
-      if (lizenzVb) payload.lizenz = lizenzVb.value;
+      var lizenzVbChecked = [];
+      form.querySelectorAll('input[name="lizenz_vb"]:checked').forEach(function (cb) {
+        lizenzVbChecked.push(cb.value);
+      });
+      if (lizenzVbChecked.length) payload.lizenz = lizenzVbChecked.join(', ');
     }
 
     if (type === 'basketball') {

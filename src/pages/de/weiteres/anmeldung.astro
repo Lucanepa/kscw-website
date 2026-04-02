@@ -152,10 +152,16 @@ const locale = 'de';
 
           <div class="form-group">
             <label>{t(locale, 'registrationLicence')}</label>
-            <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal; margin-top: var(--space-xs);">
-              <input type="checkbox" name="lizenz_vb" value="Schreiber">
-              <span>{t(locale, 'registrationLicenceSchreiber')}</span>
-            </label>
+            <div style="display: flex; gap: var(--space-lg); flex-wrap: wrap; margin-top: var(--space-xs);">
+              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
+                <input type="checkbox" name="lizenz_vb" value="Schreiber">
+                <span>{t(locale, 'registrationLicenceSchreiber')}</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
+                <input type="checkbox" name="lizenz_vb" value="Schiedsrichter">
+                <span>{t(locale, 'registrationLicenceSchiedsrichter')}</span>
+              </label>
+            </div>
           </div>
         </div>
 
@@ -202,6 +208,7 @@ const locale = 'de';
               <option value="OTR 1">{t(locale, 'registrationLicenceOTR1')}</option>
               <option value="OTR 2">{t(locale, 'registrationLicenceOTR2')}</option>
               <option value="OTN">{t(locale, 'registrationLicenceOTN')}</option>
+              <option value="Schiedsrichter">{t(locale, 'registrationLicenceSchiedsrichter')}</option>
             </select>
           </div>
 
