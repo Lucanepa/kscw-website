@@ -937,7 +937,14 @@
     return new Promise(function (resolve, reject) {
       var script = document.createElement('script');
       script.src = '/js/pdf-lib.min.js';
-      script.onload = function () { pdfLibLoaded = true; resolve(); };
+      script.onload = function () {
+        // Load fontkit for custom font embedding
+        var fk = document.createElement('script');
+        fk.src = '/js/fontkit.min.js';
+        fk.onload = function () { pdfLibLoaded = true; resolve(); };
+        fk.onerror = function () { pdfLibLoaded = true; resolve(); }; // proceed without fontkit
+        document.head.appendChild(fk);
+      };
       script.onerror = reject;
       document.head.appendChild(script);
     });
@@ -958,15 +965,34 @@
     };
   }
 
+  var interFontBytes = null;
+
+  function loadInterFont() {
+    if (interFontBytes) return Promise.resolve(interFontBytes);
+    return fetch('/fonts/InterDisplay-Regular.otf')
+      .then(function (r) { return r.arrayBuffer(); })
+      .then(function (bytes) { interFontBytes = bytes; return bytes; });
+  }
+
   function downloadPrefilled(pdfUrl, filename, fillFn) {
     loadPdfLib().then(function () {
-      return fetch(pdfUrl).then(function (r) { return r.arrayBuffer(); });
-    }).then(function (bytes) {
-      return PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
-    }).then(function (pdfDoc) {
+      return Promise.all([
+        fetch(pdfUrl).then(function (r) { return r.arrayBuffer(); }),
+        loadInterFont()
+      ]);
+    }).then(function (results) {
+      return PDFLib.PDFDocument.load(results[0], { ignoreEncryption: true }).then(function (pdfDoc) {
+        if (window.fontkit) pdfDoc.registerFontkit(window.fontkit);
+        return pdfDoc.embedFont(results[1], { subset: true }).then(function (font) {
+          return { pdfDoc: pdfDoc, font: font };
+        });
+      });
+    }).then(function (ctx) {
       var formData = getFormValues();
-      fillFn(pdfDoc, formData);
-      return pdfDoc.save();
+      formData._font = ctx.font;
+      formData._fontSize = 10;
+      fillFn(ctx.pdfDoc, formData);
+      return ctx.pdfDoc.save();
     }).then(function (pdfBytes) {
       var blob = new Blob([pdfBytes], { type: 'application/pdf' });
       var url = URL.createObjectURL(blob);
@@ -988,6 +1014,16 @@
       String(d.getMonth() + 1).padStart(2, '0') + '.' + d.getFullYear();
   }
 
+  // Helper: set text field with Inter Display font at smaller size
+  function setField(form, fieldName, value, font, fontSize) {
+    try {
+      var field = form.getTextField(fieldName);
+      field.setText(value);
+      field.setFontSize(fontSize);
+      field.updateAppearances(font);
+    } catch (e) { /* field not found or read-only */ }
+  }
+
   // Lizenzantrag pre-fill (Swiss Basketball — exact field names from PDF)
   var lizenzLink = document.getElementById('bb-doc-lizenz');
   if (lizenzLink) {
@@ -995,44 +1031,39 @@
       e.preventDefault();
       downloadPrefilled('/docs/lizenzantrag-swiss-basketball.pdf', 'lizenzantrag.pdf', function (pdfDoc, d) {
         var f = pdfDoc.getForm();
+        var font = d._font; var sz = d._fontSize;
         try {
-          // Text fields: undefined=Klub, _2=Name, _3=Vorname, _4=Strasse, _5=PLZ, _6=Ort, _7=Email
-          try { f.getTextField('undefined').setText('KSC Wiedikon'); } catch(e) {}
-          try { f.getTextField('undefined_2').setText(d.nachname); } catch(e) {}
-          try { f.getTextField('undefined_3').setText(d.vorname); } catch(e) {}
-          try { f.getTextField('undefined_4').setText(d.adresse); } catch(e) {}
-          try { f.getTextField('undefined_5').setText(d.plz || ''); } catch(e) {}
-          try { f.getTextField('undefined_6').setText(d.ort || ''); } catch(e) {}
-          try { f.getTextField('undefined_7').setText(d.email); } catch(e) {}
+          setField(f, 'undefined', 'KSC Wiedikon', font, sz);
+          setField(f, 'undefined_2', d.nachname, font, sz);
+          setField(f, 'undefined_3', d.vorname, font, sz);
+          setField(f, 'undefined_4', d.adresse, font, sz);
+          setField(f, 'undefined_5', d.plz || '', font, sz);
+          setField(f, 'undefined_6', d.ort || '', font, sz);
+          setField(f, 'undefined_7', d.email, font, sz);
 
-          // Geburtsdatum: Tag, Monat, Jahr
           if (d.geburtsdatum) {
             var dp = d.geburtsdatum.split('-');
-            try { f.getTextField('Tag').setText(dp[2] || ''); } catch(e) {}
-            try { f.getTextField('Monat').setText(dp[1] || ''); } catch(e) {}
-            try { f.getTextField('Jahr').setText(dp[0] || ''); } catch(e) {}
+            setField(f, 'Tag', dp[2] || '', font, sz);
+            setField(f, 'Monat', dp[1] || '', font, sz);
+            setField(f, 'Jahr', dp[0] || '', font, sz);
           }
 
-          // Gender checkboxes
           if (d.geschlecht === 'männlich') { try { f.getCheckBox('Mann').check(); } catch(e) {} }
           if (d.geschlecht === 'weiblich') { try { f.getCheckBox('Frau').check(); } catch(e) {} }
 
-          // Nationality
           if (d.nationalitaet === 'Schweiz') {
             try { f.getCheckBox('Schweiz').check(); } catch(e) {}
           } else if (d.nationalitaet) {
             try { f.getCheckBox('Andere').check(); } catch(e) {}
-            try { f.getTextField('KOPIE DES PASSES ODER DER ID BEILAGEN').setText(d.nationalitaet); } catch(e) {}
+            setField(f, 'KOPIE DES PASSES ODER DER ID BEILAGEN', d.nationalitaet, font, sz);
           }
 
-          // New member checkbox
           try { f.getCheckBox('Neues Mitglied Swiss Basketball').check(); } catch(e) {}
 
-          // Date fields (3 signature date fields)
           var today = todayDDMMYYYY();
-          try { f.getTextField('Datum').setText(today); } catch(e) {}
-          try { f.getTextField('Datum_2').setText(today); } catch(e) {}
-          try { f.getTextField('Datum_3').setText(today); } catch(e) {}
+          setField(f, 'Datum', today, font, sz);
+          setField(f, 'Datum_2', today, font, sz);
+          setField(f, 'Datum_3', today, font, sz);
         } catch (ex) { /* fallback: download blank */ }
       });
     });
@@ -1045,22 +1076,21 @@
       e.preventDefault();
       downloadPrefilled('/docs/player-self-declaration-fiba.pdf', 'player-self-declaration.pdf', function (pdfDoc, d) {
         var f = pdfDoc.getForm();
+        var font = d._font; var sz = d._fontSize;
         try {
-          try { f.getTextField('Last Name').setText(d.nachname); } catch(e) {}
-          try { f.getTextField('First Name').setText(d.vorname); } catch(e) {}
-          try { f.getTextField('Nationality').setText(d.nationalitaet); } catch(e) {}
-          try { f.getTextField('Current Club').setText('KSC Wiedikon'); } catch(e) {}
-          try { f.getTextField('Season').setText('2025/2026'); } catch(e) {}
-          // DOB: Text1.0.0=Day, Text1.0.1=Month, Text1.1.1=Year
+          setField(f, 'Last Name', d.nachname, font, sz);
+          setField(f, 'First Name', d.vorname, font, sz);
+          setField(f, 'Nationality', d.nationalitaet, font, sz);
+          setField(f, 'Current Club', 'KSC Wiedikon', font, sz);
+          setField(f, 'Season', '2025/2026', font, sz);
           if (d.geburtsdatum) {
             var dp = d.geburtsdatum.split('-');
-            try { f.getTextField('Text1.0.0').setText(dp[2] || ''); } catch(e) {}
-            try { f.getTextField('Text1.0.1').setText(dp[1] || ''); } catch(e) {}
-            try { f.getTextField('Text1.1.1').setText(dp[0] || ''); } catch(e) {}
+            setField(f, 'Text1.0.0', dp[2] || '', font, sz);
+            setField(f, 'Text1.0.1', dp[1] || '', font, sz);
+            setField(f, 'Text1.1.1', dp[0] || '', font, sz);
           }
-          // Text2 = Player's Name (bottom), Text3 = Date (bottom)
-          try { f.getTextField('Text2').setText(d.vorname + ' ' + d.nachname); } catch(e) {}
-          try { f.getTextField('Text3').setText(todayDDMMYYYY()); } catch(e) {}
+          setField(f, 'Text2', d.vorname + ' ' + d.nachname, font, sz);
+          setField(f, 'Text3', todayDDMMYYYY(), font, sz);
         } catch (ex) {}
       });
     });
@@ -1073,23 +1103,22 @@
       e.preventDefault();
       downloadPrefilled('/docs/national-team-declaration-fiba.pdf', 'national-team-declaration.pdf', function (pdfDoc, d) {
         var f = pdfDoc.getForm();
+        var font = d._font; var sz = d._fontSize;
         try {
-          try { f.getTextField('Last Name Nom Nachname').setText(d.nachname); } catch(e) {}
-          try { f.getTextField('First Name Prénom Vorname').setText(d.vorname); } catch(e) {}
-          try { f.getTextField('Nationality Nationalité Nationalität').setText(d.nationalitaet); } catch(e) {}
-          try { f.getTextField('Player Joueureuse Spielerin').setText(d.vorname + ' ' + d.nachname); } catch(e) {}
-          try { f.getTextField('New Club Nouveau club Neuer Club').setText('KSC Wiedikon'); } catch(e) {}
-          try { f.getTextField('National Federation Fédération nationale').setText('Swiss Basketball'); } catch(e) {}
+          setField(f, 'Last Name Nom Nachname', d.nachname, font, sz);
+          setField(f, 'First Name Prénom Vorname', d.vorname, font, sz);
+          setField(f, 'Nationality Nationalité Nationalität', d.nationalitaet, font, sz);
+          setField(f, 'Player Joueureuse Spielerin', d.vorname + ' ' + d.nachname, font, sz);
+          setField(f, 'New Club Nouveau club Neuer Club', 'KSC Wiedikon', font, sz);
+          setField(f, 'National Federation Fédération nationale', 'Swiss Basketball', font, sz);
           if (d.geburtsdatum) {
             var dp = d.geburtsdatum.split('-');
-            try { f.getTextField('Date of birth Date de Naissance Geburtsdatum').setText(dp[2] + '.' + dp[1] + '.' + dp[0]); } catch(e) {}
+            setField(f, 'Date of birth Date de Naissance Geburtsdatum', dp[2] + '.' + dp[1] + '.' + dp[0], font, sz);
           }
-          // Text1/2/3 = "National Team of ..." blanks in EN/FR/DE paragraphs
-          try { f.getTextField('Text1').setText('Switzerland'); } catch(e) {}
-          try { f.getTextField('Text2').setText('Suisse'); } catch(e) {}
-          try { f.getTextField('Text3').setText('Schweiz'); } catch(e) {}
-          // Date
-          try { f.getTextField('Date Date Datum').setText(todayDDMMYYYY()); } catch(e) {}
+          setField(f, 'Text1', 'Switzerland', font, sz);
+          setField(f, 'Text2', 'Suisse', font, sz);
+          setField(f, 'Text3', 'Schweiz', font, sz);
+          setField(f, 'Date Date Datum', todayDDMMYYYY(), font, sz);
         } catch (ex) {}
       });
     });
