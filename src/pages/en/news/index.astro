@@ -28,6 +28,38 @@ const locale = 'en';
     </div>
   </section>
 
+  <!-- Newsletter Subscribe -->
+  <section class="section-alt">
+    <div class="container" style="max-width: 560px;">
+      <div class="newsletter-section">
+        <h2>{t(locale, 'newsletterTitle')}</h2>
+        <p>{t(locale, 'newsletterText')}</p>
+        <form id="newsletter-form">
+          <div class="form-group">
+            <input type="email" id="nl-email" class="form-input" placeholder={t(locale, 'newsletterEmail')} required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">{t(locale, 'newsletterCategories')}</label>
+            <div class="nl-categories">
+              <label class="nl-cat-option"><input type="checkbox" name="nl-category" value="volleyball" checked> Volleyball</label>
+              <label class="nl-cat-option"><input type="checkbox" name="nl-category" value="basketball" checked> Basketball</label>
+              <label class="nl-cat-option"><input type="checkbox" name="nl-category" value="club" checked> Club</label>
+            </div>
+          </div>
+          <div id="nl-turnstile" style="margin-bottom: var(--space-sm);"></div>
+          <button type="submit" class="btn btn-gold form-submit">{t(locale, 'newsletterSubscribe')}</button>
+          <div id="nl-feedback" class="form-feedback" style="display:none;"></div>
+        </form>
+        <p class="text-sm text-muted mt-md">
+          <a href="/feed.xml" style="color: var(--text-muted);">{t(locale, 'newsletterRss')}</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script is:inline src="/js/newsletter-form.js"></script>
+
   <script is:inline src="/js/news-modal.js"></script>
   <script is:inline>
     (function () {

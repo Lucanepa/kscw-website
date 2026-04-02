@@ -2339,6 +2339,64 @@ button:focus-visible {
   position: relative;
 }
 
+/* ── Newsletter Section ────────────────────────────────────── */
+.newsletter-section {
+  text-align: center;
+}
+.newsletter-section h2 {
+  font-size: var(--text-2xl);
+  margin-bottom: var(--space-sm);
+}
+.newsletter-section p {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-lg);
+}
+.newsletter-section form {
+  text-align: left;
+}
+.nl-categories {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+.nl-cat-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  user-select: none;
+}
+.nl-cat-option input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  margin: 0;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  background: transparent;
+}
+.nl-cat-option input[type="checkbox"]:checked {
+  background: var(--kscw-blue);
+  border-color: var(--kscw-blue);
+}
+.nl-cat-option input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0px;
+  width: 6px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
 /* ── Training Schedule ─────────────────────────────────────── */
 .training-item {
   display: flex;
