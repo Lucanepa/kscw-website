@@ -981,6 +981,13 @@
     });
   }
 
+  // Today's date in DD.MM.YYYY format for PDF prefill
+  function todayDDMMYYYY() {
+    var d = new Date();
+    return String(d.getDate()).padStart(2, '0') + '.' +
+      String(d.getMonth() + 1).padStart(2, '0') + '.' + d.getFullYear();
+  }
+
   // Lizenzantrag pre-fill (Swiss Basketball — exact field names from PDF)
   var lizenzLink = document.getElementById('bb-doc-lizenz');
   if (lizenzLink) {
@@ -1020,6 +1027,12 @@
 
           // New member checkbox
           try { f.getCheckBox('Neues Mitglied Swiss Basketball').check(); } catch(e) {}
+
+          // Date fields (3 signature date fields)
+          var today = todayDDMMYYYY();
+          try { f.getTextField('Datum').setText(today); } catch(e) {}
+          try { f.getTextField('Datum_2').setText(today); } catch(e) {}
+          try { f.getTextField('Datum_3').setText(today); } catch(e) {}
         } catch (ex) { /* fallback: download blank */ }
       });
     });
@@ -1038,6 +1051,16 @@
           try { f.getTextField('Nationality').setText(d.nationalitaet); } catch(e) {}
           try { f.getTextField('Current Club').setText('KSC Wiedikon'); } catch(e) {}
           try { f.getTextField('Season').setText('2025/2026'); } catch(e) {}
+          // DOB: Text1.0.0=Day, Text1.0.1=Month, Text1.1.1=Year
+          if (d.geburtsdatum) {
+            var dp = d.geburtsdatum.split('-');
+            try { f.getTextField('Text1.0.0').setText(dp[2] || ''); } catch(e) {}
+            try { f.getTextField('Text1.0.1').setText(dp[1] || ''); } catch(e) {}
+            try { f.getTextField('Text1.1.1').setText(dp[0] || ''); } catch(e) {}
+          }
+          // Text2 = Player's Name (bottom), Text3 = Date (bottom)
+          try { f.getTextField('Text2').setText(d.vorname + ' ' + d.nachname); } catch(e) {}
+          try { f.getTextField('Text3').setText(todayDDMMYYYY()); } catch(e) {}
         } catch (ex) {}
       });
     });
@@ -1054,11 +1077,19 @@
           try { f.getTextField('Last Name Nom Nachname').setText(d.nachname); } catch(e) {}
           try { f.getTextField('First Name Prénom Vorname').setText(d.vorname); } catch(e) {}
           try { f.getTextField('Nationality Nationalité Nationalität').setText(d.nationalitaet); } catch(e) {}
+          try { f.getTextField('Player Joueureuse Spielerin').setText(d.vorname + ' ' + d.nachname); } catch(e) {}
           try { f.getTextField('New Club Nouveau club Neuer Club').setText('KSC Wiedikon'); } catch(e) {}
+          try { f.getTextField('National Federation Fédération nationale').setText('Swiss Basketball'); } catch(e) {}
           if (d.geburtsdatum) {
             var dp = d.geburtsdatum.split('-');
             try { f.getTextField('Date of birth Date de Naissance Geburtsdatum').setText(dp[2] + '.' + dp[1] + '.' + dp[0]); } catch(e) {}
           }
+          // Text1/2/3 = "National Team of ..." blanks in EN/FR/DE paragraphs
+          try { f.getTextField('Text1').setText(d.nationalitaet); } catch(e) {}
+          try { f.getTextField('Text2').setText(d.nationalitaet); } catch(e) {}
+          try { f.getTextField('Text3').setText(d.nationalitaet); } catch(e) {}
+          // Date
+          try { f.getTextField('Date Date Datum').setText(todayDDMMYYYY()); } catch(e) {}
         } catch (ex) {}
       });
     });
