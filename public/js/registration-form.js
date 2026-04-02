@@ -328,25 +328,30 @@
     var phoneSelect = document.createElement('select');
     phoneSelect.className = 'form-select';
     phoneSelect.id = 'phone-country';
-    phoneSelect.style.cssText = 'width: auto; border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: none; flex-shrink: 0; padding-right: 1.5rem;';
+    phoneSelect.style.cssText = 'width: 5.5rem; border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: none; flex-shrink: 0; padding: 0.75rem 0.25rem 0.75rem 0.75rem; font-size: var(--text-base);';
 
-    // Build phone options: dial code only, favorites first, then rest
+    // Build phone options: use ISO code as value for uniqueness, show dial code
     function addPhoneOpt(c) {
       var opt = document.createElement('option');
-      opt.value = c.dial;
+      opt.value = c.code;
       opt.textContent = c.dial;
-      opt.dataset.code = c.code;
+      opt.dataset.dial = c.dial;
       phoneSelect.appendChild(opt);
     }
     for (var pi = 0; pi < favorites.length; pi++) addPhoneOpt(favorites[pi]);
     var divOpt = document.createElement('option');
     divOpt.disabled = true;
-    divOpt.textContent = '──────────';
+    divOpt.textContent = '────';
     phoneSelect.appendChild(divOpt);
-    for (var pj = 0; pj < rest.length; pj++) addPhoneOpt(rest[pj]);
+    var restByDial = rest.slice().sort(function (a, b) {
+      var da = parseInt(a.dial.replace('+', ''), 10);
+      var db = parseInt(b.dial.replace('+', ''), 10);
+      return da - db;
+    });
+    for (var pj = 0; pj < restByDial.length; pj++) addPhoneOpt(restByDial[pj]);
 
     // Default to CH
-    phoneSelect.value = '+41';
+    phoneSelect.value = 'CH';
 
     phoneInput.style.cssText = 'border-top-left-radius: 0; border-bottom-left-radius: 0; flex: 1; min-width: 0;';
     phoneInput.placeholder = '79 123 45 67';
@@ -411,12 +416,12 @@
     var under25 = isUnder25(dobInput ? dobInput.value : '');
     var vbAhv = document.getElementById('vb-ahv');
     var bbAhv = document.getElementById('bb-ahv');
-    var vbStar = document.getElementById('vb-ahv-star');
-    var bbStar = document.getElementById('bb-ahv-star');
-    if (vbAhv) { if (under25) vbAhv.setAttribute('required', ''); else vbAhv.removeAttribute('required'); }
-    if (bbAhv) { if (under25) bbAhv.setAttribute('required', ''); else bbAhv.removeAttribute('required'); }
-    if (vbStar) vbStar.style.display = under25 ? '' : 'none';
-    if (bbStar) bbStar.style.display = under25 ? '' : 'none';
+    var vbGroup = document.getElementById('vb-ahv-group');
+    var bbGroup = document.getElementById('bb-ahv-group');
+    if (vbAhv) { if (under25) vbAhv.setAttribute('required', ''); else { vbAhv.removeAttribute('required'); vbAhv.value = ''; } }
+    if (bbAhv) { if (under25) bbAhv.setAttribute('required', ''); else { bbAhv.removeAttribute('required'); bbAhv.value = ''; } }
+    if (vbGroup) vbGroup.style.display = under25 ? '' : 'none';
+    if (bbGroup) bbGroup.style.display = under25 ? '' : 'none';
   }
 
   if (dobInput) {
@@ -514,20 +519,67 @@
   function populateTeams(container, teams) {
     container.innerHTML = '';
     var sport = container.id === 'vb-team' ? 'vb' : 'bb';
+    var triggerText = document.getElementById(sport + '-team-trigger-text');
+
+    function updateTriggerText() {
+      var checked = container.querySelectorAll('input[name="team_' + sport + '"]:checked');
+      var names = [];
+      for (var k = 0; k < checked.length; k++) names.push(checked[k].value);
+      if (triggerText) {
+        triggerText.textContent = names.length ? names.join(', ') : (locale === 'de' ? 'Team wählen…' : 'Select team…');
+      }
+    }
+
     for (var i = 0; i < teams.length; i++) {
-      var label = document.createElement('label');
-      label.style.cssText = 'display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;';
-      var cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.name = 'team_' + sport;
-      cb.value = teams[i].name;
-      var span = document.createElement('span');
-      span.textContent = teams[i].name + (teams[i].league ? ' — ' + teams[i].league : '');
-      label.appendChild(cb);
-      label.appendChild(span);
-      container.appendChild(label);
+      (function (team) {
+        var div = document.createElement('div');
+        div.className = 'team-opt';
+        var cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.name = 'team_' + sport;
+        cb.value = team.name;
+        cb.style.cssText = 'pointer-events: none;';
+        var span = document.createElement('span');
+        span.textContent = team.name + (team.league ? ' — ' + team.league : '');
+        div.appendChild(cb);
+        div.appendChild(span);
+        div.addEventListener('click', function (e) {
+          e.stopPropagation();
+          cb.checked = !cb.checked;
+          div.className = 'team-opt' + (cb.checked ? ' selected' : '');
+          updateTriggerText();
+        });
+        container.appendChild(div);
+      })(teams[i]);
     }
   }
+
+  // ── Team dropdown toggle ──────────────────────────────────
+  function setupTeamDropdown(sport) {
+    var wrapper = document.getElementById(sport + '-team-wrapper');
+    var trigger = document.getElementById(sport + '-team-trigger');
+    if (!wrapper || !trigger) return;
+
+    trigger.addEventListener('click', function (e) {
+      e.stopPropagation();
+      // Close other team dropdowns
+      var others = document.querySelectorAll('.team-wrapper.open');
+      for (var i = 0; i < others.length; i++) {
+        if (others[i] !== wrapper) others[i].classList.remove('open');
+      }
+      // Also close nationality
+      if (natWrapper && natWrapper !== wrapper) natWrapper.classList.remove('open');
+      wrapper.classList.toggle('open');
+    });
+  }
+  setupTeamDropdown('vb');
+  setupTeamDropdown('bb');
+
+  // Close team dropdowns on outside click
+  document.addEventListener('click', function () {
+    var openTeams = document.querySelectorAll('.team-wrapper.open');
+    for (var i = 0; i < openTeams.length; i++) openTeams[i].classList.remove('open');
+  });
 
   // ── Feedback helpers ──────────────────────────────────────
   function showFeedback(type, msg) {
@@ -588,10 +640,15 @@
 
     setLoading(true);
 
-    // Build full phone number with country code
+    // Build full phone number: "+41 79 123 45 67" format
     var phoneCode = document.getElementById('phone-country');
-    var phoneNum = val('telefon');
-    var fullPhone = phoneCode ? (phoneCode.value + ' ' + phoneNum) : phoneNum;
+    var phoneNum = val('telefon').replace(/^\s+|\s+$/g, '');
+    var dialCode = '';
+    if (phoneCode) {
+      var selOpt = phoneCode.options[phoneCode.selectedIndex];
+      dialCode = selOpt ? selOpt.dataset.dial : '';
+    }
+    var fullPhone = dialCode ? (dialCode + ' ' + phoneNum) : phoneNum;
 
     // Build JSON payload
     var payload = {
@@ -652,6 +709,8 @@
       form.querySelectorAll('input[name="lizenz_passive"]:checked').forEach(function (cb) {
         lizenzPassive.push(cb.value);
       });
+      var passiveBBScorer = form.querySelector('input[name="passive_bb_scorer"]:checked');
+      if (passiveBBScorer && passiveBBScorer.value) lizenzPassive.push(passiveBBScorer.value);
       if (lizenzPassive.length) {
         payload.lizenz = lizenzPassive.join(', ');
         payload.rolle = lizenzPassive.join(', ');
@@ -682,7 +741,7 @@
         // Reset custom UI
         if (natTriggerText) natTriggerText.textContent = '—';
         if (natHidden) natHidden.value = '';
-        if (phoneCode) phoneCode.value = '+41';
+        if (phoneCode) phoneCode.value = 'CH';
         vbFields.style.display = 'none';
         bbFields.style.display = 'none';
         var pf = document.getElementById('passive-fields');

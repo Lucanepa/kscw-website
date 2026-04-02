@@ -115,9 +115,15 @@ const locale = 'de';
         <div id="vb-fields" style="display: none;">
           <input type="hidden" id="anrede" name="anrede">
 
-          <div class="form-group">
+          <div class="form-group team-wrapper" id="vb-team-wrapper">
             <label>{t(locale, 'registrationTeam')} *</label>
-            <div id="vb-team" class="team-checkbox-group" data-conditional-required></div>
+            <button type="button" class="form-select team-trigger" id="vb-team-trigger">
+              <span id="vb-team-trigger-text">{t(locale, 'registrationTeamPlaceholder')}</span>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 4 6 8 10 4"/></svg>
+            </button>
+            <div class="team-dropdown" id="vb-team-dropdown">
+              <div class="team-options" id="vb-team"></div>
+            </div>
           </div>
 
           <div class="form-group">
@@ -150,14 +156,14 @@ const locale = 'de';
 
           <div class="form-group">
             <label>{t(locale, 'registrationLicence')}</label>
-            <div style="display: flex; gap: var(--space-lg); flex-wrap: wrap; margin-top: var(--space-xs);">
-              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
-                <input type="checkbox" name="lizenz_vb" value="Schreiber">
+            <div class="toggle-group">
+              <label class="toggle-label">
                 <span>{t(locale, 'registrationLicenceSchreiber')}</span>
+                <span class="toggle-switch"><input type="checkbox" name="lizenz_vb" value="Schreiber"><span class="toggle-slider"></span></span>
               </label>
-              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
-                <input type="checkbox" name="lizenz_vb" value="Schiedsrichter" id="vb-ref-check">
+              <label class="toggle-label">
                 <span>{t(locale, 'registrationLicenceSchiedsrichter')}</span>
+                <span class="toggle-switch"><input type="checkbox" name="lizenz_vb" value="Schiedsrichter" id="vb-ref-check"><span class="toggle-slider"></span></span>
               </label>
             </div>
           </div>
@@ -180,9 +186,15 @@ const locale = 'de';
 
         <!-- ═══ BASKETBALL-ONLY FIELDS ═══ -->
         <div id="bb-fields" style="display: none;">
-          <div class="form-group">
+          <div class="form-group team-wrapper" id="bb-team-wrapper">
             <label>{t(locale, 'registrationTeam')} *</label>
-            <div id="bb-team" class="team-checkbox-group" data-conditional-required></div>
+            <button type="button" class="form-select team-trigger" id="bb-team-trigger">
+              <span id="bb-team-trigger-text">{t(locale, 'registrationTeamPlaceholder')}</span>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 4 6 8 10 4"/></svg>
+            </button>
+            <div class="team-dropdown" id="bb-team-dropdown">
+              <div class="team-options" id="bb-team"></div>
+            </div>
           </div>
 
           <div class="form-group">
@@ -235,10 +247,13 @@ const locale = 'de';
           </div>
 
           <div class="form-group">
-            <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
-              <input type="checkbox" name="bb_referee" value="Schiedsrichter" id="bb-ref-check">
-              <span style="font-weight: 600;">{t(locale, 'registrationLicenceBBReferee')}</span>
-            </label>
+            <label>{t(locale, 'registrationLicenceBBReferee')}</label>
+            <div class="toggle-group">
+              <label class="toggle-label">
+                <span>{t(locale, 'registrationLicenceSchiedsrichter')}</span>
+                <span class="toggle-switch"><input type="checkbox" name="bb_referee" value="Schiedsrichter" id="bb-ref-check"><span class="toggle-slider"></span></span>
+              </label>
+            </div>
           </div>
 
           <div class="form-group">
@@ -279,14 +294,14 @@ const locale = 'de';
         <div id="passive-fields" style="display: none;">
           <div class="form-group">
             <label>{t(locale, 'registrationPassiveLicenceVB')}</label>
-            <div style="display: flex; gap: var(--space-lg); flex-wrap: wrap; margin-top: var(--space-xs);">
-              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
-                <input type="checkbox" name="lizenz_passive" value="VB Schreiber">
+            <div class="toggle-group">
+              <label class="toggle-label">
                 <span>{t(locale, 'registrationLicenceSchreiber')}</span>
+                <span class="toggle-switch"><input type="checkbox" name="lizenz_passive" value="VB Schreiber"><span class="toggle-slider"></span></span>
               </label>
-              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
-                <input type="checkbox" name="lizenz_passive" value="VB Schiedsrichter" id="passive-vb-ref-check">
+              <label class="toggle-label">
                 <span>{t(locale, 'registrationLicenceSchiedsrichter')}</span>
+                <span class="toggle-switch"><input type="checkbox" name="lizenz_passive" value="VB Schiedsrichter" id="passive-vb-ref-check"><span class="toggle-slider"></span></span>
               </label>
             </div>
           </div>
@@ -308,22 +323,28 @@ const locale = 'de';
 
           <div class="form-group">
             <label>{t(locale, 'registrationPassiveLicenceBB')}</label>
-            <div style="display: flex; gap: var(--space-lg); flex-wrap: wrap; margin-top: var(--space-xs);">
-              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
-                <input type="checkbox" name="lizenz_passive" value="BB OTR 1">
+            <div style="display: flex; gap: var(--space-md); flex-wrap: wrap; margin-top: var(--space-xs);">
+              <label class="radio-card">
+                <input type="radio" name="passive_bb_scorer" value="">
+                <span>{t(locale, 'registrationLicenceNone')}</span>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="passive_bb_scorer" value="BB OTR 1">
                 <span>{t(locale, 'registrationLicenceOTR1')}</span>
               </label>
-              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
-                <input type="checkbox" name="lizenz_passive" value="BB OTR 2">
+              <label class="radio-card">
+                <input type="radio" name="passive_bb_scorer" value="BB OTR 2">
                 <span>{t(locale, 'registrationLicenceOTR2')}</span>
               </label>
-              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
-                <input type="checkbox" name="lizenz_passive" value="BB OTN">
+              <label class="radio-card">
+                <input type="radio" name="passive_bb_scorer" value="BB OTN">
                 <span>{t(locale, 'registrationLicenceOTN')}</span>
               </label>
-              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
-                <input type="checkbox" name="lizenz_passive" value="BB Schiedsrichter">
+            </div>
+            <div class="toggle-group" style="margin-top: var(--space-sm);">
+              <label class="toggle-label">
                 <span>{t(locale, 'registrationLicenceSchiedsrichter')}</span>
+                <span class="toggle-switch"><input type="checkbox" name="lizenz_passive" value="BB Schiedsrichter"><span class="toggle-slider"></span></span>
               </label>
             </div>
           </div>
@@ -466,6 +487,59 @@ const locale = 'de';
     border-color: var(--kscw-blue, #4A55A2);
     color: var(--kscw-blue, #4A55A2);
   }
+  /* Toggle switches */
+  .toggle-group {
+    display: flex;
+    gap: var(--space-lg);
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: var(--space-xs);
+  }
+  .toggle-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+    font-weight: normal;
+  }
+  .toggle-switch {
+    position: relative;
+    display: inline-flex;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+    vertical-align: middle;
+  }
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+  }
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 12px;
+    transition: background 0.2s ease;
+  }
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+  }
+  .toggle-switch input:checked + .toggle-slider {
+    background: var(--kscw-blue, #4A55A2);
+  }
+  .toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(20px);
+  }
   /* Form feedback states */
   #form-feedback {
     padding: 0.875rem 1rem;
@@ -549,32 +623,86 @@ const locale = 'de';
     max-height: 240px;
     overflow-y: auto;
   }
-  .nationality-opt {
-    padding: 0.75rem 1.125rem;
+  :global(.nationality-opt) {
+    padding: 0.875rem 1.125rem;
     cursor: pointer;
     font-size: var(--text-sm);
     color: var(--text-primary);
     transition: background 0.1s ease;
   }
-  .nationality-opt:hover,
-  .nationality-opt.highlighted {
+  :global(.nationality-opt:hover),
+  :global(.nationality-opt.highlighted) {
     background: rgba(74, 85, 162, 0.08);
   }
-  .nationality-opt.selected {
+  :global(.nationality-opt.selected) {
     color: var(--kscw-blue, #4A55A2);
     font-weight: 600;
   }
-  .nationality-divider {
+  :global(.nationality-divider) {
     border: none;
     border-top: 1px solid var(--border);
     margin: 0;
   }
-  /* Team checkbox group */
-  .team-checkbox-group {
+  /* Team multiselect dropdown */
+  .team-wrapper {
+    position: relative;
+  }
+  .team-trigger {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    text-align: left;
+    appearance: none;
+    font-family: inherit;
+    font-size: var(--text-base);
+    color: var(--text-primary);
+  }
+  .team-trigger svg {
+    flex-shrink: 0;
+    opacity: 0.5;
+    transition: transform 0.2s ease;
+  }
+  .team-wrapper.open .team-trigger svg {
+    transform: rotate(180deg);
+  }
+  .team-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md, 8px);
+    margin-top: 4px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+  }
+  .team-wrapper.open .team-dropdown {
+    display: block;
+  }
+  .team-options {
+    max-height: 280px;
+    overflow-y: auto;
+  }
+  :global(.team-opt) {
+    padding: 0.875rem 1.125rem;
+    cursor: pointer;
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    transition: background 0.1s ease;
+    display: flex;
+    align-items: center;
     gap: var(--space-sm);
-    margin-top: var(--space-xs);
+  }
+  :global(.team-opt:hover) {
+    background: rgba(74, 85, 162, 0.08);
+  }
+  :global(.team-opt.selected) {
+    color: var(--kscw-blue, #4A55A2);
+    font-weight: 600;
   }
   /* BB docs download list */
   .bb-docs-list {
