@@ -115,7 +115,18 @@ const locale = 'de';
         <div id="vb-fields" style="display: none;">
           <input type="hidden" id="anrede" name="anrede">
 
-          <div class="form-group team-wrapper" id="vb-team-wrapper">
+          <div class="form-group">
+            <label for="funktion-vb">{t(locale, 'registrationFunktion')} *</label>
+            <select id="funktion-vb" name="funktion_vb" class="form-select" data-conditional-required>
+              <option value="" disabled selected>{t(locale, 'registrationFunktionPlaceholder')}</option>
+              <option value="Spieler*in">{t(locale, 'registrationFunktionPlayer')}</option>
+              <option value="Trainer*in">{t(locale, 'registrationFunktionCoach')}</option>
+              <option value="Teamverantwortliche*r">{t(locale, 'registrationFunktionTR')}</option>
+              <option value="Andere">{t(locale, 'registrationFunktionOther')}</option>
+            </select>
+          </div>
+
+          <div class="form-group team-wrapper" id="vb-team-wrapper" style="display: none;">
             <label>{t(locale, 'registrationTeam')} *</label>
             <button type="button" class="form-select team-trigger" id="vb-team-trigger">
               <span id="vb-team-trigger-text">{t(locale, 'registrationTeamPlaceholder')}</span>
@@ -186,7 +197,18 @@ const locale = 'de';
 
         <!-- ═══ BASKETBALL-ONLY FIELDS ═══ -->
         <div id="bb-fields" style="display: none;">
-          <div class="form-group team-wrapper" id="bb-team-wrapper">
+          <div class="form-group">
+            <label for="funktion-bb">{t(locale, 'registrationFunktion')} *</label>
+            <select id="funktion-bb" name="funktion_bb" class="form-select" data-conditional-required>
+              <option value="" disabled selected>{t(locale, 'registrationFunktionPlaceholder')}</option>
+              <option value="Spieler*in">{t(locale, 'registrationFunktionPlayer')}</option>
+              <option value="Trainer*in">{t(locale, 'registrationFunktionCoach')}</option>
+              <option value="Teamverantwortliche*r">{t(locale, 'registrationFunktionTR')}</option>
+              <option value="Andere">{t(locale, 'registrationFunktionOther')}</option>
+            </select>
+          </div>
+
+          <div class="form-group team-wrapper" id="bb-team-wrapper" style="display: none;">
             <label>{t(locale, 'registrationTeam')} *</label>
             <button type="button" class="form-select team-trigger" id="bb-team-trigger">
               <span id="bb-team-trigger-text">{t(locale, 'registrationTeamPlaceholder')}</span>

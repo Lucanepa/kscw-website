@@ -448,10 +448,13 @@
     // AHV required only if under 25 (override the conditional-required)
     updateAhvRequired();
 
-    // Fetch teams for selected sport
-    if (type === 'volleyball' || type === 'basketball') {
-      fetchTeams(type);
-    }
+    // Reset funktion dropdowns and hide team wrappers when switching type
+    if (funktionVb) { funktionVb.selectedIndex = 0; }
+    if (funktionBb) { funktionBb.selectedIndex = 0; }
+    var vbTeamW = document.getElementById('vb-team-wrapper');
+    var bbTeamW = document.getElementById('bb-team-wrapper');
+    if (vbTeamW) vbTeamW.style.display = 'none';
+    if (bbTeamW) bbTeamW.style.display = 'none';
   }
 
   function toggleRequired(container, isRequired) {
@@ -492,6 +495,55 @@
     }, 100);
   }
 
+  // ── Funktion dropdown logic ────────────────────────────────
+  var funktionVb = document.getElementById('funktion-vb');
+  var funktionBb = document.getElementById('funktion-bb');
+
+  // Gender-based team name patterns
+  // VB: D = Damen, H = Herren, DU = Damen youth, HU = Herren youth
+  // BB: DU/D/Lions/Rhinos/Damen = women, HU/MU/H/Herren/H-Classics = men
+  function getTeamGender(teamName, sport) {
+    var n = teamName.toLowerCase();
+    if (sport === 'volleyball') {
+      if (/^d[u\d]/.test(n)) return 'weiblich';
+      if (/^h[u\d]/.test(n)) return 'männlich';
+      if (n === 'minivb') return 'mixed';
+      if (n === 'legends') return 'männlich';
+      return 'mixed';
+    }
+    // basketball
+    if (/^du\d|^lions|^rhinos|^damen/.test(n)) return 'weiblich';
+    if (/^hu\d|^mu\d|^herren|^h-classics/.test(n)) return 'männlich';
+    return 'mixed';
+  }
+
+  function onFunktionChange(sport) {
+    var funktionEl = sport === 'volleyball' ? funktionVb : funktionBb;
+    var teamWrapper = document.getElementById(sport === 'volleyball' ? 'vb-team-wrapper' : 'bb-team-wrapper');
+    if (!funktionEl || !teamWrapper) return;
+
+    var funktion = funktionEl.value;
+    var showTeam = funktion === 'Spieler*in' || funktion === 'Trainer*in' || funktion === 'Teamverantwortliche*r';
+    teamWrapper.style.display = showTeam ? '' : 'none';
+
+    if (showTeam) {
+      fetchTeams(sport);
+    }
+  }
+
+  if (funktionVb) funktionVb.addEventListener('change', function () { onFunktionChange('volleyball'); });
+  if (funktionBb) funktionBb.addEventListener('change', function () { onFunktionChange('basketball'); });
+
+  // Re-filter teams when gender changes
+  if (geschlechtSelect) {
+    geschlechtSelect.addEventListener('change', function () {
+      var type = (form.querySelector('input[name="membership_type"]:checked') || {}).value;
+      if (type === 'volleyball' || type === 'basketball') {
+        fetchTeams(type);
+      }
+    });
+  }
+
   // ── Team fetching ─────────────────────────────────────────
   var teamCache = {};
 
@@ -519,7 +571,12 @@
   function populateTeams(container, teams) {
     container.innerHTML = '';
     var sport = container.id === 'vb-team' ? 'vb' : 'bb';
+    var sportFull = sport === 'vb' ? 'volleyball' : 'basketball';
     var triggerText = document.getElementById(sport + '-team-trigger-text');
+    var funktionEl = sport === 'vb' ? funktionVb : funktionBb;
+    var funktion = funktionEl ? funktionEl.value : '';
+    var isPlayer = funktion === 'Spieler*in';
+    var gender = geschlechtSelect ? geschlechtSelect.value : '';
 
     function updateTriggerText() {
       var checked = container.querySelectorAll('input[name="team_' + sport + '"]:checked');
@@ -530,7 +587,28 @@
       }
     }
 
-    for (var i = 0; i < teams.length; i++) {
+    // Filter teams: players only see their gender's teams, coach/TR see all
+    var filtered = [];
+    for (var fi = 0; fi < teams.length; fi++) {
+      if (isPlayer && gender) {
+        var tg = getTeamGender(teams[fi].name, sportFull);
+        if (tg !== 'mixed' && tg !== gender) continue;
+      }
+      filtered.push(teams[fi]);
+    }
+
+    // Show hint if player but no gender selected
+    if (isPlayer && !gender) {
+      var hint = document.createElement('div');
+      hint.style.cssText = 'padding: 0.75rem 1rem; color: var(--text-secondary); font-size: var(--text-sm);';
+      hint.textContent = locale === 'de'
+        ? 'Bitte wähle zuerst dein Geschlecht, damit die passenden Teams angezeigt werden.'
+        : 'Please select your sex first so the matching teams are shown.';
+      container.appendChild(hint);
+      return;
+    }
+
+    for (var i = 0; i < filtered.length; i++) {
       (function (team) {
         var div = document.createElement('div');
         div.className = 'team-opt';
@@ -550,7 +628,7 @@
           updateTriggerText();
         });
         container.appendChild(div);
-      })(teams[i]);
+      })(filtered[i]);
     }
   }
 
@@ -629,12 +707,15 @@
       }
     }
 
-    // Validate at least one team selected (VB or BB)
+    // Validate at least one team selected (VB or BB) — unless funktion is "Andere"
     if (type === 'volleyball' || type === 'basketball') {
-      var teamName = type === 'volleyball' ? 'team_vb' : 'team_bb';
-      var checked = form.querySelectorAll('input[name="' + teamName + '"]:checked');
-      if (!checked.length) {
-        return showFeedback('error', i18n.t('registrationValidationTeam'));
+      var funktionVal = type === 'volleyball' ? val('funktion-vb') : val('funktion-bb');
+      if (funktionVal !== 'Andere') {
+        var teamName = type === 'volleyball' ? 'team_vb' : 'team_bb';
+        var checked = form.querySelectorAll('input[name="' + teamName + '"]:checked');
+        if (!checked.length) {
+          return showFeedback('error', i18n.t('registrationValidationTeam'));
+        }
       }
     }
 
@@ -669,6 +750,7 @@
 
     if (type === 'volleyball') {
       payload.anrede = anredeHidden ? anredeHidden.value : '';
+      payload.rolle = val('funktion-vb');
       var vbTeams = [];
       form.querySelectorAll('input[name="team_vb"]:checked').forEach(function (cb) { vbTeams.push(cb.value); });
       payload.team = vbTeams.join(', ');
@@ -681,13 +763,13 @@
       });
       if (lizenzVbChecked.length) {
         payload.lizenz = lizenzVbChecked.join(', ');
-        payload.rolle = lizenzVbChecked.join(', ');
       }
       var refLevel = val('vb-ref-level');
       if (refLevel) payload.schiedsrichter_stufe = refLevel;
     }
 
     if (type === 'basketball') {
+      payload.rolle = val('funktion-bb');
       var bbTeams = [];
       form.querySelectorAll('input[name="team_bb"]:checked').forEach(function (cb) { bbTeams.push(cb.value); });
       payload.team = bbTeams.join(', ');
@@ -701,7 +783,6 @@
       var refCheck = document.getElementById('bb-ref-check');
       if (refCheck && refCheck.checked) bbLicParts.push('Schiedsrichter');
       payload.lizenz = bbLicParts.join(', ') || '';
-      payload.rolle = payload.lizenz;
     }
 
     if (type === 'passive') {
@@ -746,6 +827,10 @@
         bbFields.style.display = 'none';
         var pf = document.getElementById('passive-fields');
         if (pf) pf.style.display = 'none';
+        var vbTw = document.getElementById('vb-team-wrapper');
+        var bbTw = document.getElementById('bb-team-wrapper');
+        if (vbTw) vbTw.style.display = 'none';
+        if (bbTw) bbTw.style.display = 'none';
         if (window.turnstile && turnstileWidgetId !== null) {
           window.turnstile.reset(turnstileWidgetId);
         }

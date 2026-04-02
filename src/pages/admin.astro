@@ -1190,6 +1190,16 @@ import '../styles/global.css';
         var status = item.membership_type === 'passive' ? 'Passivmitglied' : 'Aktivmitglied';
         var isPassive = item.membership_type === 'passive' ? 'ja' : '';
 
+        // Build ClubDesk [Gruppen] format: "TeamName (Funktion)" per team
+        var funktion = item.rolle || '';
+        var teams = (item.team || '').split(',').map(function(t) { return t.trim(); }).filter(Boolean);
+        var gruppenParts = [];
+        for (var ti = 0; ti < teams.length; ti++) {
+          gruppenParts.push(funktion ? teams[ti] + ' (' + funktion + ')' : teams[ti]);
+        }
+        var gruppenStr = gruppenParts.join(', ');
+        var gruppeStr = teams.length ? teams[0] : '';
+
         return [
           item.nachname || '',           // Nachname
           item.vorname || '',            // Vorname
@@ -1199,10 +1209,10 @@ import '../styles/global.css';
           item.ort || '',                // Ort
           '',                            // Telefon Privat
           item.telefon_mobil || '',       // Telefon Mobil
-          item.team || '',               // [Gruppen]
+          gruppenStr,                    // [Gruppen]
           sektion,                       // Sektion
-          '',                            // Gruppe
-          '',                            // Gruppen
+          gruppeStr,                     // Gruppe
+          gruppenStr,                    // Gruppen
           item.anrede || '',             // Anrede
           '',                            // Titel
           '',                            // Briefanrede
@@ -1243,7 +1253,7 @@ import '../styles/global.css';
           item.ahv_nummer || '',         // AHV Nummer
           isPassive,                     // Passivmitglied
           '',                            // Offiziellen 100er
-          item.rolle || '',              // Funktion
+          funktion,                      // Funktion
           '',                            // Rolle
         ].map(csvEscape).join(';');
       });
