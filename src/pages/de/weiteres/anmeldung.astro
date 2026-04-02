@@ -158,10 +158,25 @@ const locale = 'de';
                 <span>{t(locale, 'registrationLicenceSchreiber')}</span>
               </label>
               <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
-                <input type="checkbox" name="lizenz_vb" value="Schiedsrichter">
+                <input type="checkbox" name="lizenz_vb" value="Schiedsrichter" id="vb-ref-check">
                 <span>{t(locale, 'registrationLicenceSchiedsrichter')}</span>
               </label>
             </div>
+          </div>
+          <div class="form-group" id="vb-ref-level-group" style="display: none;">
+            <label for="vb-ref-level">{t(locale, 'registrationLicenceSchiedsrichter')} — Stufe</label>
+            <select id="vb-ref-level" name="vb_ref_level" class="form-select">
+              <option value="" disabled selected>{t(locale, 'registrationLicenceRefLevelPlaceholder')}</option>
+              <option value="N4-3">N4-3</option>
+              <option value="N4-2">N4-2</option>
+              <option value="N4-1">N4-1</option>
+              <option value="N3-3">N3-3</option>
+              <option value="N3-2">N3-2</option>
+              <option value="N3-1">N3-1</option>
+              <option value="N2-2">N2-2</option>
+              <option value="N2-1">N2-1</option>
+              <option value="N1 (NL-Kader)">N1 (NL-Kader)</option>
+            </select>
           </div>
         </div>
 

@@ -376,6 +376,19 @@
     }
   }
 
+  // ── VB Referee level toggle ───────────────────────────────
+  var vbRefCheck = document.getElementById('vb-ref-check');
+  var vbRefLevelGroup = document.getElementById('vb-ref-level-group');
+  if (vbRefCheck && vbRefLevelGroup) {
+    vbRefCheck.addEventListener('change', function () {
+      vbRefLevelGroup.style.display = vbRefCheck.checked ? '' : 'none';
+      if (!vbRefCheck.checked) {
+        var sel = document.getElementById('vb-ref-level');
+        if (sel) sel.selectedIndex = 0;
+      }
+    });
+  }
+
   // ── Membership type switching ─────────────────────────────
   var typeRadios = form.querySelectorAll('input[name="membership_type"]');
 
@@ -551,6 +564,8 @@
         lizenzVbChecked.push(cb.value);
       });
       if (lizenzVbChecked.length) payload.lizenz = lizenzVbChecked.join(', ');
+      var refLevel = val('vb-ref-level');
+      if (refLevel) payload.schiedsrichter_stufe = refLevel;
     }
 
     if (type === 'basketball') {
