@@ -569,7 +569,10 @@
       form.querySelectorAll('input[name="lizenz_vb"]:checked').forEach(function (cb) {
         lizenzVbChecked.push(cb.value);
       });
-      if (lizenzVbChecked.length) payload.lizenz = lizenzVbChecked.join(', ');
+      if (lizenzVbChecked.length) {
+        payload.lizenz = lizenzVbChecked.join(', ');
+        payload.rolle = lizenzVbChecked.join(', ');
+      }
       var refLevel = val('vb-ref-level');
       if (refLevel) payload.schiedsrichter_stufe = refLevel;
     }
@@ -579,7 +582,9 @@
       payload.beitragskategorie = val('bb-fee');
       payload.ahv_nummer = val('bb-ahv');
       payload.kantonsschule = val('kantonsschule-bb');
-      payload.lizenz = val('bb-lizenz');
+      var bbLiz = val('bb-lizenz');
+      payload.lizenz = bbLiz;
+      payload.rolle = bbLiz;
     }
 
     if (type === 'passive') {
@@ -587,7 +592,10 @@
       form.querySelectorAll('input[name="lizenz_passive"]:checked').forEach(function (cb) {
         lizenzPassive.push(cb.value);
       });
-      if (lizenzPassive.length) payload.lizenz = lizenzPassive.join(', ');
+      if (lizenzPassive.length) {
+        payload.lizenz = lizenzPassive.join(', ');
+        payload.rolle = lizenzPassive.join(', ');
+      }
       var passiveRefLevel = val('passive-vb-ref-level');
       if (passiveRefLevel) payload.schiedsrichter_stufe = passiveRefLevel;
     }

@@ -840,7 +840,9 @@ import '../styles/global.css';
         fieldInput('reg-fee', 'Beitragskategorie', item.beitragskategorie) +
         fieldInput('reg-ahv', 'AHV', item.ahv_nummer) +
         fieldInput('reg-ks', 'Kantonsschule', item.kantonsschule) +
-        fieldInput('reg-rolle', 'Rolle', item.rolle) +
+        fieldInput('reg-rolle', 'Funktion', item.rolle) +
+        fieldInput('reg-lizenz', 'Offiziellen Lizenz', item.lizenz) +
+        fieldInput('reg-refstufe', 'Schiedsrichter-Stufe', item.schiedsrichter_stufe) +
         fieldTextarea('reg-bemerkungen', 'Bemerkungen', item.bemerkungen) +
 
         (item.id_upload_front ? '<div class="admin-field"><label>ID Vorderseite</label>' +
@@ -937,6 +939,8 @@ import '../styles/global.css';
         ahv_nummer: document.getElementById('f-reg-ahv').value.trim(),
         kantonsschule: document.getElementById('f-reg-ks').value.trim(),
         rolle: document.getElementById('f-reg-rolle').value.trim(),
+        lizenz: document.getElementById('f-reg-lizenz').value.trim(),
+        schiedsrichter_stufe: document.getElementById('f-reg-refstufe').value.trim(),
         bemerkungen: document.getElementById('f-reg-bemerkungen').value.trim(),
       };
 
@@ -1152,47 +1156,95 @@ import '../styles/global.css';
     }
 
     function exportCSV(items) {
+      // Match ClubDesk column format exactly
       var headers = [
-        'Nachname', 'Vorname', 'Anrede', 'E-Mail', 'Telefon Mobil',
-        'Adresse', 'PLZ', 'Ort', 'Geburtsdatum', 'Nationalität',
-        'Geschlecht', 'AHV Nummer', 'Sektion', 'Status',
-        'Beitragskategorie', '[Gruppen]', 'Mittelschule ZH',
-        'Funktion', 'Bemerkungen', 'Land'
+        'Nachname', 'Vorname', 'Firma', 'Adresse', 'PLZ', 'Ort',
+        'Telefon Privat', 'Telefon Mobil', '[Gruppen]', 'Sektion', 'Gruppe', 'Gruppen',
+        'Anrede', 'Titel', 'Briefanrede', 'Benutzer-Id', 'Adress-Zusatz', 'Land',
+        'Nationalität', 'Telefon Geschäft', 'Fax', 'E-Mail', 'E-Mail Alternativ',
+        'Status', '[Rolle]', 'Eintritt', 'Mitgliedsjahre', 'Austritt', 'Zivilstand',
+        'Geschlecht', 'Geburtsdatum', 'Jahrgang', 'Alter', 'Bemerkungen',
+        'Firmen-Webseite', 'Rechnungsversand', 'Nie mahnen', 'IBAN', 'BIC', 'Kontoinhaber',
+        'Lizenznummer', 'Lizenzart', 'Lizenz bestellt', 'Beitragskategorie',
+        'Betrag Bezahlt', 'Clubnummer', 'Mittelschule ZH', 'Offiziellen Lizenz',
+        'Mitgliederbeitrag', 'AHV Nummer', 'Passivmitglied', 'Offiziellen 100er',
+        'Funktion', 'Rolle'
       ];
+
+      var today = new Date();
+      var todayStr = String(today.getDate()).padStart(2, '0') + '.' +
+        String(today.getMonth() + 1).padStart(2, '0') + '.' + today.getFullYear();
 
       var rows = items.map(function(item) {
         // Format date DD.MM.YYYY (timezone-safe string split, NOT new Date())
         var dob = '';
+        var jahrgang = '';
         if (item.geburtsdatum) {
           var parts = item.geburtsdatum.split('-'); // YYYY-MM-DD from Directus
           dob = parts[2] + '.' + parts[1] + '.' + parts[0];
+          jahrgang = parts[0];
         }
 
         var sektion = item.membership_type === 'volleyball' ? 'Volleyball'
           : item.membership_type === 'basketball' ? 'Basketball' : 'KSCW';
         var status = item.membership_type === 'passive' ? 'Passivmitglied' : 'Aktivmitglied';
+        var isPassive = item.membership_type === 'passive' ? 'ja' : '';
 
         return [
-          item.nachname || '',
-          item.vorname || '',
-          item.anrede || '',
-          item.email || '',
-          item.telefon_mobil || '',
-          item.adresse || '',
-          item.plz || '',
-          item.ort || '',
-          dob,
-          item.nationalitaet || '',
-          item.geschlecht || '',
-          item.ahv_nummer || '',
-          sektion,
-          status,
-          item.beitragskategorie || '',
-          item.team || '',
-          item.kantonsschule || '',
-          item.rolle || '',
-          item.bemerkungen || '',
-          'Schweiz',
+          item.nachname || '',           // Nachname
+          item.vorname || '',            // Vorname
+          '',                            // Firma
+          item.adresse || '',            // Adresse
+          item.plz || '',                // PLZ
+          item.ort || '',                // Ort
+          '',                            // Telefon Privat
+          item.telefon_mobil || '',       // Telefon Mobil
+          item.team || '',               // [Gruppen]
+          sektion,                       // Sektion
+          '',                            // Gruppe
+          '',                            // Gruppen
+          item.anrede || '',             // Anrede
+          '',                            // Titel
+          '',                            // Briefanrede
+          '',                            // Benutzer-Id
+          '',                            // Adress-Zusatz
+          'Schweiz',                     // Land
+          item.nationalitaet || '',      // Nationalität
+          '',                            // Telefon Geschäft
+          '',                            // Fax
+          item.email || '',              // E-Mail
+          '',                            // E-Mail Alternativ
+          status,                        // Status
+          '',                            // [Rolle]
+          todayStr,                      // Eintritt
+          '',                            // Mitgliedsjahre
+          '',                            // Austritt
+          '',                            // Zivilstand
+          item.geschlecht || '',         // Geschlecht
+          dob,                           // Geburtsdatum
+          jahrgang,                      // Jahrgang
+          '',                            // Alter
+          item.bemerkungen || '',        // Bemerkungen
+          '',                            // Firmen-Webseite
+          'E-Mail',                      // Rechnungsversand
+          'Nein',                        // Nie mahnen
+          '',                            // IBAN
+          '',                            // BIC
+          '',                            // Kontoinhaber
+          '',                            // Lizenznummer
+          '',                            // Lizenzart
+          '',                            // Lizenz bestellt
+          item.beitragskategorie || '',  // Beitragskategorie
+          '',                            // Betrag Bezahlt
+          '',                            // Clubnummer
+          item.kantonsschule || '',      // Mittelschule ZH
+          item.lizenz || '',             // Offiziellen Lizenz
+          '',                            // Mitgliederbeitrag
+          item.ahv_nummer || '',         // AHV Nummer
+          isPassive,                     // Passivmitglied
+          '',                            // Offiziellen 100er
+          item.rolle || '',              // Funktion
+          '',                            // Rolle
         ].map(csvEscape).join(';');
       });
 
