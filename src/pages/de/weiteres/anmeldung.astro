@@ -295,6 +295,7 @@ const locale = 'de';
 
           <div class="form-group" id="bb-docs-group">
             <label>{t(locale, 'registrationBBDocs')}</label>
+            <small style="color: var(--text-secondary); display: block; margin-bottom: var(--space-sm);">{t(locale, 'registrationBBDocsHint')}</small>
             <div class="bb-docs-list">
               <div class="bb-doc-item">
                 <span>{t(locale, 'registrationBBDocsLizenz')}</span>
@@ -307,6 +308,25 @@ const locale = 'de';
               <div class="bb-doc-item bb-doc-foreign" style="display: none;">
                 <span>{t(locale, 'registrationBBDocsNatDecl')}</span>
                 <a href="/docs/national-team-declaration-fiba.pdf" target="_blank" class="bb-doc-download" id="bb-doc-natdecl">{t(locale, 'registrationBBDocsNatDeclDownload')}</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" id="bb-docs-upload-group">
+            <label>{t(locale, 'registrationBBDocsUpload')}</label>
+            <small style="color: var(--text-secondary); display: block; margin-bottom: var(--space-sm);">{t(locale, 'registrationBBDocsUploadNote')}</small>
+            <div style="display: flex; flex-direction: column; gap: var(--space-md);">
+              <div>
+                <label for="bb-doc-lizenz-upload" style="font-size: var(--text-sm); font-weight: 600; display: block; margin-bottom: var(--space-xs);">{t(locale, 'registrationBBDocsUploadLizenz')} *</label>
+                <input type="file" id="bb-doc-lizenz-upload" name="bb_doc_lizenz" accept=".pdf" data-conditional-required>
+              </div>
+              <div class="bb-doc-foreign" style="display: none;">
+                <label for="bb-doc-selfdecl-upload" style="font-size: var(--text-sm); font-weight: 600; display: block; margin-bottom: var(--space-xs);">{t(locale, 'registrationBBDocsUploadSelfDecl')}</label>
+                <input type="file" id="bb-doc-selfdecl-upload" name="bb_doc_selfdecl" accept=".pdf">
+              </div>
+              <div class="bb-doc-foreign" style="display: none;">
+                <label for="bb-doc-natdecl-upload" style="font-size: var(--text-sm); font-weight: 600; display: block; margin-bottom: var(--space-xs);">{t(locale, 'registrationBBDocsUploadNatDecl')}</label>
+                <input type="file" id="bb-doc-natdecl-upload" name="bb_doc_natdecl" accept=".pdf">
               </div>
             </div>
           </div>

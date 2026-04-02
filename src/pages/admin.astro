@@ -849,6 +849,12 @@ import '../styles/global.css';
           '<a href="' + escapeAttr(DIRECTUS_URL + '/assets/' + item.id_upload_front) + '" target="_blank" class="admin-btn admin-btn-sm">Ansehen</a></div>' : '') +
         (item.id_upload_back ? '<div class="admin-field"><label>ID Rückseite</label>' +
           '<a href="' + escapeAttr(DIRECTUS_URL + '/assets/' + item.id_upload_back) + '" target="_blank" class="admin-btn admin-btn-sm">Ansehen</a></div>' : '') +
+        (item.bb_doc_lizenz ? '<div class="admin-field"><label>Lizenzantrag (PDF)</label>' +
+          '<a href="' + escapeAttr(DIRECTUS_URL + '/assets/' + item.bb_doc_lizenz) + '" target="_blank" class="admin-btn admin-btn-sm">Ansehen</a></div>' : '') +
+        (item.bb_doc_selfdecl ? '<div class="admin-field"><label>Self Declaration (PDF)</label>' +
+          '<a href="' + escapeAttr(DIRECTUS_URL + '/assets/' + item.bb_doc_selfdecl) + '" target="_blank" class="admin-btn admin-btn-sm">Ansehen</a></div>' : '') +
+        (item.bb_doc_natdecl ? '<div class="admin-field"><label>National Team Decl. (PDF)</label>' +
+          '<a href="' + escapeAttr(DIRECTUS_URL + '/assets/' + item.bb_doc_natdecl) + '" target="_blank" class="admin-btn admin-btn-sm">Ansehen</a></div>' : '') +
 
         '<div class="admin-modal-footer">' +
         '<button type="button" class="admin-btn" id="modal-cancel">' + t('cancel') + '</button>' +

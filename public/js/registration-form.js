@@ -705,6 +705,12 @@
       if (!front.files.length) {
         return showFeedback('error', i18n.t('registrationValidationID'));
       }
+      var lizenzUpload = document.getElementById('bb-doc-lizenz-upload');
+      if (lizenzUpload && !lizenzUpload.files.length) {
+        return showFeedback('error', locale === 'de'
+          ? 'Bitte lade den unterschriebenen Lizenzantrag hoch.'
+          : 'Please upload the signed licence application.');
+      }
     }
 
     // Validate at least one team selected (VB or BB) — unless funktion is "Andere"
@@ -867,20 +873,35 @@
     var frontFile = document.getElementById('id-front').files[0];
     var backEl = document.getElementById('id-back');
     var backFile = backEl ? backEl.files[0] : null;
-    if (!frontFile && !backFile) return Promise.resolve();
 
-    // Validate before uploading
-    if (frontFile) validateFile(frontFile);
-    if (backFile) validateFile(backFile);
+    // BB document uploads
+    var lizenzDocEl = document.getElementById('bb-doc-lizenz-upload');
+    var selfDeclDocEl = document.getElementById('bb-doc-selfdecl-upload');
+    var natDeclDocEl = document.getElementById('bb-doc-natdecl-upload');
+    var lizenzDoc = lizenzDocEl ? lizenzDocEl.files[0] : null;
+    var selfDeclDoc = selfDeclDocEl ? selfDeclDocEl.files[0] : null;
+    var natDeclDoc = natDeclDocEl ? natDeclDocEl.files[0] : null;
 
+    var allFiles = [frontFile, backFile, lizenzDoc, selfDeclDoc, natDeclDoc].filter(Boolean);
+    if (!allFiles.length) return Promise.resolve();
+
+    // Validate all files before uploading
+    for (var vi = 0; vi < allFiles.length; vi++) validateFile(allFiles[vi]);
+
+    // Upload all files in parallel
     var uploads = [];
-    if (frontFile) uploads.push(uploadSingleFile(frontFile));
-    if (backFile) uploads.push(uploadSingleFile(backFile));
+    var uploadKeys = [];
+    if (frontFile) { uploads.push(uploadSingleFile(frontFile)); uploadKeys.push('id_upload_front'); }
+    if (backFile) { uploads.push(uploadSingleFile(backFile)); uploadKeys.push('id_upload_back'); }
+    if (lizenzDoc) { uploads.push(uploadSingleFile(lizenzDoc)); uploadKeys.push('bb_doc_lizenz'); }
+    if (selfDeclDoc) { uploads.push(uploadSingleFile(selfDeclDoc)); uploadKeys.push('bb_doc_selfdecl'); }
+    if (natDeclDoc) { uploads.push(uploadSingleFile(natDeclDoc)); uploadKeys.push('bb_doc_natdecl'); }
 
     return Promise.all(uploads).then(function (fileIds) {
       var body = {};
-      if (fileIds[0]) body.id_upload_front = fileIds[0];
-      if (fileIds[1]) body.id_upload_back = fileIds[1];
+      for (var ki = 0; ki < uploadKeys.length; ki++) {
+        body[uploadKeys[ki]] = fileIds[ki];
+      }
 
       return fetch(DIRECTUS_URL + '/kscw/registration/' + registrationId + '/files', {
         method: 'POST',
@@ -933,6 +954,7 @@
       geburtsdatum: val('geburtsdatum'),
       nationalitaet: natHidden ? natHidden.value : '',
       geschlecht: val('geschlecht'),
+      nationalitaetCode: natHidden ? (natHidden.dataset.code || '') : '',
     };
   }
 
@@ -959,81 +981,83 @@
     });
   }
 
-  // Lizenzantrag pre-fill
+  // Lizenzantrag pre-fill (Swiss Basketball — exact field names from PDF)
   var lizenzLink = document.getElementById('bb-doc-lizenz');
   if (lizenzLink) {
     lizenzLink.addEventListener('click', function (e) {
       e.preventDefault();
       downloadPrefilled('/docs/lizenzantrag-swiss-basketball.pdf', 'lizenzantrag.pdf', function (pdfDoc, d) {
-        var pdfForm = pdfDoc.getForm();
+        var f = pdfDoc.getForm();
         try {
-          // Try filling form fields by name (if the PDF has them)
-          var fields = pdfForm.getFields();
-          for (var fi = 0; fi < fields.length; fi++) {
-            var name = fields[fi].getName().toLowerCase();
-            if (name.indexOf('name des klubs') !== -1 || name.indexOf('club') !== -1) {
-              try { fields[fi].setText('KSC Wiedikon'); } catch(e) {}
-            }
-            if (name === 'name' || name.indexOf('nachname') !== -1 || name.indexOf('last') !== -1) {
-              try { fields[fi].setText(d.nachname); } catch(e) {}
-            }
-            if (name.indexOf('vorname') !== -1 || name.indexOf('first') !== -1) {
-              try { fields[fi].setText(d.vorname); } catch(e) {}
-            }
-            if (name.indexOf('strasse') !== -1 || name.indexOf('adress') !== -1) {
-              try { fields[fi].setText(d.adresse); } catch(e) {}
-            }
-            if (name.indexOf('e-mail') !== -1 || name.indexOf('email') !== -1) {
-              try { fields[fi].setText(d.email); } catch(e) {}
-            }
+          // Text fields: undefined=Klub, _2=Name, _3=Vorname, _4=Strasse, _5=PLZ, _6=Ort, _7=Email
+          try { f.getTextField('undefined').setText('KSC Wiedikon'); } catch(e) {}
+          try { f.getTextField('undefined_2').setText(d.nachname); } catch(e) {}
+          try { f.getTextField('undefined_3').setText(d.vorname); } catch(e) {}
+          try { f.getTextField('undefined_4').setText(d.adresse); } catch(e) {}
+          try { f.getTextField('undefined_5').setText(d.plz || ''); } catch(e) {}
+          try { f.getTextField('undefined_6').setText(d.ort || ''); } catch(e) {}
+          try { f.getTextField('undefined_7').setText(d.email); } catch(e) {}
+
+          // Geburtsdatum: Tag, Monat, Jahr
+          if (d.geburtsdatum) {
+            var dp = d.geburtsdatum.split('-');
+            try { f.getTextField('Tag').setText(dp[2] || ''); } catch(e) {}
+            try { f.getTextField('Monat').setText(dp[1] || ''); } catch(e) {}
+            try { f.getTextField('Jahr').setText(dp[0] || ''); } catch(e) {}
           }
-        } catch (ex) { /* PDF has no form fields — download blank */ }
+
+          // Gender checkboxes
+          if (d.geschlecht === 'männlich') { try { f.getCheckBox('Mann').check(); } catch(e) {} }
+          if (d.geschlecht === 'weiblich') { try { f.getCheckBox('Frau').check(); } catch(e) {} }
+
+          // Nationality
+          if (d.nationalitaet === 'Schweiz') {
+            try { f.getCheckBox('Schweiz').check(); } catch(e) {}
+          } else if (d.nationalitaet) {
+            try { f.getCheckBox('Andere').check(); } catch(e) {}
+            try { f.getTextField('KOPIE DES PASSES ODER DER ID BEILAGEN').setText(d.nationalitaet); } catch(e) {}
+          }
+
+          // New member checkbox
+          try { f.getCheckBox('Neues Mitglied Swiss Basketball').check(); } catch(e) {}
+        } catch (ex) { /* fallback: download blank */ }
       });
     });
   }
 
-  // Player's Self Declaration pre-fill
+  // Player's Self Declaration pre-fill (FIBA — exact field names)
   var selfDeclLink = document.getElementById('bb-doc-selfdecl');
   if (selfDeclLink) {
     selfDeclLink.addEventListener('click', function (e) {
       e.preventDefault();
       downloadPrefilled('/docs/player-self-declaration-fiba.pdf', 'player-self-declaration.pdf', function (pdfDoc, d) {
-        var pdfForm = pdfDoc.getForm();
+        var f = pdfDoc.getForm();
         try {
-          var fields = pdfForm.getFields();
-          for (var fi = 0; fi < fields.length; fi++) {
-            var name = fields[fi].getName().toLowerCase();
-            if (name.indexOf('last') !== -1) try { fields[fi].setText(d.nachname); } catch(e) {}
-            if (name.indexOf('first') !== -1) try { fields[fi].setText(d.vorname); } catch(e) {}
-            if (name.indexOf('nationality') !== -1) try { fields[fi].setText(d.nationalitaet); } catch(e) {}
-            if (name.indexOf('current club') !== -1) try { fields[fi].setText('KSC Wiedikon'); } catch(e) {}
-            if (name.indexOf('season') !== -1) try { fields[fi].setText('2025/2026'); } catch(e) {}
-          }
+          try { f.getTextField('Last Name').setText(d.nachname); } catch(e) {}
+          try { f.getTextField('First Name').setText(d.vorname); } catch(e) {}
+          try { f.getTextField('Nationality').setText(d.nationalitaet); } catch(e) {}
+          try { f.getTextField('Current Club').setText('KSC Wiedikon'); } catch(e) {}
+          try { f.getTextField('Season').setText('2025/2026'); } catch(e) {}
         } catch (ex) {}
       });
     });
   }
 
-  // National Team Declaration pre-fill
+  // National Team Declaration pre-fill (FIBA — exact field names)
   var natDeclLink = document.getElementById('bb-doc-natdecl');
   if (natDeclLink) {
     natDeclLink.addEventListener('click', function (e) {
       e.preventDefault();
       downloadPrefilled('/docs/national-team-declaration-fiba.pdf', 'national-team-declaration.pdf', function (pdfDoc, d) {
-        var pdfForm = pdfDoc.getForm();
+        var f = pdfDoc.getForm();
         try {
-          var fields = pdfForm.getFields();
-          for (var fi = 0; fi < fields.length; fi++) {
-            var name = fields[fi].getName().toLowerCase();
-            if (name.indexOf('last') !== -1 || name.indexOf('nachname') !== -1 || name.indexOf('nom') !== -1) {
-              try { fields[fi].setText(d.nachname); } catch(e) {}
-            }
-            if (name.indexOf('first') !== -1 || name.indexOf('vorname') !== -1 || name.indexOf('prénom') !== -1) {
-              try { fields[fi].setText(d.vorname); } catch(e) {}
-            }
-            if (name.indexOf('nationality') !== -1 || name.indexOf('nationalit') !== -1) {
-              try { fields[fi].setText(d.nationalitaet); } catch(e) {}
-            }
+          try { f.getTextField('Last Name Nom Nachname').setText(d.nachname); } catch(e) {}
+          try { f.getTextField('First Name Prénom Vorname').setText(d.vorname); } catch(e) {}
+          try { f.getTextField('Nationality Nationalité Nationalität').setText(d.nationalitaet); } catch(e) {}
+          try { f.getTextField('New Club Nouveau club Neuer Club').setText('KSC Wiedikon'); } catch(e) {}
+          if (d.geburtsdatum) {
+            var dp = d.geburtsdatum.split('-');
+            try { f.getTextField('Date of birth Date de Naissance Geburtsdatum').setText(dp[2] + '.' + dp[1] + '.' + dp[0]); } catch(e) {}
           }
         } catch (ex) {}
       });
