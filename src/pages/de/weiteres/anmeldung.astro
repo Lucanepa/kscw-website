@@ -98,29 +98,22 @@ const locale = 'de';
           </div>
         </div>
 
-        <div class="form-group">
-          <label for="nationalitaet">{t(locale, 'registrationNationality')} *</label>
-          <select id="nationalitaet" name="nationalitaet" class="form-select" required>
-            <option value="" disabled selected>—</option>
-            <option value="Schweiz">{t(locale, 'registrationNationalitySwiss')}</option>
-            <option value="other">{t(locale, 'registrationNationalityOther')}</option>
-          </select>
-        </div>
-
-        <div class="form-group" id="nationality-other-group" style="display: none;">
-          <input type="text" id="nationalitaet-other" name="nationalitaet_other" class="form-input" placeholder="Nationalität eingeben…">
+        <div class="form-group nationality-wrapper">
+          <label>{t(locale, 'registrationNationality')} *</label>
+          <input type="hidden" id="nationalitaet" name="nationalitaet" required>
+          <button type="button" class="form-select nationality-trigger" id="nationality-trigger">
+            <span id="nationality-trigger-text">—</span>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 4 6 8 10 4"/></svg>
+          </button>
+          <div class="nationality-dropdown" id="nationality-dropdown">
+            <input type="text" class="form-input nationality-search" id="nationality-search" placeholder="Suchen…" autocomplete="off">
+            <div class="nationality-options" id="nationality-options"></div>
+          </div>
         </div>
 
         <!-- ═══ VOLLEYBALL-ONLY FIELDS ═══ -->
         <div id="vb-fields" style="display: none;">
-          <div class="form-group">
-            <label for="anrede">{t(locale, 'registrationAnrede')} *</label>
-            <select id="anrede" name="anrede" class="form-select" data-conditional-required>
-              <option value="" disabled selected>—</option>
-              <option value="Herr">{t(locale, 'registrationAnredeHerr')}</option>
-              <option value="Frau">{t(locale, 'registrationAnredeFrau')}</option>
-            </select>
-          </div>
+          <input type="hidden" id="anrede" name="anrede">
 
           <div class="form-group">
             <label for="vb-team">{t(locale, 'registrationTeam')} *</label>
@@ -158,17 +151,11 @@ const locale = 'de';
           </div>
 
           <div class="form-group">
-            <label>{t(locale, 'registrationRole')}</label>
-            <div style="display: flex; gap: var(--space-lg); flex-wrap: wrap; margin-top: var(--space-xs);">
-              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
-                <input type="checkbox" name="rolle" value="Schreiber">
-                <span>{t(locale, 'registrationRoleSchreiber')}</span>
-              </label>
-              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
-                <input type="checkbox" name="rolle" value="Schiedsrichter">
-                <span>{t(locale, 'registrationRoleSchiedsrichter')}</span>
-              </label>
-            </div>
+            <label>{t(locale, 'registrationLicence')}</label>
+            <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal; margin-top: var(--space-xs);">
+              <input type="checkbox" name="lizenz_vb" value="Schreiber">
+              <span>{t(locale, 'registrationLicenceSchreiber')}</span>
+            </label>
           </div>
         </div>
 
@@ -185,6 +172,10 @@ const locale = 'de';
             <label for="bb-fee">{t(locale, 'registrationFeeCategory')} *</label>
             <select id="bb-fee" name="bb_fee" class="form-select" data-conditional-required>
               <option value="" disabled selected>{t(locale, 'registrationFeeCategoryPlaceholder')}</option>
+              <option value="BB Aktiv Erwachsene">{t(locale, 'registrationBBFeeAdult')}</option>
+              <option value="BB Aktiv Junioren U18">{t(locale, 'registrationBBFeeJunior')}</option>
+              <option value="BB Passiv">{t(locale, 'registrationBBFeePassive')}</option>
+              <option value="BB Familie">{t(locale, 'registrationBBFeeFamily')}</option>
             </select>
           </div>
 
@@ -205,16 +196,44 @@ const locale = 'de';
           </div>
 
           <div class="form-group">
+            <label for="bb-lizenz">{t(locale, 'registrationLicence')} *</label>
+            <select id="bb-lizenz" name="bb_lizenz" class="form-select" data-conditional-required>
+              <option value="" disabled selected>{t(locale, 'registrationLicenceBBPlaceholder')}</option>
+              <option value="OTR 1">{t(locale, 'registrationLicenceOTR1')}</option>
+              <option value="OTR 2">{t(locale, 'registrationLicenceOTR2')}</option>
+              <option value="OTN">{t(locale, 'registrationLicenceOTN')}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
             <label>{t(locale, 'registrationIDUpload')} *</label>
             <small style="color: var(--text-secondary); display: block; margin-bottom: var(--space-sm);">{t(locale, 'registrationIDUploadNote')}</small>
             <div style="display: flex; gap: var(--space-md); flex-wrap: wrap;">
               <div>
-                <label for="id-front" style="font-size: var(--text-sm); font-weight: 600; display: block; margin-bottom: var(--space-xs);">{t(locale, 'registrationIDFront')}</label>
+                <label for="id-front" style="font-size: var(--text-sm); font-weight: 600; display: block; margin-bottom: var(--space-xs);">{t(locale, 'registrationIDFront')} *</label>
                 <input type="file" id="id-front" name="id_front" accept="image/*,.pdf" data-conditional-required>
               </div>
               <div>
                 <label for="id-back" style="font-size: var(--text-sm); font-weight: 600; display: block; margin-bottom: var(--space-xs);">{t(locale, 'registrationIDBack')}</label>
-                <input type="file" id="id-back" name="id_back" accept="image/*,.pdf" data-conditional-required>
+                <input type="file" id="id-back" name="id_back" accept="image/*,.pdf">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" id="bb-docs-group">
+            <label>{t(locale, 'registrationBBDocs')}</label>
+            <div class="bb-docs-list">
+              <div class="bb-doc-item">
+                <span>{t(locale, 'registrationBBDocsLizenz')}</span>
+                <a href="/docs/lizenzantrag-swiss-basketball.pdf" target="_blank" class="bb-doc-download" id="bb-doc-lizenz">{t(locale, 'registrationBBDocsLizenzDownload')}</a>
+              </div>
+              <div class="bb-doc-item bb-doc-foreign" style="display: none;">
+                <span>{t(locale, 'registrationBBDocsSelfDecl')}</span>
+                <a href="/docs/player-self-declaration-fiba.pdf" target="_blank" class="bb-doc-download" id="bb-doc-selfdecl">{t(locale, 'registrationBBDocsSelfDeclDownload')}</a>
+              </div>
+              <div class="bb-doc-item bb-doc-foreign" style="display: none;">
+                <span>{t(locale, 'registrationBBDocsNatDecl')}</span>
+                <a href="/docs/national-team-declaration-fiba.pdf" target="_blank" class="bb-doc-download" id="bb-doc-natdecl">{t(locale, 'registrationBBDocsNatDeclDownload')}</a>
               </div>
             </div>
           </div>
@@ -229,7 +248,7 @@ const locale = 'de';
         <!-- Privacy Notice (collapsible) -->
         <details style="margin-bottom: var(--space-lg);">
           <summary style="cursor: pointer; font-weight: 600; color: var(--kscw-blue);">{t(locale, 'registrationPrivacyTitle')}</summary>
-          <p style="margin-top: var(--space-sm); color: var(--text-secondary); font-size: var(--text-sm); line-height: 1.7;">{t(locale, 'registrationPrivacyText')}</p>
+          <p style="margin-top: var(--space-sm); color: var(--text-secondary); font-size: var(--text-sm); line-height: 1.7; text-align: justify;">{t(locale, 'registrationPrivacyText')}</p>
         </details>
 
         <!-- Consent Checkbox -->
@@ -386,5 +405,106 @@ const locale = 'de';
     display: block;
     font-size: var(--text-xs, 0.75rem);
     margin-top: var(--space-xs);
+  }
+  /* Searchable nationality dropdown */
+  .nationality-wrapper {
+    position: relative;
+  }
+  .nationality-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    text-align: left;
+    appearance: none;
+  }
+  .nationality-trigger svg {
+    flex-shrink: 0;
+    opacity: 0.5;
+    transition: transform 0.2s ease;
+  }
+  .nationality-wrapper.open .nationality-trigger svg {
+    transform: rotate(180deg);
+  }
+  .nationality-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md, 8px);
+    margin-top: 4px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+  }
+  .nationality-wrapper.open .nationality-dropdown {
+    display: block;
+  }
+  .nationality-search {
+    border: none !important;
+    border-bottom: 1px solid var(--border) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  .nationality-search:focus {
+    box-shadow: none !important;
+  }
+  .nationality-options {
+    max-height: 240px;
+    overflow-y: auto;
+  }
+  .nationality-opt {
+    padding: 0.5rem 0.875rem;
+    cursor: pointer;
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    transition: background 0.1s ease;
+  }
+  .nationality-opt:hover,
+  .nationality-opt.highlighted {
+    background: rgba(74, 85, 162, 0.08);
+  }
+  .nationality-opt.selected {
+    color: var(--kscw-blue, #4A55A2);
+    font-weight: 600;
+  }
+  .nationality-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0;
+  }
+  /* BB docs download list */
+  .bb-docs-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-top: var(--space-xs);
+  }
+  .bb-doc-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md, 8px);
+    font-size: var(--text-sm);
+  }
+  .bb-doc-item span {
+    font-weight: normal;
+    color: var(--text-secondary);
+  }
+  .bb-doc-download {
+    font-size: var(--text-xs, 0.75rem);
+    font-weight: 600;
+    color: var(--kscw-blue, #4A55A2);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .bb-doc-download:hover {
+    text-decoration: underline;
   }
 </style>
