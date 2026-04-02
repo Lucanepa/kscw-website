@@ -261,6 +261,60 @@ const locale = 'en';
           </div>
         </div>
 
+        <!-- ═══ PASSIVE-ONLY FIELDS ═══ -->
+        <div id="passive-fields" style="display: none;">
+          <div class="form-group">
+            <label>{t(locale, 'registrationPassiveLicenceVB')}</label>
+            <div style="display: flex; gap: var(--space-lg); flex-wrap: wrap; margin-top: var(--space-xs);">
+              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
+                <input type="checkbox" name="lizenz_passive" value="VB Schreiber">
+                <span>{t(locale, 'registrationLicenceSchreiber')}</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
+                <input type="checkbox" name="lizenz_passive" value="VB Schiedsrichter" id="passive-vb-ref-check">
+                <span>{t(locale, 'registrationLicenceSchiedsrichter')}</span>
+              </label>
+            </div>
+          </div>
+          <div class="form-group" id="passive-vb-ref-level-group" style="display: none;">
+            <label for="passive-vb-ref-level">{t(locale, 'registrationLicenceSchiedsrichter')} — Level</label>
+            <select id="passive-vb-ref-level" name="passive_vb_ref_level" class="form-select">
+              <option value="" disabled selected>{t(locale, 'registrationLicenceRefLevelPlaceholder')}</option>
+              <option value="N4-3">N4-3</option>
+              <option value="N4-2">N4-2</option>
+              <option value="N4-1">N4-1</option>
+              <option value="N3-3">N3-3</option>
+              <option value="N3-2">N3-2</option>
+              <option value="N3-1">N3-1</option>
+              <option value="N2-2">N2-2</option>
+              <option value="N2-1">N2-1</option>
+              <option value="N1 (NL-Kader)">N1 (NL-Kader)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>{t(locale, 'registrationPassiveLicenceBB')}</label>
+            <div style="display: flex; gap: var(--space-lg); flex-wrap: wrap; margin-top: var(--space-xs);">
+              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
+                <input type="checkbox" name="lizenz_passive" value="BB OTR 1">
+                <span>{t(locale, 'registrationLicenceOTR1')}</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
+                <input type="checkbox" name="lizenz_passive" value="BB OTR 2">
+                <span>{t(locale, 'registrationLicenceOTR2')}</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
+                <input type="checkbox" name="lizenz_passive" value="BB OTN">
+                <span>{t(locale, 'registrationLicenceOTN')}</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; font-weight: normal;">
+                <input type="checkbox" name="lizenz_passive" value="BB Schiedsrichter">
+                <span>{t(locale, 'registrationLicenceSchiedsrichter')}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
         <!-- Bemerkungen (all types) -->
         <div class="form-group">
           <label for="bemerkungen">{t(locale, 'registrationComments')}</label>

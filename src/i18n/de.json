@@ -523,6 +523,8 @@
   "registrationLicenceOTR1": "OTR 1",
   "registrationLicenceOTR2": "OTR 2",
   "registrationLicenceOTN": "OTN",
+  "registrationPassiveLicenceVB": "Volleyball-Lizenz",
+  "registrationPassiveLicenceBB": "Basketball-Lizenz",
   "registrationBBFeeAdult": "Aktiv Erwachsene (CHF 350)",
   "registrationBBFeeJunior": "Aktiv Junioren U18 (CHF 200)",
   "registrationBBFeePassive": "Passiv (CHF 50)",

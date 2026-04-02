@@ -376,18 +376,22 @@
     }
   }
 
-  // ── VB Referee level toggle ───────────────────────────────
-  var vbRefCheck = document.getElementById('vb-ref-check');
-  var vbRefLevelGroup = document.getElementById('vb-ref-level-group');
-  if (vbRefCheck && vbRefLevelGroup) {
-    vbRefCheck.addEventListener('change', function () {
-      vbRefLevelGroup.style.display = vbRefCheck.checked ? '' : 'none';
-      if (!vbRefCheck.checked) {
-        var sel = document.getElementById('vb-ref-level');
-        if (sel) sel.selectedIndex = 0;
-      }
-    });
+  // ── Referee level toggles (VB + passive VB) ───────────────
+  function setupRefToggle(checkId, groupId, selectId) {
+    var check = document.getElementById(checkId);
+    var group = document.getElementById(groupId);
+    if (check && group) {
+      check.addEventListener('change', function () {
+        group.style.display = check.checked ? '' : 'none';
+        if (!check.checked) {
+          var sel = document.getElementById(selectId);
+          if (sel) sel.selectedIndex = 0;
+        }
+      });
+    }
   }
+  setupRefToggle('vb-ref-check', 'vb-ref-level-group', 'vb-ref-level');
+  setupRefToggle('passive-vb-ref-check', 'passive-vb-ref-level-group', 'passive-vb-ref-level');
 
   // ── Membership type switching ─────────────────────────────
   var typeRadios = form.querySelectorAll('input[name="membership_type"]');
@@ -396,8 +400,10 @@
     var selected = form.querySelector('input[name="membership_type"]:checked');
     var type = selected ? selected.value : '';
 
+    var passiveFields = document.getElementById('passive-fields');
     vbFields.style.display = type === 'volleyball' ? '' : 'none';
     bbFields.style.display = type === 'basketball' ? '' : 'none';
+    if (passiveFields) passiveFields.style.display = type === 'passive' ? '' : 'none';
 
     // Toggle required attributes based on type
     toggleRequired(vbFields, type === 'volleyball');
@@ -576,6 +582,16 @@
       payload.lizenz = val('bb-lizenz');
     }
 
+    if (type === 'passive') {
+      var lizenzPassive = [];
+      form.querySelectorAll('input[name="lizenz_passive"]:checked').forEach(function (cb) {
+        lizenzPassive.push(cb.value);
+      });
+      if (lizenzPassive.length) payload.lizenz = lizenzPassive.join(', ');
+      var passiveRefLevel = val('passive-vb-ref-level');
+      if (passiveRefLevel) payload.schiedsrichter_stufe = passiveRefLevel;
+    }
+
     // Step 1: Create registration (JSON)
     fetch(DIRECTUS_URL + '/kscw/registration', {
       method: 'POST',
@@ -601,6 +617,8 @@
         if (phoneCode) phoneCode.value = '+41';
         vbFields.style.display = 'none';
         bbFields.style.display = 'none';
+        var pf = document.getElementById('passive-fields');
+        if (pf) pf.style.display = 'none';
         if (window.turnstile && turnstileWidgetId !== null) {
           window.turnstile.reset(turnstileWidgetId);
         }
