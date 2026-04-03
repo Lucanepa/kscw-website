@@ -663,10 +663,42 @@
 
   // ── Feedback helpers ──────────────────────────────────────
   function showFeedback(type, msg) {
+    if (type === 'success') {
+      showSuccessModal(msg);
+      return;
+    }
     if (!feedback) return;
     feedback.className = 'form-feedback form-feedback--' + type;
     feedback.textContent = msg;
     feedback.style.display = '';
+  }
+
+  function showSuccessModal(msg) {
+    var overlay = document.createElement('div');
+    overlay.className = 'success-modal-overlay';
+    var modal = document.createElement('div');
+    modal.className = 'success-modal';
+    modal.innerHTML =
+      '<div class="success-modal-icon">' +
+        '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>' +
+      '</div>' +
+      '<p class="success-modal-msg">' + msg + '</p>' +
+      '<button type="button" class="success-modal-btn">OK</button>';
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    // Trigger animation
+    requestAnimationFrame(function () { overlay.classList.add('visible'); });
+    var btn = modal.querySelector('.success-modal-btn');
+    btn.addEventListener('click', function () {
+      overlay.classList.remove('visible');
+      setTimeout(function () { overlay.remove(); }, 200);
+    });
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) {
+        overlay.classList.remove('visible');
+        setTimeout(function () { overlay.remove(); }, 200);
+      }
+    });
   }
 
   function hideFeedback() {
@@ -754,6 +786,7 @@
       geschlecht: val('geschlecht'),
       bemerkungen: val('bemerkungen'),
       turnstile_token: turnstileToken,
+      locale: locale,
     };
 
     if (type === 'volleyball') {
