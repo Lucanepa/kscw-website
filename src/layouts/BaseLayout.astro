@@ -31,6 +31,24 @@ const altLocale = locale === 'de' ? 'en' : 'de';
   <link rel="alternate" hreflang={locale} href={Astro.url.pathname}>
   <link rel="alternate" hreflang={altLocale} href={altUrl}>
   <link rel="alternate" type="application/rss+xml" title="KSC Wiedikon News" href="/feed.xml">
+  <script is:inline src="https://browser.sentry-cdn.com/9.27.0/bundle.min.js" crossorigin="anonymous"></script>
+  <script is:inline>
+    Sentry.init({
+      dsn: 'https://511f2d9c956d41f53d9bbe7033e54850@o4511121927766016.ingest.de.sentry.io/4511156195098704',
+      environment: (location.hostname === 'kscw-website.pages.dev' || location.hostname === 'localhost') ? 'development' : 'production',
+      tracesSampleRate: 0,
+      allowUrls: [location.origin],
+      ignoreErrors: [
+        'ResizeObserver loop',
+        'ResizeObserver loop completed with undelivered notifications',
+        'Network request failed',
+        'Failed to fetch',
+        'NetworkError',
+        'Load failed',
+        /^Non-Error promise rejection captured/,
+      ],
+    });
+  </script>
   <script is:inline src="/js/error-logger.js"></script>
   <script is:inline>
     // Theme: dark by default, light if saved
