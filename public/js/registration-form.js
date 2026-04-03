@@ -810,6 +810,7 @@
     }
 
     if (type === 'basketball') {
+      payload.anrede = anredeHidden ? anredeHidden.value : '';
       payload.rolle = val('funktion-bb');
       var bbTeams = [];
       form.querySelectorAll('input[name="team_bb"]:checked').forEach(function (cb) { bbTeams.push(cb.value); });
