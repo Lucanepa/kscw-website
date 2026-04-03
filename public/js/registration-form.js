@@ -399,29 +399,31 @@
   setupRefToggle('passive-vb-ref-check', 'passive-vb-ref-level-group', 'passive-vb-ref-level');
 
   // ── Age-based AHV required logic ───────────────────────────
-  // AHV is only mandatory if member is under 25 at registration time
+  // AHV mandatory if under 23 (VB) or under 25 (BB)
   var dobInput = document.getElementById('geburtsdatum');
 
-  function isUnder25(dobStr) {
+  function isUnderAge(dobStr, maxAge) {
     if (!dobStr) return false;
     var dob = new Date(dobStr);
     var today = new Date();
     var age = today.getFullYear() - dob.getFullYear();
     var m = today.getMonth() - dob.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
-    return age < 25;
+    return age < maxAge;
   }
 
   function updateAhvRequired() {
-    var under25 = isUnder25(dobInput ? dobInput.value : '');
+    var dobVal = dobInput ? dobInput.value : '';
+    var vbRequired = isUnderAge(dobVal, 23);
+    var bbRequired = isUnderAge(dobVal, 25);
     var vbAhv = document.getElementById('vb-ahv');
     var bbAhv = document.getElementById('bb-ahv');
     var vbGroup = document.getElementById('vb-ahv-group');
     var bbGroup = document.getElementById('bb-ahv-group');
-    if (vbAhv) { if (under25) vbAhv.setAttribute('required', ''); else { vbAhv.removeAttribute('required'); vbAhv.value = ''; } }
-    if (bbAhv) { if (under25) bbAhv.setAttribute('required', ''); else { bbAhv.removeAttribute('required'); bbAhv.value = ''; } }
-    if (vbGroup) vbGroup.style.display = under25 ? '' : 'none';
-    if (bbGroup) bbGroup.style.display = under25 ? '' : 'none';
+    if (vbAhv) { if (vbRequired) vbAhv.setAttribute('required', ''); else { vbAhv.removeAttribute('required'); vbAhv.value = ''; } }
+    if (bbAhv) { if (bbRequired) bbAhv.setAttribute('required', ''); else { bbAhv.removeAttribute('required'); bbAhv.value = ''; } }
+    if (vbGroup) vbGroup.style.display = vbRequired ? '' : 'none';
+    if (bbGroup) bbGroup.style.display = bbRequired ? '' : 'none';
   }
 
   if (dobInput) {
