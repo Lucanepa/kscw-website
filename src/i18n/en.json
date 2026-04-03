@@ -552,7 +552,7 @@
   "registrationBBDocsNatDecl": "National Team Declaration (non-Swiss nationality only)",
   "registrationBBDocsNatDeclDownload": "Download National Team Declaration",
   "registrationBBDocsUpload": "Upload signed documents",
-  "registrationBBDocsUploadNote": "Upload the filled and signed documents here (PDF, max. 10 MB per file).",
+  "registrationBBDocsUploadNote": "Upload the filled and signed documents here (PDF or photo, max. 10 MB per file).",
   "registrationBBDocsUploadLizenz": "Licence Application (required)",
   "registrationBBDocsUploadSelfDecl": "Player's Self Declaration",
   "registrationBBDocsUploadNatDecl": "National Team Declaration",

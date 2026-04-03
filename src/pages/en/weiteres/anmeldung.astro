@@ -318,15 +318,15 @@ const locale = 'en';
             <div style="display: flex; flex-direction: column; gap: var(--space-md);">
               <div>
                 <label for="bb-doc-lizenz-upload" style="font-size: var(--text-sm); font-weight: 600; display: block; margin-bottom: var(--space-xs);">{t(locale, 'registrationBBDocsUploadLizenz')} *</label>
-                <input type="file" id="bb-doc-lizenz-upload" name="bb_doc_lizenz" accept=".pdf" data-conditional-required>
+                <input type="file" id="bb-doc-lizenz-upload" name="bb_doc_lizenz" accept=".pdf,.jpg,.jpeg,.png,.webp" data-conditional-required>
               </div>
               <div class="bb-doc-foreign" style="display: none;">
                 <label for="bb-doc-selfdecl-upload" style="font-size: var(--text-sm); font-weight: 600; display: block; margin-bottom: var(--space-xs);">{t(locale, 'registrationBBDocsUploadSelfDecl')}</label>
-                <input type="file" id="bb-doc-selfdecl-upload" name="bb_doc_selfdecl" accept=".pdf">
+                <input type="file" id="bb-doc-selfdecl-upload" name="bb_doc_selfdecl" accept=".pdf,.jpg,.jpeg,.png,.webp">
               </div>
               <div class="bb-doc-foreign" style="display: none;">
                 <label for="bb-doc-natdecl-upload" style="font-size: var(--text-sm); font-weight: 600; display: block; margin-bottom: var(--space-xs);">{t(locale, 'registrationBBDocsUploadNatDecl')}</label>
-                <input type="file" id="bb-doc-natdecl-upload" name="bb_doc_natdecl" accept=".pdf">
+                <input type="file" id="bb-doc-natdecl-upload" name="bb_doc_natdecl" accept=".pdf,.jpg,.jpeg,.png,.webp">
               </div>
             </div>
           </div>
