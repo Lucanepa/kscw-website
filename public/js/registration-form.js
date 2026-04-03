@@ -828,6 +828,7 @@
     }
 
     if (type === 'passive') {
+      payload.anrede = anredeHidden ? anredeHidden.value : '';
       var lizenzPassive = [];
       form.querySelectorAll('input[name="lizenz_passive"]:checked').forEach(function (cb) {
         lizenzPassive.push(cb.value);
