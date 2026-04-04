@@ -191,6 +191,11 @@
       errors.push(msg('captchaRequired'));
     }
 
+    var consentBox = document.getElementById('privacy-consent');
+    if (consentBox && !consentBox.checked) {
+      errors.push(i18n.t('contactValidationConsent'));
+    }
+
     if (errors.length > 0) {
       showFeedback(errors[0], 'error');
       return null;

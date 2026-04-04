@@ -89,12 +89,18 @@
     }
 
     // ── Body (HTML from Quill editor, authored by admin — not user-submitted)
-    // SECURITY: This content comes from the Directus `news` collection which is
-    // only writable by authenticated admins via the admin dashboard's Quill editor.
-    // It is NOT user-submitted content and does not require sanitization.
+    // SECURITY: Content comes from Directus `news` collection, writable only by
+    // authenticated admins. Sanitized on save via DOMPurify in admin panel.
+    // Defense-in-depth: strip script/iframe/object tags before rendering.
     if (data.body) {
       var body = el('div', 'nm-body');
-      body.innerHTML = data.body; // eslint-disable-line no-unsanitized/property -- admin-authored content
+      var sanitized = data.body
+        .replace(/<script[\s\S]*?<\/script>/gi, '')
+        .replace(/<iframe[\s\S]*?<\/iframe>/gi, '')
+        .replace(/<object[\s\S]*?<\/object>/gi, '')
+        .replace(/<embed[\s\S]*?>/gi, '')
+        .replace(/\bon\w+\s*=/gi, 'data-removed=');
+      body.innerHTML = sanitized; // eslint-disable-line no-unsanitized/property -- admin-authored, double-sanitized
       modal.appendChild(body);
     }
 

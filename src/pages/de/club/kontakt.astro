@@ -66,6 +66,12 @@ const basketballContacts = contactPersons.filter(c => c.sport === 'basketball');
               <label for="nachricht">{t(locale, 'contactMessage')}</label>
               <textarea id="nachricht" name="nachricht" placeholder={t(locale, 'contactMessagePlaceholder')} required></textarea>
             </div>
+            <div class="form-group consent-group">
+              <label class="consent-label">
+                <input type="checkbox" id="privacy-consent" name="privacy_consent" required>
+                <span>Ich habe die <a href="/de/weiteres/datenschutz" target="_blank">Datenschutzerklärung</a> gelesen und bin damit einverstanden.</span>
+              </label>
+            </div>
             <div id="turnstile-container" class="form-group"></div>
             <button type="submit" class="form-submit">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
@@ -319,5 +325,27 @@ const basketballContacts = contactPersons.filter(c => c.sport === 'basketball');
   }
   #turnstile-container {
     min-height: 0;
+  }
+  .consent-group {
+    margin-bottom: var(--space-md);
+  }
+  .consent-label {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    font-size: var(--text-sm);
+    font-weight: 400;
+    color: var(--text-secondary);
+    cursor: pointer;
+    line-height: 1.5;
+  }
+  .consent-label input[type="checkbox"] {
+    width: auto;
+    margin-top: 3px;
+    flex-shrink: 0;
+  }
+  .consent-label a {
+    color: var(--kscw-blue, #4A55A2);
+    text-decoration: underline;
   }
 </style>

@@ -173,7 +173,8 @@
     container.appendChild(section);
   }
 
-  // ── Render Instagram Embed ─────────────────────────────────────────
+  // ── Render Instagram Feed ───────────────────────────────────────────
+  // Uses Instagram's native /embed/ iframe URL for profile feeds.
   function renderInstagramEmbed(teamData) {
     var container = document.getElementById('instagram-embed-container');
     var embedEl = document.getElementById('instagram-embed');
@@ -182,45 +183,24 @@
     var url = teamData.social_url || '';
     if (!url || url.indexOf('instagram.com/') === -1) return;
 
-    // Extract handle from URL like https://www.instagram.com/kscw_h1/
     var match = url.match(/instagram\.com\/([^/?]+)/);
     if (!match) return;
     var handle = match[1];
 
     container.style.display = '';
 
-    // Update heading
     var heading = document.getElementById('instagram-heading');
     if (heading) heading.textContent = '@' + handle;
 
-    // Build oEmbed-based embed using Instagram's blockquote + embed.js
-    var blockquote = document.createElement('blockquote');
-    blockquote.className = 'instagram-media';
-    blockquote.setAttribute('data-instgrm-permalink', 'https://www.instagram.com/' + handle + '/');
-    blockquote.setAttribute('data-instgrm-captioned', '');
-    blockquote.style.cssText = 'background:#FFF; border:0; border-radius:3px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin:0 auto; max-width:540px; min-width:326px; padding:0; width:calc(100% - 2px);';
-
-    var fallback = document.createElement('a');
-    fallback.href = 'https://www.instagram.com/' + handle + '/';
-    fallback.target = '_blank';
-    fallback.rel = 'noopener noreferrer';
-    fallback.textContent = i18n.t('teamInstagramFollow', { handle: '@' + handle }) || '@' + handle + ' auf Instagram';
-    fallback.style.cssText = 'display:block; padding:2rem; text-align:center; color:var(--kscw-blue); font-weight:600;';
-    blockquote.appendChild(fallback);
+    var iframe = document.createElement('iframe');
+    iframe.src = 'https://www.instagram.com/' + handle + '/embed/';
+    iframe.className = 'ig-feed-iframe';
+    iframe.setAttribute('frameborder', '0');
+    iframe.setAttribute('scrolling', 'no');
+    iframe.setAttribute('allowtransparency', 'true');
 
     embedEl.textContent = '';
-    embedEl.appendChild(blockquote);
-
-    // Load Instagram embed.js (idempotent — checks for existing script)
-    if (!document.getElementById('instagram-embed-js')) {
-      var script = document.createElement('script');
-      script.id = 'instagram-embed-js';
-      script.async = true;
-      script.src = 'https://www.instagram.com/embed.js';
-      document.body.appendChild(script);
-    } else if (window.instgrm && window.instgrm.Embeds) {
-      window.instgrm.Embeds.process();
-    }
+    embedEl.appendChild(iframe);
   }
 
   // ── Fetch team data from public API ───────────────────────────────

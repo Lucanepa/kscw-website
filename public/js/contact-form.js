@@ -185,6 +185,10 @@
     if (!subject) return showFeedback('error', i18n.t('contactValidationSubject'));
     if (!message) return showFeedback('error', i18n.t('contactValidationMessage'));
 
+    // Privacy consent
+    var consentBox = document.getElementById('privacy-consent');
+    if (consentBox && !consentBox.checked) return showFeedback('error', i18n.t('contactValidationConsent'));
+
     // Turnstile token
     var turnstileToken = '';
     if (window.turnstile && turnstileWidgetId !== null) {

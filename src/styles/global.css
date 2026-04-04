@@ -2300,13 +2300,24 @@ button:focus-visible {
   margin-top: var(--space-sm);
 }
 
-/* ── Instagram Embed ───────────────────────────────────────── */
+/* ── Instagram Feed ────────────────────────────────────────── */
 .instagram-embed-wrapper {
-  max-width: 540px;
+  max-width: 480px;
   margin: 0 auto;
 }
-.instagram-embed-wrapper iframe {
-  border-radius: var(--radius-lg) !important;
+.ig-feed-iframe {
+  width: 100%;
+  max-width: 480px;
+  height: 560px;
+  border: none;
+  border-radius: var(--radius-lg);
+  display: block;
+  margin: 0 auto;
+}
+@media (max-width: 520px) {
+  .ig-feed-iframe {
+    height: 480px;
+  }
 }
 
 /* ── CTA Section ───────────────────────────────────────────── */

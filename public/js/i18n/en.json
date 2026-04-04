@@ -87,6 +87,7 @@
   "contactValidationSubject": "Please select a subject.",
   "contactValidationMessage": "Please enter a message.",
   "contactValidationCaptcha": "Please complete the captcha.",
+  "contactValidationConsent": "Please accept the privacy policy.",
   "contactSidebar": "Contact Details",
   "contactGeneral": "General",
   "contactSocialMedia": "Social Media",
