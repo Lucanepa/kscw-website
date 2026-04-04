@@ -7,6 +7,7 @@ All notable changes to the KSC Wiedikon website are documented in this file.
 ### Changed
 - **Datenschutz & Impressum**: Added Hetzner hosting section (company: Gunzenhausen, datacenter: Nürnberg) to privacy policy and imprint — both DE and EN
 - Updated deployment references from Cloudflare Pages to Hetzner
+- **Auto-delete notifications**: Directus Flow deletes notifications older than 3 days (daily at 04:00 UTC)
 
 ## [3.2.0] — 2026-04-02
 
