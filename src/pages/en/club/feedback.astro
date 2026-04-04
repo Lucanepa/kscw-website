@@ -130,8 +130,18 @@ const locale = 'en';
         <h2 class="changelog-heading">
           <i data-lucide="scroll-text"></i>
           {t(locale, 'changelogTitle')}
-          <span class="changelog-badge">v3.2.0</span>
+          <span class="changelog-badge">v3.2.1</span>
         </h2>
+
+        <div class="changelog-entry">
+          <div class="changelog-meta">v3.2.1 — 2026-04-04</div>
+          <div class="changelog-group">
+            <h3>Legal</h3>
+            <ul>
+              <li>Privacy Policy & Imprint: Added Hetzner hosting section (Nuremberg datacenter)</li>
+            </ul>
+          </div>
+        </div>
 
         <div class="changelog-entry">
           <div class="changelog-meta">v3.2.0 — 2026-04-02</div>
@@ -144,6 +154,32 @@ const locale = 'en';
               <li>Basketball licence: OTR 1, OTR 2, OTN dropdown</li>
               <li>Swiss Basketball PDF documents with auto pre-fill from form data</li>
               <li>Salutation auto-derived from gender selection</li>
+            </ul>
+          </div>
+          <div class="changelog-group">
+            <h3>Security</h3>
+            <ul>
+              <li>Self-hosted pdf-lib (was unpkg CDN without SRI)</li>
+              <li>Client-side file type + size validation before upload (JPG/PNG/WebP/PDF, max 10 MB)</li>
+              <li>Turnstile CAPTCHA token reset on failed submission</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="changelog-entry">
+          <div class="changelog-meta">v3.1.0 — 2026-04-01</div>
+          <div class="changelog-group">
+            <h3>Registration System</h3>
+            <ul>
+              <li>Unified registration form for Volleyball, Basketball and Passive memberships — replaces ClubDesk form + Google Forms</li>
+              <li>Admin "Registrations" tab with status filters, detail modal, approve/reject workflow</li>
+              <li>ClubDesk CSV export from admin panel</li>
+              <li>Basketball PDF pre-fill (licence application, Player's Self Declaration, National Team Declaration)</li>
+              <li>File uploads for ID copies with download + auto-delete from admin</li>
+              <li>Sport-specific confirmation emails on registration</li>
+              <li>Admin notification email on each new registration</li>
+              <li>Privacy notice with consent checkbox (90-day auto-deletion)</li>
+              <li>Auto-deletion Flow in Directus — daily cron deletes registrations + files after 90 days</li>
             </ul>
           </div>
         </div>
@@ -211,8 +247,8 @@ const locale = 'en';
             <h3>Website</h3>
             <ul>
               <li>Astro 6 static site with custom CSS design system</li>
-              <li>PocketBase API backend (api.kscw.ch)</li>
-              <li>Cloudflare Pages hosting</li>
+              <li>Directus API backend (directus.kscw.ch)</li>
+              <li>Hetzner hosting (Nuremberg datacenter)</li>
               <li>Bilingual: German & English</li>
             </ul>
           </div>

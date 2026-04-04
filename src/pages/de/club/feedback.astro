@@ -130,8 +130,18 @@ const locale = 'de';
         <h2 class="changelog-heading">
           <i data-lucide="scroll-text"></i>
           {t(locale, 'changelogTitle')}
-          <span class="changelog-badge">v3.2.0</span>
+          <span class="changelog-badge">v3.2.1</span>
         </h2>
+
+        <div class="changelog-entry">
+          <div class="changelog-meta">v3.2.1 — 2026-04-04</div>
+          <div class="changelog-group">
+            <h3>Rechtliches</h3>
+            <ul>
+              <li>Datenschutz & Impressum: Hetzner-Hosting-Abschnitt hinzugefügt (Rechenzentrum Nürnberg)</li>
+            </ul>
+          </div>
+        </div>
 
         <div class="changelog-entry">
           <div class="changelog-meta">v3.2.0 — 2026-04-02</div>
@@ -144,6 +154,32 @@ const locale = 'de';
               <li>Basketball-Lizenz: OTR 1, OTR 2, OTN Dropdown</li>
               <li>Swiss Basketball PDF-Dokumente mit automatischer Vorbefüllung</li>
               <li>Anrede wird automatisch vom Geschlecht abgeleitet</li>
+            </ul>
+          </div>
+          <div class="changelog-group">
+            <h3>Sicherheit</h3>
+            <ul>
+              <li>pdf-lib selbst gehostet (vorher unpkg CDN ohne SRI)</li>
+              <li>Dateityp- und Grössenvalidierung vor Upload (JPG/PNG/WebP/PDF, max 10 MB)</li>
+              <li>Turnstile CAPTCHA-Token wird bei fehlgeschlagenem Absenden zurückgesetzt</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="changelog-entry">
+          <div class="changelog-meta">v3.1.0 — 2026-04-01</div>
+          <div class="changelog-group">
+            <h3>Anmeldeformular</h3>
+            <ul>
+              <li>Neues einheitliches Anmeldeformular für Volleyball, Basketball und Passivmitglieder — ersetzt ClubDesk-Formular + Google Forms</li>
+              <li>Admin-Tab «Anmeldungen» mit Statusfilter, Detail-Modal, Genehmigen/Ablehnen</li>
+              <li>ClubDesk CSV-Export aus dem Admin-Bereich</li>
+              <li>Basketball PDF-Vorbefüllung (Lizenzantrag, Player's Self Declaration, National Team Declaration)</li>
+              <li>Datei-Upload für Ausweiskopien mit Download + Auto-Löschung im Admin</li>
+              <li>Bestätigungs-E-Mails bei Anmeldung (sportartspezifisch)</li>
+              <li>Admin-Benachrichtigung bei jeder neuen Anmeldung</li>
+              <li>Datenschutzhinweis mit Einwilligungs-Checkbox (90-Tage Auto-Löschung)</li>
+              <li>Automatischer Lösch-Flow in Directus — täglicher Cron löscht Anmeldungen + Dateien nach 90 Tagen</li>
             </ul>
           </div>
         </div>
@@ -211,8 +247,8 @@ const locale = 'de';
             <h3>Website</h3>
             <ul>
               <li>Astro 6 statische Seite mit eigenem CSS Design System</li>
-              <li>PocketBase API Backend (api.kscw.ch)</li>
-              <li>Cloudflare Pages Hosting</li>
+              <li>Directus API Backend (directus.kscw.ch)</li>
+              <li>Hetzner Hosting (Rechenzentrum Nürnberg)</li>
               <li>Zweisprachig: Deutsch & Englisch</li>
             </ul>
           </div>
