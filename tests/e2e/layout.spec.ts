@@ -53,6 +53,8 @@ test.describe('layout - images', () => {
 
         // Skip PocketBase API images (relative /api/files/ URLs don't resolve in test env)
         if (src && src.startsWith('/api/')) continue;
+        // Skip external Directus assets (network-dependent, may fail in CI)
+        if (src && src.includes('directus.kscw.ch')) continue;
 
         const loaded = await img.evaluate((el: HTMLImageElement) => el.naturalWidth > 0);
         expect(loaded, `Image failed to load: ${src}`).toBe(true);
