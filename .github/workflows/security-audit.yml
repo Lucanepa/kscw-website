@@ -1,0 +1,158 @@
+name: Security & Privacy Audit
+
+on:
+  push:
+    branches: [prod]
+  pull_request:
+    branches: [prod]
+
+jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for hardcoded secrets
+        run: |
+          echo "::group::Scanning for hardcoded secrets..."
+          FOUND=0
+
+          # API keys, tokens, passwords in source code (not i18n/translation files)
+          if grep -rn --include='*.ts' --include='*.tsx' --include='*.js' --include='*.astro' \
+            -E "(password|secret|token|api_key|apikey|auth_token|access_token|private_key)\s*[:=]\s*['\"][A-Za-z0-9_\-\.\/\+]{16,}" \
+            --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.git --exclude-dir='src/i18n' \
+            --exclude='*.test.*' --exclude='*.spec.*' --exclude='security-audit.yml' . ; then
+            echo "::warning::Possible hardcoded secrets found above"
+            FOUND=1
+          fi
+
+          # Bearer tokens in source
+          if grep -rn --include='*.ts' --include='*.tsx' --include='*.js' --include='*.astro' \
+            -E "Bearer [A-Za-z0-9_\-\.]{20,}" \
+            --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.git \
+            --exclude='*.test.*' --exclude='*.spec.*' --exclude='security-audit.yml' . ; then
+            echo "::warning::Hardcoded Bearer token found"
+            FOUND=1
+          fi
+
+          # Private keys
+          if grep -rln "PRIVATE KEY" --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.git . ; then
+            echo "::error::Private key file found in repository"
+            FOUND=1
+          fi
+
+          # .env files committed
+          if find . -name '.env' -not -path './node_modules/*' -not -path './.git/*' | grep -q .; then
+            echo "::error::.env file found in repository"
+            FOUND=1
+          fi
+
+          if [ "$FOUND" -eq 0 ]; then
+            echo "✓ No hardcoded secrets detected"
+          fi
+          echo "::endgroup::"
+
+      - name: Check for PII exposure
+        run: |
+          echo "::group::Scanning for PII in logs and error messages..."
+          FOUND=0
+
+          # Email addresses in console.log
+          if grep -rn --include='*.ts' --include='*.js' --include='*.astro' \
+            -E "(console\.(log|error|warn|info))\(.*\b(email|mail)\b" \
+            --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.git \
+            --exclude='*.test.*' --exclude='*.spec.*' --exclude='security-audit.yml' . ; then
+            echo "::warning::Possible PII (email) in logging — verify it's not exposed to users"
+            FOUND=1
+          fi
+
+          if [ "$FOUND" -eq 0 ]; then
+            echo "✓ No PII exposure detected in logging"
+          fi
+          echo "::endgroup::"
+
+      - name: Check for insecure patterns
+        run: |
+          echo "::group::Scanning for insecure code patterns..."
+          FOUND=0
+
+          # eval() usage
+          if grep -rn --include='*.ts' --include='*.js' --include='*.astro' \
+            -E '\beval\s*\(' \
+            --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.git \
+            --exclude='*.test.*' --exclude='*.spec.*' . ; then
+            echo "::error::eval() usage found — potential code injection"
+            FOUND=1
+          fi
+
+          # innerHTML assignment without DOMPurify
+          while IFS= read -r line; do
+            file=$(echo "$line" | cut -d: -f1)
+            if ! grep -q 'DOMPurify\|dompurify\|sanitize\|escapeHtml\|escapeAttr' "$file"; then
+              echo "::warning::$line — innerHTML used without sanitization"
+              FOUND=1
+            fi
+          done < <(grep -rn --include='*.ts' --include='*.js' --include='*.astro' \
+            -E '\.innerHTML\s*=' \
+            --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.git \
+            --exclude='*.test.*' --exclude='*.spec.*' . 2>/dev/null)
+
+          # Unescaped user input in HTML strings
+          if grep -rn --include='*.ts' --include='*.js' --include='*.astro' \
+            -E "innerHTML\s*\+?=\s*['\`].*\\\$\{(?!.*escape)" \
+            --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.git \
+            --exclude='*.test.*' --exclude='*.spec.*' . ; then
+            echo "::warning::Possible XSS — unescaped variable in innerHTML template"
+            FOUND=1
+          fi
+
+          if [ "$FOUND" -eq 0 ]; then
+            echo "✓ No insecure patterns detected"
+          fi
+          echo "::endgroup::"
+
+      - name: Check for exposed credentials in Astro pages
+        run: |
+          echo "::group::Scanning Astro pages for credential exposure..."
+          FOUND=0
+
+          # Server-side secrets leaking to client via Astro frontmatter
+          if grep -rn --include='*.astro' \
+            -E "import\.meta\.env\.(SECRET|PRIVATE|ADMIN|TOKEN|KEY)" \
+            --exclude-dir=node_modules --exclude-dir=dist . ; then
+            echo "::warning::Server-side secret referenced — ensure it's not exposed in client JS"
+            FOUND=1
+          fi
+
+          if [ "$FOUND" -eq 0 ]; then
+            echo "✓ No credential exposure in Astro pages"
+          fi
+          echo "::endgroup::"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Dependency vulnerability check
+        run: npm audit --omit=dev --audit-level=high 2>&1 || true
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Security & Privacy Audit Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Checks performed:" >> $GITHUB_STEP_SUMMARY
+          echo "- Hardcoded secrets (tokens, passwords, API keys, private keys)" >> $GITHUB_STEP_SUMMARY
+          echo "- PII exposure in logging" >> $GITHUB_STEP_SUMMARY
+          echo "- Insecure patterns (XSS, eval, innerHTML)" >> $GITHUB_STEP_SUMMARY
+          echo "- Credential exposure in Astro pages" >> $GITHUB_STEP_SUMMARY
+          echo "- Dependency vulnerabilities (npm audit)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Review any warnings above before merging to production." >> $GITHUB_STEP_SUMMARY
