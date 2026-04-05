@@ -31,7 +31,7 @@ const altLocale = locale === 'de' ? 'en' : 'de';
   <link rel="alternate" hreflang={locale} href={Astro.url.pathname}>
   <link rel="alternate" hreflang={altLocale} href={altUrl}>
   <link rel="alternate" type="application/rss+xml" title="KSC Wiedikon News" href="/feed.xml">
-  <script is:inline src="https://browser.sentry-cdn.com/9.27.0/bundle.min.js" crossorigin="anonymous"></script>
+  <script is:inline src="https://browser.sentry-cdn.com/9.27.0/bundle.min.js" integrity="sha384-l+DRKdttgde2nTK8cjclL7gMH8ppmfZkjDrpe0sf98IeOzcCZo+AjGwPe4qipohT" crossorigin="anonymous"></script>
   <script is:inline>
     Sentry.init({
       dsn: 'https://511f2d9c956d41f53d9bbe7033e54850@o4511121927766016.ingest.de.sentry.io/4511156195098704',

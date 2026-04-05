@@ -856,7 +856,7 @@
       .then(function (data) {
         // Step 2: Upload files for basketball (if any)
         if (type === 'basketball') {
-          return uploadIDFiles(data.id);
+          return uploadIDFiles(data.id, data.reference_number);
         }
       })
       .then(function () {
@@ -906,7 +906,7 @@
     }
   }
 
-  function uploadIDFiles(registrationId) {
+  function uploadIDFiles(registrationId, referenceNumber) {
     var frontFile = document.getElementById('id-front').files[0];
     var backEl = document.getElementById('id-back');
     var backFile = backEl ? backEl.files[0] : null;
@@ -935,7 +935,7 @@
     if (natDeclDoc) { uploads.push(uploadSingleFile(natDeclDoc)); uploadKeys.push('bb_doc_natdecl'); }
 
     return Promise.all(uploads).then(function (fileIds) {
-      var body = {};
+      var body = { reference_number: referenceNumber };
       for (var ki = 0; ki < uploadKeys.length; ki++) {
         body[uploadKeys[ki]] = fileIds[ki];
       }

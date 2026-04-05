@@ -4,6 +4,17 @@
 const DIRECTUS_URL = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
   ? 'https://directus-dev.kscw.ch' : 'https://directus.kscw.ch'
 
+/** Lightweight HTML sanitizer — strips script tags and event handlers (defense-in-depth) */
+function sanitizeHtml(html: string): string {
+  return html
+    .replace(/<script[\s>][\s\S]*?<\/script>/gi, '')
+    .replace(/<script[\s>]/gi, '&lt;script')
+    .replace(/<iframe[\s\S]*?<\/iframe>/gi, '')
+    .replace(/<object[\s\S]*?<\/object>/gi, '')
+    .replace(/<embed[\s\S]*?>/gi, '')
+    .replace(/\bon\w+\s*=/gi, 'data-removed=')
+}
+
 interface DirectusTeam {
   id: number
   name: string
@@ -405,10 +416,8 @@ if (container) {
     if (ev.body) {
       const desc = document.createElement('div')
       desc.className = 'cal-modal-desc'
-      // SAFE: ev.body is admin-authored content sanitized with DOMPurify at save time in the admin panel.
-      // No user-generated content flows here. textContent is not used because rich text formatting
-      // (bold, links, lists) from the Quill editor must be preserved.
-      desc.innerHTML = ev.body
+      // Admin-authored content, sanitized at save time + runtime defense-in-depth
+      desc.innerHTML = sanitizeHtml(ev.body)
       modal.appendChild(desc)
     }
 
@@ -902,8 +911,8 @@ if (container) {
       if (ev.body) {
         const desc = document.createElement('div')
         desc.className = 'cal-modal-desc'
-        // SAFE: ev.body is admin-authored content sanitized with DOMPurify at save time.
-        desc.innerHTML = ev.body
+        // Admin-authored content, sanitized at save time + runtime defense-in-depth
+        desc.innerHTML = sanitizeHtml(ev.body)
         row.appendChild(desc)
       }
 
