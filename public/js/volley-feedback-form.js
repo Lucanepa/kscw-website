@@ -94,7 +94,7 @@
 
   // ── Fetch member names ───────────────────────────────────────────────
   function fetchMemberNames() {
-    fetch(DIRECTUS_URL + '/kscw/member-names')
+    fetch(DIRECTUS_URL + '/flows/trigger/531dc3c2-64ec-4a7e-a989-da983d3530e4')
       .then(function (res) { return res.ok ? res.json() : Promise.reject(); })
       .then(function (data) {
         memberNames = (data || []).map(function (m) { return m.name || ''; }).filter(Boolean);
