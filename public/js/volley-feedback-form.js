@@ -92,14 +92,21 @@
     }, 500);
   }
 
-  // ── Fetch member names ───────────────────────────────────────────────
+  // ── Fetch member data (name + functions + teams) ──────────────────────
+  var memberData = []; // Full objects: { name, functions, teams }
+
+  // Map Directus team names to chipLabels
+  var teamNameToChip = {};
+  TEAMS.forEach(function (t) { teamNameToChip[t.name] = t.chip; teamNameToChip[t.chip] = t.chip; });
+
   function fetchMemberNames() {
     fetch(DIRECTUS_URL + '/flows/trigger/531dc3c2-64ec-4a7e-a989-da983d3530e4')
       .then(function (res) { return res.ok ? res.json() : Promise.reject(); })
       .then(function (data) {
-        memberNames = (data || []).map(function (m) { return m.name || ''; }).filter(Boolean);
+        memberData = (data || []).filter(function (m) { return m.name; });
+        memberNames = memberData.map(function (m) { return m.name; });
       })
-      .catch(function () { memberNames = []; });
+      .catch(function () { memberData = []; memberNames = []; });
   }
   fetchMemberNames();
 
@@ -135,6 +142,28 @@
           div.addEventListener('click', function () {
             nameInput.value = name;
             nameDropdown.hidden = true;
+            // Auto-fill functions and teams from member data
+            var member = memberData.find(function (m) { return m.name === name; });
+            if (member) {
+              // Auto-fill functions
+              if (member.functions && member.functions.length > 0) {
+                selectedFunctions = member.functions.slice();
+                funcChips.forEach(function (chip) {
+                  var func = chip.getAttribute('data-func');
+                  chip.classList.toggle('active', selectedFunctions.indexOf(func) !== -1);
+                });
+              }
+              // Auto-fill teams
+              if (member.teams && member.teams.length > 0) {
+                selectedTeams = [];
+                member.teams.forEach(function (t) {
+                  var chip = teamNameToChip[t];
+                  if (chip && selectedTeams.indexOf(chip) === -1) selectedTeams.push(chip);
+                });
+                renderTeamTags();
+                renderTeamDropdown();
+              }
+            }
           });
           nameDropdown.appendChild(div);
         });
