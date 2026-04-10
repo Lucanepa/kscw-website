@@ -430,8 +430,8 @@
       body: JSON.stringify(payload),
     })
       .then(function (res) {
-        if (!res.ok) return res.json().then(function (err) { throw new Error(err.message || 'HTTP ' + res.status); });
-        return res.json();
+        if (!res.ok) return res.text().then(function (text) { try { var err = JSON.parse(text); throw new Error(err.message || 'HTTP ' + res.status); } catch(e) { throw new Error('HTTP ' + res.status); } });
+        return res.status === 204 ? {} : res.json();
       })
       .then(function () {
         // Replace form with success message
