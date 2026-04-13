@@ -11,6 +11,7 @@
   var DIRECTUS_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'https://directus-dev.kscw.ch' : 'https://directus.kscw.ch';
   var TURNSTILE_SITE_KEY = '0x4AAAAAACoYmx3xiDfRbmv9';
+  var CHECK_SIGNUP_FLOW = '06f65be0-646b-443c-8ebf-5173e467779e';
 
   // ── Volleyball teams (from teams.ts) ─────────────────────────────────
   var TEAMS = [
@@ -63,6 +64,7 @@
   var isMember = false;
   var memberId = null;
   var wiedisyncActive = false;
+  var alreadySignedUp = false;
   var selectedTeams = [];
   var memberData = []; // Full objects: { id, name, functions, teams, sex, wiedisync_active }
   var memberNames = [];
@@ -116,6 +118,9 @@
       isMember = false;
       memberId = null;
       wiedisyncActive = false;
+      alreadySignedUp = false;
+      hideFeedback();
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = ''; }
 
       clearTimeout(nameDebounce);
       nameDebounce = setTimeout(function () {
@@ -151,9 +156,22 @@
               }
               // Auto-fill sex
               if (member.sex && sexSelect) {
-                // Normalize sex value to German lowercase
                 var sexVal = normalizeSex(member.sex);
                 sexSelect.value = sexVal;
+              }
+              // Check if already signed up
+              if (memberId) {
+                fetch(DIRECTUS_URL + '/flows/trigger/' + CHECK_SIGNUP_FLOW + '?member_id=' + memberId)
+                  .then(function (r) { return r.ok ? r.json() : null; })
+                  .then(function (result) {
+                    if (result && result.signed_up) {
+                      alreadySignedUp = true;
+                      var isEn = window.location.pathname.startsWith('/en');
+                      showFeedback(isEn ? 'You are already signed up for this event!' : 'Du bist bereits für dieses Event angemeldet!', 'error');
+                      if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '0.5'; }
+                    }
+                  })
+                  .catch(function () {});
               }
             }
           });
@@ -355,6 +373,12 @@
 
   // ── Validation ───────────────────────────────────────────────────────
   function validate() {
+    if (alreadySignedUp) {
+      var isEn = window.location.pathname.startsWith('/en');
+      showFeedback(isEn ? 'You are already signed up for this event!' : 'Du bist bereits für dieses Event angemeldet!', 'error');
+      return null;
+    }
+
     var name = nameInput ? nameInput.value.trim() : '';
     if (!name) {
       showFeedback(form.getAttribute('data-msg-name') || 'Please enter your name', 'error');
