@@ -77,19 +77,35 @@ Placeholder: "Allergien, Verfügbarkeit, sonstige Hinweise…"
 - Turnstile CAPTCHA (`0x4AAAAAACoYmx3xiDfRbmv9`)
 - Submit button: "Anmeldung absenden" / "Submit sign-up"
 
+## Validation
+
+All checks run on submit click, before any API calls:
+1. **Name** — non-empty string (trimmed)
+2. **Email** — non-empty, basic email format check (contains `@` and `.`)
+3. **Sex** — must be selected (`männlich` or `weiblich`)
+4. **Position 1** — must be selected
+5. **Positions unique** — if 2nd/3rd are set, they must differ from each other and from 1st
+6. **Turnstile** — valid CAPTCHA response token required
+
+Turnstile token is sent as `X-Turnstile-Token` header on submission (same pattern as volley-feedback).
+
 ## Submission Flow
 
 ### Non-member path (name typed freely)
-1. Click submit → validate → POST to Directus `mixed_tournament_signups` → show success message
+1. Click submit → validate → POST to Directus `mixed_tournament_signups` with `X-Turnstile-Token` header → show success message (replaces form)
 
 ### Member path (name selected from dropdown)
-1. Click submit → validate form
-2. Show modal overlay (backdrop + centered card):
+1. Click submit → validate form (no API calls yet)
+2. Show modal overlay **before submission** (backdrop + centered card):
    - Title: "Danke für deine Anmeldung!" / "Thanks for signing up!"
    - Body: "Dein Wiedisync-Konto wartet darauf, von dir aktiviert zu werden. Da Wiedisync für Trainings, Spiele, Schreibereinsätze, Spesen und mehr verwendet wird, empfehle ich dir, den Registrierungsprozess abzuschliessen."
-   - Primary button: "Für Wiedisync registrieren" / "Sign up for Wiedisync" → submits form + opens `wiedisync.kscw.ch/signup` in new tab
-   - Small secondary button: "Später" / "Later" → submits form only
-3. Both paths: POST to `mixed_tournament_signups` + POST to `participations` → show success message
+   - Primary button: "Für Wiedisync registrieren" / "Sign up for Wiedisync" → fires submission + opens `wiedisync.kscw.ch/signup` in new tab
+   - Small secondary button: "Später" / "Later" → fires submission only
+   - No close-on-backdrop-click — user must choose one option
+3. On either button click: POST to `mixed_tournament_signups` + POST to `participations` (via Directus Flow, see below) → show success message (replaces form)
+
+### Duplicate submissions
+Duplicates are allowed — for a small club one-off event, dedup is handled manually in Directus admin if needed. No unique constraint on name or email.
 
 ## Directus Integration
 
@@ -100,7 +116,7 @@ Placeholder: "Allergien, Verfügbarkeit, sonstige Hinweise…"
 | id | integer | auto | PK |
 | name | string | yes | |
 | email | string | yes | |
-| sex | string | yes | männlich / weiblich |
+| sex | string | yes | Always stored as German lowercase: `männlich` / `weiblich` regardless of locale |
 | teams | json | no | array of chip labels e.g. ["H1"] |
 | position_1 | string | yes | setter/outside/middle/opposite/libero/universal |
 | position_2 | string | no | |
@@ -114,18 +130,21 @@ Public access: create-only (no read/update/delete without auth).
 
 ### Participation record (for members only)
 
-POST to existing `participations` collection:
+**Created via a Directus Flow** (not direct public POST) to avoid granting public create access to the core `participations` collection. The frontend POSTs to `mixed_tournament_signups` only; a Directus Flow triggered on item creation in that collection checks `is_member === true` and creates the participation record server-side with admin privileges:
+
 ```json
 {
   "activity_type": "event",
   "activity_id": "<EVENT_ID>",
   "member": <member_id>,
   "status": "confirmed",
-  "note": "Pos: Setter > Outside > Libero"
+  "note": "setter > outside > libero"
 }
 ```
 
-`EVENT_ID` is the ID of the event record created in the `events` collection (one-time setup).
+The `note` field uses internal position keys (locale-independent), joined with ` > `.
+
+`EVENT_ID` is the ID of the event record created in the `events` collection (one-time setup). Defined as `var EVENT_ID = <number>;` at the top of `mixed-tournament-form.js` alongside `DIRECTUS_URL`.
 
 ### Member data Flow update
 
@@ -159,7 +178,7 @@ New "Mixed Turnier" tab in `/admin` page, alongside existing tabs (News, Events,
 
 ### Summary bar
 - Total signups count
-- Male/Female split (e.g. "12 Anmeldungen — 7M / 5F")
+- Male/Female split: count where `sex === 'männlich'` for M, `sex === 'weiblich'` for F (e.g. "12 Anmeldungen — 7M / 5F")
 
 ### Table columns
 
@@ -176,6 +195,9 @@ New "Mixed Turnier" tab in `/admin` page, alongside existing tabs (News, Events,
 - Same pattern as registration CSV export
 - Columns: Datum, Name, Email, Geschlecht, Team, Position 1, Position 2, Position 3, Mitglied, Bemerkungen
 
+### Auth
+The admin page already requires Directus login. Reading `mixed_tournament_signups` uses the authenticated admin token (collection is create-only for public, read requires auth).
+
 ### Read-only
 No edit/delete from admin UI — manage data directly in Directus if needed.
 
@@ -191,15 +213,18 @@ No edit/delete from admin UI — manage data directly in Directus if needed.
    - Note the resulting `id` for the form JS constant.
 3. **Update the Directus Flow** to return `id` and `sex` in member data.
 4. **Set up confirmation email Flow** triggered on `mixed_tournament_signups` creation.
-5. **Set public create access** on `participations` collection (or use a Directus Flow to create it server-side with admin privileges).
+5. **Create a Directus Flow** triggered on `mixed_tournament_signups` item creation that creates the `participations` record server-side (admin privileges) when `is_member === true`. Do NOT grant public create access to `participations`.
 
 ## i18n Keys
 
-All keys prefixed with `mixedTourney*`. Already added to `src/i18n/de.json` and `src/i18n/en.json`. Additional keys needed for Wiedisync popup:
-- `mixedTourneyEmail`, `mixedTourneyEmailPlaceholder`
-- `mixedTourneyWiedisyncTitle`, `mixedTourneyWiedisyncText`
-- `mixedTourneyWiedisyncSignup`, `mixedTourneyWiedisyncLater`
-- `mixedTourneyValidationEmail`
+All keys prefixed with `mixedTourney*`. Base form keys already added to `src/i18n/de.json` and `src/i18n/en.json`. The following keys still need to be added:
+- `mixedTourneyEmail` — "E-Mail" / "Email"
+- `mixedTourneyEmailPlaceholder` — "deine@email.ch" / "your@email.ch"
+- `mixedTourneyValidationEmail` — "Bitte gib eine gültige E-Mail-Adresse ein" / "Please enter a valid email address"
+- `mixedTourneyWiedisyncTitle` — "Danke für deine Anmeldung!" / "Thanks for signing up!"
+- `mixedTourneyWiedisyncText` — (Wiedisync nudge body text, see Submission Flow)
+- `mixedTourneyWiedisyncSignup` — "Für Wiedisync registrieren" / "Sign up for Wiedisync"
+- `mixedTourneyWiedisyncLater` — "Später" / "Later"
 
 ## Files to Create/Modify
 
