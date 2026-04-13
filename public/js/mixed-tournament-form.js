@@ -335,7 +335,10 @@
 
   if (modalSignupBtn) {
     modalSignupBtn.addEventListener('click', function () {
-      window.open('https://wiedisync.kscw.ch/signup', '_blank');
+      var signupUrl = 'https://wiedisync.kscw.ch/signup';
+      var email = emailInput ? emailInput.value.trim() : '';
+      if (email) signupUrl += '?email=' + encodeURIComponent(email);
+      window.open(signupUrl, '_blank');
       hideModal();
       doSubmit();
     });
