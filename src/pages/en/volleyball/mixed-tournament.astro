@@ -352,7 +352,7 @@ const locale = 'en';
       align-items: center;
       min-height: 42px;
       padding: 0.4rem 0.5rem;
-      border: 1px solid var(--border-color, #d1d5db);
+      border: 1px solid var(--border, #e2e8f0);
       border-radius: 8px;
       cursor: text;
       transition: border-color 0.15s;
@@ -441,7 +441,7 @@ const locale = 'en';
     .mt-form textarea {
       width: 100%;
       padding: 0.6rem 0.75rem;
-      border: 1px solid var(--border-color, #d1d5db);
+      border: 1px solid var(--border, #e2e8f0);
       border-radius: 8px;
       font-size: 0.95rem;
       font-family: inherit;
@@ -455,7 +455,7 @@ const locale = 'en';
     .mt-form input[type="email"] {
       width: 100%;
       padding: 0.6rem 0.75rem;
-      border: 1px solid var(--border-color, #d1d5db);
+      border: 1px solid var(--border, #e2e8f0);
       border-radius: 8px;
       font-size: 0.95rem;
       box-sizing: border-box;
@@ -465,17 +465,21 @@ const locale = 'en';
     .mt-form select {
       width: 100%;
       padding: 0.6rem 0.75rem;
-      border: 1px solid var(--border-color, #d1d5db);
+      border: 1px solid var(--border, #e2e8f0);
       border-radius: 8px;
       font-size: 0.95rem;
       box-sizing: border-box;
-      background: var(--card-bg, #fff);
-      color: var(--text-primary, inherit);
+      background: var(--bg-white, #fff);
+      color: var(--text-primary, #1e293b);
       appearance: auto;
     }
+    .mt-form select:focus {
+      border-color: var(--kscw-brand, #4A55A2);
+      outline: none;
+    }
     .mt-form select option {
-      background: var(--card-bg, #fff);
-      color: var(--text-primary, #1a1a2e);
+      background: var(--bg-white, #fff);
+      color: var(--text-primary, #1e293b);
     }
 
     /* Wiedisync modal */
