@@ -470,13 +470,18 @@
         if (wrapper) {
           var success = document.createElement('div');
           success.className = 'mt-success';
+          var isEn = window.location.pathname.startsWith('/en');
           var wiedisyncNote = isMember
-            ? '<p class="mt-wiedisync-note">\u2705 ' + (window.location.pathname.startsWith('/en') ? 'Participation saved in Wiedisync' : 'Teilnahme in Wiedisync gespeichert') + '</p>'
+            ? '<div class="mt-success-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/></svg>' + (isEn ? 'Participation saved in Wiedisync' : 'Teilnahme in Wiedisync gespeichert') + '</div>'
             : '';
-          success.innerHTML = '<div class="mt-success-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#4A55A2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></div>'
-            + '<h2>' + escapeHtml(form.getAttribute('data-msg-success') || 'Thank you!') + '</h2>'
-            + '<p>' + escapeHtml(form.getAttribute('data-msg-success-text') || '') + '</p>'
-            + wiedisyncNote;
+          var calLink = '<a href="/mixed-turnier-2026.ics" class="mt-success-cal" download>' + (isEn ? 'Add to Calendar' : 'Zum Kalender hinzuf\u00FCgen') + '</a>';
+          success.innerHTML = '<div class="mt-success-card">'
+            + '<div class="mt-success-icon"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" stroke="#4A55A2" fill="rgba(74,85,162,0.1)"/><path d="m9 12 2 2 4-4" stroke="#4A55A2"/></svg></div>'
+            + '<h2 class="mt-success-title">' + escapeHtml(form.getAttribute('data-msg-success') || 'Thank you!') + '</h2>'
+            + '<p class="mt-success-text">' + escapeHtml(form.getAttribute('data-msg-success-text') || '') + '</p>'
+            + wiedisyncNote
+            + '<div class="mt-success-actions">' + calLink + '</div>'
+            + '</div>';
           wrapper.replaceChild(success, form);
         }
       })

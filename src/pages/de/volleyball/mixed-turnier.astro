@@ -418,17 +418,60 @@ const locale = 'de';
     /* Success state */
     .mt-success {
       text-align: center;
-      padding: 3rem 1rem;
+      padding: 2rem 1rem;
+    }
+    .mt-success-card {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 2rem;
+      border: 1px solid var(--border, #e2e8f0);
+      border-radius: 16px;
+      background: var(--bg-light, #f5f6fa);
     }
     .mt-success-icon {
-      margin-bottom: 1rem;
+      margin-bottom: 1.25rem;
     }
-    .mt-success h2 {
+    .mt-success-title {
       color: var(--kscw-brand, #4A55A2);
-      margin-bottom: 0.5rem;
+      margin: 0 0 0.5rem;
+      font-size: 1.4rem;
     }
-    .mt-success p {
+    .mt-success-text {
       color: var(--text-secondary, #666);
+      margin: 0 0 1.25rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    .mt-success-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.4rem 1rem;
+      border-radius: 999px;
+      background: rgba(74, 85, 162, 0.1);
+      color: var(--kscw-brand, #4A55A2);
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 1.25rem;
+    }
+    .mt-success-actions {
+      margin-top: 0.5rem;
+    }
+    .mt-success-cal {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.6rem 1.25rem;
+      border-radius: 8px;
+      background: var(--kscw-brand, #4A55A2);
+      color: #fff;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: opacity 0.15s;
+    }
+    .mt-success-cal:hover {
+      opacity: 0.85;
     }
 
     /* Form field overrides */
@@ -519,18 +562,6 @@ const locale = 'de';
       display: flex;
       gap: 0.75rem;
       flex-wrap: wrap;
-    }
-
-    /* Wiedisync note in success state */
-    .mt-wiedisync-note {
-      display: inline-block;
-      margin-top: 0.75rem;
-      padding: 0.4rem 1rem;
-      border-radius: 999px;
-      background: rgba(74, 85, 162, 0.1);
-      color: var(--kscw-brand, #4A55A2);
-      font-size: 0.85rem;
-      font-weight: 500;
     }
 
     /* Responsive */
