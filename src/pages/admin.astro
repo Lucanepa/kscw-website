@@ -643,15 +643,25 @@ import '../styles/global.css';
         return;
       }
 
-      // ── Mixed Turnier tab ──
+      // ── Mixed Turnier tab ── (combined: website signups + Wiedisync participations)
       if (currentTab === 'mixed_turnier') {
         getValidToken().then(function(token) {
-          return fetch(DIRECTUS_URL + '/items/mixed_tournament_signups?sort=-date_created&limit=-1', {
-            headers: { 'Authorization': 'Bearer ' + token },
-          });
-        }).then(function(r) { return r.json(); })
-          .then(function(data) {
-            renderMixedTurnierList(data.data || []);
+          return Promise.all([
+            fetch(DIRECTUS_URL + '/items/mixed_tournament_signups?sort=-date_created&limit=-1', {
+              headers: { 'Authorization': 'Bearer ' + token },
+            }).then(function(r) { return r.json(); }),
+            fetch(DIRECTUS_URL + '/items/participations?filter[activity_type][_eq]=event&filter[activity_id][_eq]=5&fields=id,member,status,note,date_created&limit=-1', {
+              headers: { 'Authorization': 'Bearer ' + token },
+            }).then(function(r) { return r.json(); }),
+            fetch(DIRECTUS_URL + '/items/members?fields=id,first_name,last_name,sex&limit=-1', {
+              headers: { 'Authorization': 'Bearer ' + token },
+            }).then(function(r) { return r.json(); })
+          ]);
+        }).then(function(results) {
+            var signups = results[0].data || [];
+            var participations = results[1].data || [];
+            var members = results[2].data || [];
+            renderMixedTurnierList(signups, participations, members);
           })
           .catch(function(err) {
             content.textContent = '';
@@ -901,28 +911,76 @@ import '../styles/global.css';
     }
 
     // ── Mixed Turnier list ────────────────────────────────────────
-    function renderMixedTurnierList(items) {
+    function renderMixedTurnierList(signups, participations, members) {
       var content = document.getElementById('admin-content');
       content.textContent = '';
 
-      var maleCount = items.filter(function(i) { return i.sex === 'männlich'; }).length;
-      var femaleCount = items.filter(function(i) { return i.sex === 'weiblich'; }).length;
+      // Build member lookup: id → { first_name, last_name, sex }
+      var memberMap = {};
+      members.forEach(function(m) { memberMap[m.id] = m; });
+
+      // Build combined list: start with signups, then add Wiedisync-only participations
+      var signupMemberIds = {};
+      var combined = [];
+
+      // Add all website signups
+      signups.forEach(function(s) {
+        if (s.member_id) signupMemberIds[s.member_id] = true;
+        combined.push({
+          date: s.date_created ? s.date_created.substring(0, 10) : '',
+          name: s.name || '',
+          email: s.email || '',
+          sex: s.sex || '',
+          teams: s.teams || [],
+          position_1: s.position_1 || '',
+          position_2: s.position_2 || '',
+          position_3: s.position_3 || '',
+          is_member: !!s.is_member,
+          notes: s.notes || '',
+          source: 'website'
+        });
+      });
+
+      // Add Wiedisync-only participations (members who responded in app, not via website)
+      participations.forEach(function(p) {
+        if (signupMemberIds[p.member]) return; // already in signups
+        var m = memberMap[p.member] || {};
+        var positions = (p.note || '').split(' > ').filter(Boolean);
+        combined.push({
+          date: p.date_created ? p.date_created.substring(0, 10) : '',
+          name: ((m.first_name || '') + ' ' + (m.last_name || '')).trim() || 'Member #' + p.member,
+          email: '',
+          sex: m.sex || '',
+          teams: [],
+          position_1: positions[0] || '',
+          position_2: positions[1] || '',
+          position_3: positions[2] || '',
+          is_member: true,
+          notes: '',
+          source: 'wiedisync'
+        });
+      });
+
+      // Summary
+      var maleCount = combined.filter(function(i) { return i.sex === 'männlich' || i.sex === 'm'; }).length;
+      var femaleCount = combined.filter(function(i) { return i.sex === 'weiblich' || i.sex === 'w' || i.sex === 'f'; }).length;
       var summaryDiv = document.createElement('div');
       summaryDiv.className = 'admin-summary-bar';
-      summaryDiv.innerHTML = '<strong>' + items.length + ' ' + t('mixedTurnierSignups') + '</strong>' +
-        ' \u2014 ' + maleCount + 'M / ' + femaleCount + 'F';
+      summaryDiv.innerHTML = '<strong>' + combined.length + ' ' + t('mixedTurnierSignups') + '</strong>' +
+        ' \u2014 ' + maleCount + 'M / ' + femaleCount + 'F' +
+        ' <span style="margin-left:12px;font-size:0.8rem;color:var(--text-muted,#64748b);">(Website: ' + signups.length + ' / Wiedisync: ' + (combined.length - signups.length) + ')</span>';
       content.appendChild(summaryDiv);
 
-      if (items.length > 0) {
+      if (combined.length > 0) {
         var csvBtn = document.createElement('button');
         csvBtn.className = 'admin-btn admin-btn-sm';
         csvBtn.textContent = t('mixedTurnierExportCSV');
         csvBtn.style.marginBottom = '12px';
-        csvBtn.addEventListener('click', function() { exportMixedTurnierCSV(items); });
+        csvBtn.addEventListener('click', function() { exportMixedTurnierCSV(combined); });
         content.appendChild(csvBtn);
       }
 
-      if (!items.length) {
+      if (!combined.length) {
         var empty = document.createElement('div');
         empty.className = 'admin-empty';
         empty.textContent = t('mixedTurnierNoEntries');
@@ -935,7 +993,7 @@ import '../styles/global.css';
       table.innerHTML = '<thead><tr>' +
         '<th>Datum</th><th>Name</th><th>Email</th><th>Geschlecht</th>' +
         '<th>Team</th><th>Pos 1</th><th>Pos 2</th><th>Pos 3</th>' +
-        '<th>' + t('mixedTurnierMember') + '</th><th>Bemerkungen</th>' +
+        '<th>Quelle</th><th>Bemerkungen</th>' +
         '</tr></thead>';
 
       var tbody = document.createElement('tbody');
@@ -948,9 +1006,8 @@ import '../styles/global.css';
         'HU23': { bg: '#60a5fa', text: '#1e3a8a' }, 'HU20': { bg: '#93c5fd', text: '#1e3a8a' },
       };
 
-      items.forEach(function(item) {
+      combined.forEach(function(item) {
         var tr = document.createElement('tr');
-        var date = item.date_created ? item.date_created.substring(0, 10) : '';
 
         var teamsHtml = '';
         if (item.teams && item.teams.length) {
@@ -960,21 +1017,24 @@ import '../styles/global.css';
           });
         }
 
-        var memberIcon = item.is_member ? '\u2713' : '';
+        var sourceBadge = item.source === 'wiedisync'
+          ? '<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:500;background:#4A55A2;color:#fff;">WS</span>'
+          : '<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:500;background:var(--border,#2d3a52);color:var(--text-secondary,#94a3b8);">Web</span>';
+
         var notesHtml = '';
         if (item.notes) {
           notesHtml = '<button class="admin-btn-icon" onclick="window._showMtNote(this)" data-note="' + escapeAttr(item.notes) + '" title="Details">\uD83D\uDCAC</button>';
         }
 
-        tr.innerHTML = '<td>' + escapeHtml(date) + '</td>' +
-          '<td>' + escapeHtml(item.name || '') + '</td>' +
-          '<td>' + escapeHtml(item.email || '') + '</td>' +
-          '<td>' + escapeHtml(item.sex || '') + '</td>' +
+        tr.innerHTML = '<td>' + escapeHtml(item.date) + '</td>' +
+          '<td>' + escapeHtml(item.name) + '</td>' +
+          '<td>' + escapeHtml(item.email) + '</td>' +
+          '<td>' + escapeHtml(item.sex) + '</td>' +
           '<td>' + teamsHtml + '</td>' +
-          '<td>' + escapeHtml(item.position_1 || '') + '</td>' +
-          '<td>' + escapeHtml(item.position_2 || '') + '</td>' +
-          '<td>' + escapeHtml(item.position_3 || '') + '</td>' +
-          '<td style="text-align:center;">' + memberIcon + '</td>' +
+          '<td>' + escapeHtml(item.position_1) + '</td>' +
+          '<td>' + escapeHtml(item.position_2) + '</td>' +
+          '<td>' + escapeHtml(item.position_3) + '</td>' +
+          '<td style="text-align:center;">' + sourceBadge + '</td>' +
           '<td>' + notesHtml + '</td>';
         tbody.appendChild(tr);
       });
@@ -985,10 +1045,10 @@ import '../styles/global.css';
 
     function exportMixedTurnierCSV(items) {
       var BOM = '\uFEFF';
-      var header = 'Datum;Name;Email;Geschlecht;Team;Position 1;Position 2;Position 3;Mitglied;Bemerkungen\n';
+      var header = 'Datum;Name;Email;Geschlecht;Team;Position 1;Position 2;Position 3;Quelle;Bemerkungen\n';
       var rows = items.map(function(item) {
         return [
-          item.date_created ? item.date_created.substring(0, 10) : '',
+          item.date || '',
           item.name || '',
           item.email || '',
           item.sex || '',
@@ -996,7 +1056,7 @@ import '../styles/global.css';
           item.position_1 || '',
           item.position_2 || '',
           item.position_3 || '',
-          item.is_member ? 'Ja' : 'Nein',
+          item.source === 'wiedisync' ? 'Wiedisync' : 'Website',
           (item.notes || '').replace(/[\r\n]+/g, ' '),
         ].map(function(v) { return '"' + v.replace(/"/g, '""') + '"'; }).join(';');
       }).join('\n');
