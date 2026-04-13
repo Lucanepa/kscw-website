@@ -293,36 +293,52 @@ const locale = 'de';
     }
     .mt-dropdown {
       position: absolute;
-      top: 100%;
+      top: calc(100% - 1px);
       left: 0;
       right: 0;
-      background: var(--kscw-brand, #4A55A2);
+      background: var(--card-bg, #1e1e38);
       border: 1px solid var(--kscw-brand, #4A55A2);
       border-top: none;
-      border-radius: 0 0 8px 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      border-radius: 0 0 10px 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
       z-index: 20;
-      max-height: 240px;
+      max-height: 260px;
       overflow-y: auto;
-      color: white;
+      color: var(--text-primary, #e2e8f0);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(74,85,162,0.4) transparent;
+    }
+    .mt-dropdown::-webkit-scrollbar {
+      width: 6px;
+    }
+    .mt-dropdown::-webkit-scrollbar-thumb {
+      background: rgba(74,85,162,0.4);
+      border-radius: 3px;
     }
     .mt-dropdown-item {
-      padding: 0.6rem 0.75rem;
+      padding: 0.65rem 0.85rem;
       cursor: pointer;
       font-size: 0.9rem;
-      color: white;
+      color: var(--text-primary, #e2e8f0);
+      border-bottom: 1px solid rgba(74,85,162,0.15);
+      transition: background 0.12s, padding-left 0.12s;
+    }
+    .mt-dropdown-item:last-child {
+      border-bottom: none;
     }
     .mt-dropdown-item:hover {
-      background: rgba(255,255,255,0.15);
+      background: rgba(74,85,162,0.25);
+      padding-left: 1rem;
     }
     .mt-dropdown-group {
-      padding: 0.35rem 0.75rem;
+      padding: 0.4rem 0.85rem;
       font-size: 0.7rem;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: rgba(255,255,255,0.7);
-      font-weight: 600;
-      background: rgba(0,0,0,0.15);
+      letter-spacing: 0.06em;
+      color: var(--kscw-brand, #4A55A2);
+      font-weight: 700;
+      background: rgba(74,85,162,0.08);
+      border-bottom: 1px solid rgba(74,85,162,0.15);
     }
 
     /* Team multiselect */
