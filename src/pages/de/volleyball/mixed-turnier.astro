@@ -469,9 +469,13 @@ const locale = 'de';
       border-radius: 8px;
       font-size: 0.95rem;
       box-sizing: border-box;
-      background: transparent;
-      color: inherit;
+      background: var(--card-bg, #fff);
+      color: var(--text-primary, inherit);
       appearance: auto;
+    }
+    .mt-form select option {
+      background: var(--card-bg, #fff);
+      color: var(--text-primary, #1a1a2e);
     }
 
     /* Wiedisync modal */
