@@ -27,8 +27,9 @@ pnpm-debug.log*
 .claude/
 .superpowers/
 
-# session log
+# session log + infra (contains tokens)
 docs/sessions.md
+docs/infra.md
 .playwright-mcp/
 test-results/
 .worktrees/

@@ -1,6 +1,6 @@
 # KSCW Website
 
-Astro static site for KSC Wiedikon volleyball club. Directus API backend, Hetzner hosting (Nürnberg datacenter).
+Astro static site for KSC Wiedikon volleyball club. Directus API backend, Cloudflare Pages hosting.
 
 ## Commands
 ```bash
@@ -26,7 +26,10 @@ npx astro build      # production build → dist/
 - Vanilla JS island, Directus REST + Quill + DOMPurify via CDN
 
 ## Deployment
-Hetzner VPS (Nürnberg) — pushes to `prod` trigger deploy.
+Cloudflare Pages — pushes to `prod` trigger deploy.
+- **Prod URL**: `https://kscw-website.pages.dev`
+- **Directus prod**: `https://directus.kscw.ch`
+- **Directus dev**: `https://directus-dev.kscw.ch`
 
 ## Changelog & Versioning
 

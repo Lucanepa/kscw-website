@@ -62,8 +62,9 @@
   // ── State ────────────────────────────────────────────────────────────
   var isMember = false;
   var memberId = null;
+  var wiedisyncActive = false;
   var selectedTeams = [];
-  var memberData = []; // Full objects: { id, name, functions, teams, sex }
+  var memberData = []; // Full objects: { id, name, functions, teams, sex, wiedisync_active }
   var memberNames = [];
 
   // ── Turnstile ────────────────────────────────────────────────────────
@@ -76,7 +77,7 @@
     turnstileWidgetId = window.turnstile.render(turnstileContainer, {
       sitekey: TURNSTILE_SITE_KEY,
       theme: 'auto',
-      size: 'compact',
+      size: 'flexible',
     });
   }
 
@@ -114,6 +115,7 @@
       // Reset member state when user types after selecting
       isMember = false;
       memberId = null;
+      wiedisyncActive = false;
 
       clearTimeout(nameDebounce);
       nameDebounce = setTimeout(function () {
@@ -136,6 +138,7 @@
             if (member) {
               isMember = true;
               memberId = member.id || null;
+              wiedisyncActive = !!member.wiedisync_active;
               // Auto-fill teams
               if (member.teams && member.teams.length > 0) {
                 selectedTeams = [];
@@ -408,8 +411,9 @@
     var data = validate();
     if (!data) return;
 
-    // If member, show Wiedisync nudge modal before submitting
-    if (isMember) {
+    // If member with active Wiedisync: submit directly (no popup)
+    // If member without Wiedisync: show nudge modal
+    if (isMember && !wiedisyncActive) {
       // Store validated data for modal callbacks to use
       form._pendingData = data;
       showModal();
@@ -463,9 +467,13 @@
         if (wrapper) {
           var success = document.createElement('div');
           success.className = 'mt-success';
+          var wiedisyncNote = isMember
+            ? '<p class="mt-wiedisync-note">\u2705 ' + (getLocale() === 'de' ? 'Teilnahme in Wiedisync gespeichert' : 'Participation saved in Wiedisync') + '</p>'
+            : '';
           success.innerHTML = '<div class="mt-success-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#4A55A2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></div>'
             + '<h2>' + escapeHtml(form.getAttribute('data-msg-success') || 'Thank you!') + '</h2>'
-            + '<p>' + escapeHtml(form.getAttribute('data-msg-success-text') || '') + '</p>';
+            + '<p>' + escapeHtml(form.getAttribute('data-msg-success-text') || '') + '</p>'
+            + wiedisyncNote;
           wrapper.replaceChild(success, form);
         }
       })
