@@ -1,8 +1,7 @@
 /**
  * KSCW Volley Feedback Form — Autocomplete, multiselect, ratings, submission
  *
- * Submits to POST /items/volley_feedback on Directus.
- * Includes Turnstile CAPTCHA token in header.
+ * Submits via Directus Flow webhook (server-side Turnstile validation).
  */
 (function () {
   'use strict';
@@ -421,11 +420,12 @@
       if (payload[k] === null || payload[k] === '') delete payload[k];
     });
 
-    fetch(DIRECTUS_URL + '/items/volley_feedback', {
+    payload.turnstile_token = data.turnstileResponse;
+
+    fetch(DIRECTUS_URL + '/flows/trigger/d523d4a2-9dff-4dd5-b007-ec8991ef6392', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Turnstile-Token': data.turnstileResponse,
       },
       body: JSON.stringify(payload),
     })
