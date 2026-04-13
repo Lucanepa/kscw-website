@@ -471,7 +471,7 @@
           var success = document.createElement('div');
           success.className = 'mt-success';
           var wiedisyncNote = isMember
-            ? '<p class="mt-wiedisync-note">\u2705 ' + (getLocale() === 'de' ? 'Teilnahme in Wiedisync gespeichert' : 'Participation saved in Wiedisync') + '</p>'
+            ? '<p class="mt-wiedisync-note">\u2705 ' + (window.location.pathname.startsWith('/en') ? 'Participation saved in Wiedisync' : 'Teilnahme in Wiedisync gespeichert') + '</p>'
             : '';
           success.innerHTML = '<div class="mt-success-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#4A55A2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></div>'
             + '<h2>' + escapeHtml(form.getAttribute('data-msg-success') || 'Thank you!') + '</h2>'
