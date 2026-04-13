@@ -1,0 +1,526 @@
+---
+import PageLayout from '../../../layouts/PageLayout.astro';
+import { t } from '../../../lib/i18n';
+
+const locale = 'de';
+---
+<PageLayout
+  title="Mixed-Turnier Anmeldung — KSC Wiedikon"
+  description="Melde dich für das KSCW Mixed-Turnier an! Sonntag, 19. April 2026."
+  locale={locale}
+  pageTitle={t(locale, 'mixedTourneyTitle')}
+  pageSubtitle={t(locale, 'mixedTourneySubtitle')}
+>
+  <section class="section">
+    <div class="container">
+      <div class="mt-layout">
+
+        <form
+          id="mt-form"
+          class="mt-form"
+          novalidate
+          data-msg-name={t(locale, 'mixedTourneyValidationName')}
+          data-msg-email={t(locale, 'mixedTourneyValidationEmail')}
+          data-msg-sex={t(locale, 'mixedTourneyValidationSex')}
+          data-msg-pos={t(locale, 'mixedTourneyValidationPos')}
+          data-msg-pos-duplicate={t(locale, 'mixedTourneyValidationPosDuplicate')}
+          data-msg-captcha={t(locale, 'mixedTourneyValidationCaptcha')}
+          data-msg-success={t(locale, 'mixedTourneySuccess')}
+          data-msg-success-text={t(locale, 'mixedTourneySuccessText')}
+          data-msg-error={t(locale, 'mixedTourneyError')}
+        >
+
+          <!-- Event banner -->
+          <div class="mt-event-banner">
+            <div class="mt-event-name">{t(locale, 'mixedTourneyTitle')}</div>
+            <div class="mt-event-meta">
+              <span class="mt-event-date">{t(locale, 'mixedTourneyDate')}</span>
+              <span class="mt-event-sep">·</span>
+              <span class="mt-event-time">{t(locale, 'mixedTourneyTime')}</span>
+            </div>
+            <p class="mt-event-intro">{t(locale, 'mixedTourneyIntro')}</p>
+          </div>
+
+          <!-- Section 1: About You -->
+          <div class="mt-section">
+            <h3 class="mt-section-title">
+              <span class="mt-section-num">1</span>
+              {t(locale, 'mixedTourneySectionAbout')}
+            </h3>
+
+            <!-- Name autocomplete -->
+            <div class="form-group">
+              <label for="mt-name">{t(locale, 'mixedTourneyName')}</label>
+              <div class="mt-autocomplete-wrapper">
+                <input type="text" id="mt-name" autocomplete="off"
+                  placeholder={t(locale, 'mixedTourneyName')}>
+                <div id="mt-name-dropdown" class="mt-dropdown" hidden></div>
+              </div>
+              <small class="mt-hint">{t(locale, 'mixedTourneyNameHint')}</small>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+              <label for="mt-email">{t(locale, 'mixedTourneyEmail')}</label>
+              <input type="email" id="mt-email" autocomplete="email"
+                placeholder={t(locale, 'mixedTourneyEmailPlaceholder')}>
+            </div>
+
+            <!-- Team multiselect -->
+            <div class="form-group">
+              <label>{t(locale, 'mixedTourneyTeam')}</label>
+              <div id="mt-team-wrapper" class="mt-team-wrapper">
+                <div id="mt-team-tags" class="mt-team-tags">
+                  <input type="text" id="mt-team-search" class="mt-team-search"
+                    placeholder={t(locale, 'mixedTourneyTeamSearch')} autocomplete="off">
+                </div>
+                <div
+                  id="mt-team-dropdown"
+                  class="mt-dropdown mt-team-dropdown"
+                  hidden
+                  data-label-herren={t(locale, 'mixedTourneyHerren')}
+                  data-label-damen={t(locale, 'mixedTourneyDamen')}
+                  data-label-nachwuchs={t(locale, 'mixedTourneyNachwuchs')}
+                ></div>
+              </div>
+              <small class="mt-hint">{t(locale, 'mixedTourneyTeamHint')}</small>
+            </div>
+
+            <!-- Sex -->
+            <div class="form-group">
+              <label for="mt-sex">{t(locale, 'mixedTourneySex')}</label>
+              <select id="mt-sex">
+                <option value="">{t(locale, 'mixedTourneySexPlaceholder')}</option>
+                <option value="männlich">{t(locale, 'mixedTourneySexMale')}</option>
+                <option value="weiblich">{t(locale, 'mixedTourneySexFemale')}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Section 2: Position Preferences -->
+          <div class="mt-section">
+            <h3 class="mt-section-title">
+              <span class="mt-section-num">2</span>
+              {t(locale, 'mixedTourneySectionPositions')}
+            </h3>
+            <p class="mt-position-hint">{t(locale, 'mixedTourneyPositionHint')}</p>
+
+            <!-- 1st preference -->
+            <div class="form-group">
+              <label for="mt-pos1">{t(locale, 'mixedTourneyPos1')}</label>
+              <select id="mt-pos1">
+                <option value="">{t(locale, 'mixedTourneyPosPlaceholder')}</option>
+                <option value="setter">{t(locale, 'mixedTourneyPosSetter')}</option>
+                <option value="outside">{t(locale, 'mixedTourneyPosOutside')}</option>
+                <option value="middle">{t(locale, 'mixedTourneyPosMiddle')}</option>
+                <option value="opposite">{t(locale, 'mixedTourneyPosOpposite')}</option>
+                <option value="libero">{t(locale, 'mixedTourneyPosLibero')}</option>
+                <option value="universal">{t(locale, 'mixedTourneyPosUniversal')}</option>
+              </select>
+            </div>
+
+            <!-- 2nd preference -->
+            <div class="form-group">
+              <label for="mt-pos2">{t(locale, 'mixedTourneyPos2')}</label>
+              <select id="mt-pos2">
+                <option value="">{t(locale, 'mixedTourneyPosPlaceholder')}</option>
+                <option value="setter">{t(locale, 'mixedTourneyPosSetter')}</option>
+                <option value="outside">{t(locale, 'mixedTourneyPosOutside')}</option>
+                <option value="middle">{t(locale, 'mixedTourneyPosMiddle')}</option>
+                <option value="opposite">{t(locale, 'mixedTourneyPosOpposite')}</option>
+                <option value="libero">{t(locale, 'mixedTourneyPosLibero')}</option>
+                <option value="universal">{t(locale, 'mixedTourneyPosUniversal')}</option>
+              </select>
+            </div>
+
+            <!-- 3rd preference -->
+            <div class="form-group">
+              <label for="mt-pos3">{t(locale, 'mixedTourneyPos3')}</label>
+              <select id="mt-pos3">
+                <option value="">{t(locale, 'mixedTourneyPosPlaceholder')}</option>
+                <option value="setter">{t(locale, 'mixedTourneyPosSetter')}</option>
+                <option value="outside">{t(locale, 'mixedTourneyPosOutside')}</option>
+                <option value="middle">{t(locale, 'mixedTourneyPosMiddle')}</option>
+                <option value="opposite">{t(locale, 'mixedTourneyPosOpposite')}</option>
+                <option value="libero">{t(locale, 'mixedTourneyPosLibero')}</option>
+                <option value="universal">{t(locale, 'mixedTourneyPosUniversal')}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Section 3: Notes -->
+          <div class="mt-section">
+            <h3 class="mt-section-title">
+              <span class="mt-section-num">3</span>
+              {t(locale, 'mixedTourneySectionNotes')}
+            </h3>
+
+            <div class="form-group">
+              <label for="mt-notes">{t(locale, 'mixedTourneyNotes')}</label>
+              <textarea id="mt-notes" rows="4"
+                placeholder={t(locale, 'mixedTourneyNotesPlaceholder')}></textarea>
+            </div>
+          </div>
+
+          <!-- Turnstile + Submit -->
+          <div class="form-actions">
+            <div id="turnstile-container"></div>
+            <button type="submit" class="btn btn-primary form-submit" data-label={t(locale, 'mixedTourneySubmit')}>
+              <i data-lucide="send"></i> {t(locale, 'mixedTourneySubmit')}
+            </button>
+          </div>
+
+          <div id="mt-feedback" class="mt-feedback" hidden></div>
+        </form>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Wiedisync nudge modal -->
+  <div id="mt-modal" class="mt-modal-overlay" hidden>
+    <div class="mt-modal">
+      <h2 class="mt-modal-title">{t(locale, 'mixedTourneyWiedisyncTitle')}</h2>
+      <p class="mt-modal-text">{t(locale, 'mixedTourneyWiedisyncText')}</p>
+      <div class="mt-modal-actions">
+        <a
+          id="mt-modal-signup"
+          href="https://wiedisync.kscw.ch"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-primary"
+        >
+          {t(locale, 'mixedTourneyWiedisyncSignup')}
+        </a>
+        <button type="button" id="mt-modal-later" class="btn btn-secondary">
+          {t(locale, 'mixedTourneyWiedisyncLater')}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Styles -->
+  <style>
+    .mt-layout {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .mt-form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg, 1.5rem);
+    }
+
+    /* Event banner */
+    .mt-event-banner {
+      border: 2px solid var(--kscw-gold, #FFC832);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      background: rgba(255, 200, 50, 0.07);
+      text-align: center;
+    }
+    .mt-event-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--kscw-brand, #4A55A2);
+      margin-bottom: 0.35rem;
+    }
+    .mt-event-meta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary, inherit);
+      margin-bottom: 0.6rem;
+    }
+    .mt-event-sep {
+      color: var(--kscw-gold, #FFC832);
+    }
+    .mt-event-intro {
+      font-size: 0.88rem;
+      color: var(--text-secondary, #666);
+      margin: 0;
+    }
+
+    /* Sections */
+    .mt-section {
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    .mt-section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 0 0 1rem;
+      font-size: 1.1rem;
+      color: var(--kscw-brand, #4A55A2);
+    }
+    .mt-section-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--kscw-brand, #4A55A2);
+      color: white;
+      font-size: 0.85rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* Hint text */
+    .mt-hint {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-secondary, #888);
+      margin-top: 0.25rem;
+    }
+
+    /* Position hint */
+    .mt-position-hint {
+      font-size: 0.85rem;
+      color: var(--text-secondary, #888);
+      margin: 0 0 1rem;
+    }
+
+    /* Autocomplete dropdown */
+    .mt-autocomplete-wrapper {
+      position: relative;
+    }
+    .mt-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--kscw-brand, #4A55A2);
+      border: 1px solid var(--kscw-brand, #4A55A2);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 20;
+      max-height: 240px;
+      overflow-y: auto;
+      color: white;
+    }
+    .mt-dropdown-item {
+      padding: 0.6rem 0.75rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: white;
+    }
+    .mt-dropdown-item:hover {
+      background: rgba(255,255,255,0.15);
+    }
+    .mt-dropdown-group {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.7);
+      font-weight: 600;
+      background: rgba(0,0,0,0.15);
+    }
+
+    /* Team multiselect */
+    .mt-team-wrapper {
+      position: relative;
+    }
+    .mt-team-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+      min-height: 42px;
+      padding: 0.4rem 0.5rem;
+      border: 1px solid var(--border-color, #d1d5db);
+      border-radius: 8px;
+      cursor: text;
+      transition: border-color 0.15s;
+    }
+    .mt-team-tags:focus-within {
+      border-color: var(--kscw-brand, #4A55A2);
+    }
+    .mt-team-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .mt-team-tag-remove {
+      cursor: pointer;
+      opacity: 0.7;
+      font-size: 1rem;
+      line-height: 1;
+    }
+    .mt-team-tag-remove:hover {
+      opacity: 1;
+    }
+    .mt-team-search {
+      border: none;
+      outline: none;
+      font-size: 0.85rem;
+      flex: 1;
+      min-width: 80px;
+      padding: 0.2rem;
+      background: transparent;
+      color: var(--text-primary, inherit);
+    }
+    .mt-team-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      border-radius: 0 0 8px 8px;
+    }
+
+    /* Feedback message */
+    .mt-feedback {
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+    .mt-feedback.error {
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+    .mt-feedback.success {
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    /* Success state */
+    .mt-success {
+      text-align: center;
+      padding: 3rem 1rem;
+    }
+    .mt-success-icon {
+      margin-bottom: 1rem;
+    }
+    .mt-success h2 {
+      color: var(--kscw-brand, #4A55A2);
+      margin-bottom: 0.5rem;
+    }
+    .mt-success p {
+      color: var(--text-secondary, #666);
+    }
+
+    /* Form field overrides */
+    .mt-form .form-group label {
+      display: block;
+      margin-bottom: 0.35rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+    .mt-form textarea {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid var(--border-color, #d1d5db);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 80px;
+      box-sizing: border-box;
+      background: transparent;
+      color: inherit;
+    }
+    .mt-form input[type="text"],
+    .mt-form input[type="email"] {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid var(--border-color, #d1d5db);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+      background: transparent;
+      color: inherit;
+    }
+    .mt-form select {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid var(--border-color, #d1d5db);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+      background: transparent;
+      color: inherit;
+      appearance: auto;
+    }
+
+    /* Wiedisync modal */
+    .mt-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .mt-modal-overlay[hidden] {
+      display: none;
+    }
+    .mt-modal {
+      background: var(--bg-primary, #fff);
+      border-radius: 16px;
+      padding: 2rem;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    }
+    .mt-modal-title {
+      font-size: 1.2rem;
+      color: var(--kscw-brand, #4A55A2);
+      margin: 0 0 0.75rem;
+    }
+    .mt-modal-text {
+      font-size: 0.9rem;
+      color: var(--text-secondary, #555);
+      margin: 0 0 1.5rem;
+      line-height: 1.6;
+    }
+    .mt-modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .mt-section {
+        padding: 1rem;
+      }
+      .mt-event-banner {
+        padding: 1rem;
+      }
+      .mt-event-meta {
+        flex-direction: column;
+        gap: 0.2rem;
+      }
+      .mt-event-sep {
+        display: none;
+      }
+      .mt-modal {
+        padding: 1.5rem;
+      }
+      .mt-modal-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script src="/js/mixed-tournament-form.js" defer></script>
+</PageLayout>
