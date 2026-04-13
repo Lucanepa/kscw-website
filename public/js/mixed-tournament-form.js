@@ -480,7 +480,8 @@
           wrapper.replaceChild(success, form);
         }
       })
-      .catch(function () {
+      .catch(function (err) {
+        console.error('[mt-form] Submit error:', err, err && err.message, err && err.stack);
         showFeedback(form.getAttribute('data-msg-error') || 'Something went wrong.', 'error');
       })
       .finally(function () {
