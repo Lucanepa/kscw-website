@@ -399,7 +399,7 @@
 
     var pos1 = pos1Select ? pos1Select.value : '';
     if (!pos1) {
-      showFeedback(form.getAttribute('data-msg-position') || 'Please select your primary position', 'error');
+      showFeedback(form.getAttribute('data-msg-pos') || 'Please select your primary position', 'error');
       return null;
     }
 
@@ -409,7 +409,7 @@
     var filledPositions = [pos1, pos2, pos3].filter(function (p) { return p !== ''; });
     var uniquePositions = filledPositions.filter(function (p, i) { return filledPositions.indexOf(p) === i; });
     if (uniquePositions.length !== filledPositions.length) {
-      showFeedback(form.getAttribute('data-msg-positions-unique') || 'Positions must be different', 'error');
+      showFeedback(form.getAttribute('data-msg-pos-duplicate') || 'Positions must be different', 'error');
       return null;
     }
 
@@ -517,6 +517,10 @@
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.textContent = submitBtn.getAttribute('data-label') || 'Submit';
+        }
+        // Reset Turnstile so the token is fresh for retries
+        if (window.turnstile && turnstileWidgetId !== null) {
+          window.turnstile.reset(turnstileWidgetId);
         }
       });
   }
