@@ -159,15 +159,18 @@
                 var sexVal = normalizeSex(member.sex);
                 sexSelect.value = sexVal;
               }
-              // Check if already signed up
+              // Check if already signed up (via Wiedisync RSVP or earlier website submission)
               if (memberId) {
                 fetch(DIRECTUS_URL + '/flows/trigger/' + CHECK_SIGNUP_FLOW + '?member_id=' + memberId)
                   .then(function (r) { return r.ok ? r.json() : null; })
                   .then(function (result) {
                     if (result && result.signed_up) {
                       alreadySignedUp = true;
-                      var isEn = window.location.pathname.startsWith('/en');
-                      showFeedback(isEn ? 'You are already signed up for this event!' : 'Du bist bereits für dieses Event angemeldet!', 'error');
+                      var msg = form.getAttribute('data-msg-already-wiedisync')
+                        || (window.location.pathname.startsWith('/en')
+                          ? "You're already signed up for the Mixed Tournament via Wiedisync — no further sign-up needed!"
+                          : 'Du bist bereits via Wiedisync für das Mixed-Turnier angemeldet — keine weitere Anmeldung nötig!');
+                      showFeedback(msg, 'info');
                       if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '0.5'; }
                     }
                   })
@@ -374,8 +377,11 @@
   // ── Validation ───────────────────────────────────────────────────────
   function validate() {
     if (alreadySignedUp) {
-      var isEn = window.location.pathname.startsWith('/en');
-      showFeedback(isEn ? 'You are already signed up for this event!' : 'Du bist bereits für dieses Event angemeldet!', 'error');
+      var msg = form.getAttribute('data-msg-already-wiedisync')
+        || (window.location.pathname.startsWith('/en')
+          ? "You're already signed up for the Mixed Tournament via Wiedisync — no further sign-up needed!"
+          : 'Du bist bereits via Wiedisync für das Mixed-Turnier angemeldet — keine weitere Anmeldung nötig!');
+      showFeedback(msg, 'info');
       return null;
     }
 

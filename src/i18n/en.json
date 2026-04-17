@@ -689,5 +689,7 @@
   "mixedTourneyWiedisyncTitle": "Thanks for signing up!",
   "mixedTourneyWiedisyncText": "Your Wiedisync account is waiting for you to claim it. As the Wiedisync tool will be used for trainings, games, Schreibereinsätze, expenses and so on, I strongly recommend you to follow the sign-up process.",
   "mixedTourneyWiedisyncSignup": "Sign up for Wiedisync",
-  "mixedTourneyWiedisyncLater": "Later"
+  "mixedTourneyWiedisyncLater": "Later",
+  "mixedTourneyWiedisyncNote": "Note for Wiedisync users: if you already RSVP'd yes on the Mixed Tournament in Wiedisync, you don't need to sign up again here — you're already in!",
+  "mixedTourneyAlreadySignedUpWiedisync": "You're already signed up for the Mixed Tournament via Wiedisync — no further sign-up needed!"
 }

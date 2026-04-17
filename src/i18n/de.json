@@ -689,5 +689,7 @@
   "mixedTourneyWiedisyncTitle": "Danke für deine Anmeldung!",
   "mixedTourneyWiedisyncText": "Dein Wiedisync-Konto wartet darauf, von dir aktiviert zu werden. Da Wiedisync für Trainings, Spiele, Schreibereinsätze, Spesen und mehr verwendet wird, empfehle ich dir, den Registrierungsprozess abzuschliessen.",
   "mixedTourneyWiedisyncSignup": "Für Wiedisync registrieren",
-  "mixedTourneyWiedisyncLater": "Später"
+  "mixedTourneyWiedisyncLater": "Später",
+  "mixedTourneyWiedisyncNote": "Hinweis für Wiedisync-Nutzer: Falls du bereits in Wiedisync für das Mixed-Turnier zugesagt hast, musst du dich hier nicht nochmals anmelden — du bist schon dabei!",
+  "mixedTourneyAlreadySignedUpWiedisync": "Du bist bereits via Wiedisync für das Mixed-Turnier angemeldet — keine weitere Anmeldung nötig!"
 }
