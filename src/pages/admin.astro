@@ -961,6 +961,11 @@ import '../styles/global.css';
         });
       });
 
+      // Sort alphabetically by name (locale-aware, case-insensitive)
+      combined.sort(function(a, b) {
+        return (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' });
+      });
+
       // Summary
       var maleCount = combined.filter(function(i) { return i.sex === 'männlich' || i.sex === 'm'; }).length;
       var femaleCount = combined.filter(function(i) { return i.sex === 'weiblich' || i.sex === 'w' || i.sex === 'f'; }).length;
