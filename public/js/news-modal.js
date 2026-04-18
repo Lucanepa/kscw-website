@@ -92,6 +92,9 @@
     // SECURITY: Content comes from Directus `news` collection, writable only by
     // authenticated admins. Sanitized on save via DOMPurify in admin panel.
     // Defense-in-depth: strip script/iframe/object tags before rendering.
+    // EDITORIAL: Unwrap all <a> tags — public site shows no links; ticket and
+    // action links live on Wiedisync (members platform) only.
+    var hadLinks = false;
     if (data.body) {
       var body = el('div', 'nm-body');
       var sanitized = data.body
@@ -100,8 +103,30 @@
         .replace(/<object[\s\S]*?<\/object>/gi, '')
         .replace(/<embed[\s\S]*?>/gi, '')
         .replace(/\bon\w+\s*=/gi, 'data-removed=');
+      // Unwrap <a> tags (keep inner text, drop hyperlink). Set hadLinks if any
+      // external http(s) link was present so we can surface a Wiedisync CTA.
+      sanitized = sanitized.replace(/<a\b[^>]*href\s*=\s*["']?(https?:)?\/\/[^>]*>([\s\S]*?)<\/a>/gi, function (_m, _proto, inner) { hadLinks = true; return inner; });
+      sanitized = sanitized.replace(/<a\b[^>]*>([\s\S]*?)<\/a>/gi, '$1');
       body.innerHTML = sanitized; // eslint-disable-line no-unsanitized/property -- admin-authored, double-sanitized
       modal.appendChild(body);
+    }
+
+    // ── Wiedisync CTA (only when body contained external links)
+    if (hadLinks) {
+      var cta = el('div', 'nm-wiedisync-cta');
+      var ctaIcon = el('span', 'nm-cta-icon', '🔗');
+      var ctaText = el('span', 'nm-cta-text', isDE
+        ? 'Für Mitglieder: Alle Links & Tickets findest du im Login-Bereich auf '
+        : 'For members: all links & tickets are in the members area on ');
+      var ctaLink = document.createElement('a');
+      ctaLink.href = 'https://wiedisync.kscw.ch';
+      ctaLink.target = '_blank';
+      ctaLink.rel = 'noopener';
+      ctaLink.textContent = 'wiedisync.kscw.ch';
+      ctaText.appendChild(ctaLink);
+      cta.appendChild(ctaIcon);
+      cta.appendChild(ctaText);
+      modal.appendChild(cta);
     }
 
     // ── Share buttons

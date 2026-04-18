@@ -2,6 +2,12 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [3.2.3] — 2026-04-18
+
+### Changed
+- **News modal**: Removed all external links from the public news view — ticket and action links are now reserved for Wiedisync (members platform). When a news article contains external links, a Wiedisync CTA appears directing members to the login area for all links and tickets
+- **News body typography**: Default text alignment is now justified with hyphenation and pretty wrapping, matching the Datenschutz/Impressum/Über uns style. Admin per-paragraph overrides from the Quill editor (`ql-align-center`, `ql-align-right`, `ql-align-justify`) are honored
+
 ## [3.2.2] — 2026-04-18
 
 ### Fixed
