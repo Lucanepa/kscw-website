@@ -85,10 +85,11 @@ const locale = 'de';
           if (empty) { empty.style.display = ''; grid.appendChild(empty); }
         }
         var newsFields = 'id,title,title_en,slug,excerpt,body,category,author,published_at,image,date_created';
-        var filter = { is_published: { _eq: true } };
+        // Published-only is enforced by the Directus Public role permission; is_published is not readable anonymously.
+        var filter = {};
         if (currentFilter !== 'all') filter.category = { _eq: currentFilter };
         var url = DIRECTUS_URL + '/items/news?fields=' + encodeURIComponent(newsFields)
-          + '&filter=' + encodeURIComponent(JSON.stringify(filter))
+          + (Object.keys(filter).length ? '&filter=' + encodeURIComponent(JSON.stringify(filter)) : '')
           + '&sort=-published_at&limit=' + PAGE_SIZE + '&offset=' + offset;
 
         fetch(url)

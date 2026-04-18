@@ -2,6 +2,11 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [3.2.2] — 2026-04-18
+
+### Fixed
+- **News page**: Removed redundant `is_published` filter from anonymous Directus queries. The Public role permission now enforces published-only at the item level and hides the `is_published` field, so the client filter caused 403 Forbidden and an empty news page. Affects homepage news widget, news list pages, and the RSS feed
+
 ## [3.2.1] — 2026-04-04
 
 ### Changed
