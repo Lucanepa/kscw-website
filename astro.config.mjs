@@ -13,4 +13,7 @@ export default defineConfig({
       redirectToDefaultLocale: false,
     },
   },
+  redirects: {
+    '/en/volleyball/mixed-turnier': '/en/volleyball/mixed-tournament',
+  },
 });
