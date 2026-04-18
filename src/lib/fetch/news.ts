@@ -22,8 +22,8 @@ function mapNews(n: DirectusNews): NewsArticle {
 }
 
 export async function getLatestNews(limit = 6): Promise<NewsArticle[]> {
+  // Published-only is enforced by the Directus Public role permission; is_published is not readable anonymously.
   const items = await fetchItems<DirectusNews>('news', {
-    filter: { is_published: { _eq: true } },
     sort: ['-published_at'],
     fields: ['id', 'title', 'title_en', 'slug', 'excerpt', 'body', 'category', 'author', 'published_at', 'image', 'date_created'],
     limit,

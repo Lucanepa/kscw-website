@@ -383,8 +383,8 @@ try {
         var empty = document.getElementById('news-empty');
         if (!grid) return;
         var newsFields = 'id,title,title_en,slug,excerpt,body,category,author,published_at,image,date_created';
-        var newsFilter = JSON.stringify({ is_published: { _eq: true } });
-        fetch(DIRECTUS_URL + '/items/news?fields=' + encodeURIComponent(newsFields) + '&filter=' + encodeURIComponent(newsFilter) + '&sort=-published_at&limit=2')
+        // Published-only is enforced by the Directus Public role permission; is_published is not readable anonymously.
+        fetch(DIRECTUS_URL + '/items/news?fields=' + encodeURIComponent(newsFields) + '&sort=-published_at&limit=2')
           .then(function(res) { return res.json(); })
           .then(function(data) {
             var articles = data.data || [];
