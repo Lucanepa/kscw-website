@@ -337,8 +337,9 @@ if (container) {
       modal.appendChild(scoreDiv)
     }
 
-    // Date & Time
-    const dateObj = new Date(g.date)
+    // Date & Time — g.date is YYYY-MM-DD; noon-anchor to avoid TZ day-shift
+    const gDateOnly = g.date.length > 10 ? g.date.slice(0, 10) : g.date
+    const dateObj = new Date(gDateOnly + 'T12:00:00')
     const dateStr = dateObj.toLocaleDateString(lang === 'de' ? 'de-CH' : 'en-GB', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     })
@@ -401,8 +402,9 @@ if (container) {
     // Title
     modal.appendChild(el('h3', 'cal-modal-title', ev.title))
 
-    // Info
-    const dateObj = new Date(ev.date)
+    // Info — ev.date is wall-clock time stored as UTC; slice to date-only + noon-anchor to render admin's intended day in any timezone
+    const dateOnly = ev.date.length > 10 ? ev.date.slice(0, 10) : ev.date
+    const dateObj = new Date(dateOnly + 'T12:00:00')
     const dateStr = dateObj.toLocaleDateString(lang === 'de' ? 'de-CH' : 'en-GB', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     })
