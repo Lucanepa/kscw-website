@@ -1,9 +1,9 @@
 /**
  * KSCW Mixed Tournament Signup Form — Autocomplete, multiselect, positions, submission
  *
- * Submits to POST /items/mixed_tournament_signups on Directus.
+ * Submits to POST /items/event_signups on Directus with a polymorphic form_data field.
+ * Fixed event=5 (Mixed Turnier 2026) and form_slug='mixed_tournament_2026'.
  * Includes Turnstile CAPTCHA token in header.
- * NOTE: EVENT_ID is configured server-side in the Directus Flow — not needed client-side.
  */
 (function () {
   'use strict';
@@ -463,26 +463,25 @@
 
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '...'; }
 
+    var formData = {};
+    formData.position_1 = data.position_1;
+    if (data.position_2) formData.position_2 = data.position_2;
+    if (data.position_3) formData.position_3 = data.position_3;
+    if (selectedTeams.length > 0) formData.teams = selectedTeams;
+    if (notesInput && notesInput.value.trim()) formData.notes = notesInput.value.trim();
+
     var payload = {
+      event: 5,
+      form_slug: 'mixed_tournament_2026',
       name: data.name,
       email: data.email,
       sex: data.sex,
-      position_1: data.position_1,
       is_member: isMember,
+      member: (isMember && memberId) ? memberId : null,
+      form_data: formData,
     };
 
-    if (data.position_2) payload.position_2 = data.position_2;
-    if (data.position_3) payload.position_3 = data.position_3;
-    if (selectedTeams.length > 0) payload.teams = selectedTeams;
-    if (notesInput && notesInput.value.trim()) payload.notes = notesInput.value.trim();
-    if (isMember && memberId) payload.member_id = memberId;
-
-    // Trim null/empty values
-    Object.keys(payload).forEach(function (k) {
-      if (payload[k] === null || payload[k] === '') delete payload[k];
-    });
-
-    fetch(DIRECTUS_URL + '/items/mixed_tournament_signups', {
+    fetch(DIRECTUS_URL + '/items/event_signups', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
