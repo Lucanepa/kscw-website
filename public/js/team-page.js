@@ -883,7 +883,7 @@
       if (rw.team_id === myTeamId) tr.className = 'table-highlight';
 
       // Promotion/relegation color band (volleyball only)
-      var promoColor = isVB ? getPromotionColor(teamInfo.league || '', rw.rank, totalTeams, rw.team_name || rw.team, IS_WOMEN) : null;
+      var promoColor = isVB ? getPromotionColor(teamInfo.league || '', rw.rank, totalTeams, rw.team_name || rw.team, IS_WOMEN, rankings) : null;
       if (promoColor) {
         tr.style.borderLeft = '4px solid ' + promoColor;
       }
@@ -960,40 +960,75 @@
   }
 
   // ── Promotion / relegation colors (volleyball) ─────────────────────
-  function getPromotionColor(league, rank, totalTeams, teamName, isWomen) {
+  // Per SVRZ Volleyballreglement 25/26 Art. 102a:
+  //   1st = direct promotion (green), 2nd = barrage up (blue),
+  //   2nd-to-last = barrage down (orange), last = direct relegation (red).
+  // Men's league pyramid ends at 4L (no 5L for Herren per referee/scorer
+  // tables in the reglement), so men's 4L is the bottom league — no down moves.
+  // Talents (RTZ) teams per Art. 102a.7 cannot promote or relegate: they get
+  // no color, AND they are skipped when computing who sits in a promotion or
+  // relegation slot (positions shift to the next eligible team).
+  function isTalentsName(n) { return !!n && /talents/i.test(n); }
+
+  function getPromotionColor(league, rank, totalTeams, teamName, isWomen, allRankings) {
     // Skip youth, classics, cup, etc.
     if (/U\d|Jugend|Junior|Classics|Cup|Turnier|Plausch|Mini/i.test(league)) return null;
-    // Skip "talents" teams
-    if (teamName && /talents/i.test(teamName)) return null;
+    // Talents team itself: no marker.
+    if (isTalentsName(teamName)) return null;
 
     var m = league.match(/(\d)\.\s*Liga/i);
     if (!m) return null;
     var level = parseInt(m[1], 10);
 
+    // Compute effective 1-based position among non-Talents teams.
+    var pos = rank;
+    var total = totalTeams;
+    if (allRankings && allRankings.length) {
+      var eligible = [];
+      for (var k = 0; k < allRankings.length; k++) {
+        var nm = allRankings[k].team_name || allRankings[k].team;
+        if (!isTalentsName(nm)) eligible.push(allRankings[k]);
+      }
+      eligible.sort(function (a, b) { return a.rank - b.rank; });
+      var idx = -1;
+      for (var j = 0; j < eligible.length; j++) {
+        if (eligible[j].rank === rank) { idx = j; break; }
+      }
+      if (idx === -1) return null;
+      pos = idx + 1;
+      total = eligible.length;
+    }
+
     var green = '#22c55e', blue = '#3b82f6', orange = '#f97316', red = '#ef4444';
 
     switch (level) {
       case 5:
-        if (rank === 1) return green;
+        // 5L is women-only and the bottom league — barrage up only.
+        if (pos === 1) return green;
+        if (pos === 2) return blue;
         return null;
       case 4:
-        if (rank === 1) return green;
-        // Men have 4 leagues (4L is lowest), women have 5 — only women can relegate from 4L
-        if (isWomen && rank === totalTeams) return red;
+        if (pos === 1) return green;
+        if (pos === 2) return blue;
+        // Only women's 4L has a lower league (5L) to drop into.
+        if (isWomen && pos === total - 1) return orange;
+        if (isWomen && pos === total) return red;
         return null;
       case 3:
-        if (rank === 1) return green;
-        if (rank === 2) return blue;
-        if (rank === totalTeams) return red;
+        if (pos === 1) return green;
+        if (pos === 2) return blue;
+        if (pos === total - 1) return orange;
+        if (pos === total) return red;
         return null;
       case 2:
-        if (rank === 1) return green;
-        if (rank === totalTeams || rank === totalTeams - 1) return red;
-        if (rank === totalTeams - 2) return orange;
+        if (pos === 1) return green;
+        if (pos === 2) return blue;
+        if (pos === total || pos === total - 1) return red;
+        if (pos === total - 2) return orange;
         return null;
       case 1:
-        if (rank === 1) return green;
-        if (rank === totalTeams) return red;
+        if (pos === 1) return green;
+        if (pos === total) return red;
         return null;
       default:
         return null;
