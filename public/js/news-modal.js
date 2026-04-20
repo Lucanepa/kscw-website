@@ -88,26 +88,32 @@
       modal.appendChild(imgWrap);
     }
 
-    // ── Body (HTML from Quill editor, authored by admin — not user-submitted)
-    // SECURITY: Content comes from Directus `news` collection, writable only by
-    // authenticated admins. Sanitized on save via DOMPurify in admin panel.
-    // Defense-in-depth: strip script/iframe/object tags before rendering.
+    // ── Body (HTML from `news.body`)
+    // SECURITY: Sanitize with DOMPurify before insertion. Admin panel already
+    // DOMPurifies on save, but Directus Studio / REST writes bypass that, so the
+    // public renderer sanitizes again as the enforcing boundary.
     // EDITORIAL: Unwrap all <a> tags — public site shows no links; ticket and
     // action links live on Wiedisync (members platform) only.
     var hadLinks = false;
     if (data.body) {
       var body = el('div', 'nm-body');
-      var sanitized = data.body
-        .replace(/<script[\s\S]*?<\/script>/gi, '')
-        .replace(/<iframe[\s\S]*?<\/iframe>/gi, '')
-        .replace(/<object[\s\S]*?<\/object>/gi, '')
-        .replace(/<embed[\s\S]*?>/gi, '')
-        .replace(/\bon\w+\s*=/gi, 'data-removed=');
-      // Unwrap <a> tags (keep inner text, drop hyperlink). Set hadLinks if any
-      // external http(s) link was present so we can surface a Wiedisync CTA.
-      sanitized = sanitized.replace(/<a\b[^>]*href\s*=\s*["']?(https?:)?\/\/[^>]*>([\s\S]*?)<\/a>/gi, function (_m, _proto, inner) { hadLinks = true; return inner; });
-      sanitized = sanitized.replace(/<a\b[^>]*>([\s\S]*?)<\/a>/gi, '$1');
-      body.innerHTML = sanitized; // eslint-disable-line no-unsanitized/property -- admin-authored, double-sanitized
+      var raw = String(data.body);
+      // Detect external links in the raw input to decide whether to surface the
+      // Wiedisync CTA; DOMPurify will strip <a> tags (see FORBID_TAGS below).
+      if (/<a\b[^>]*href\s*=\s*["']?(?:https?:)?\/\//i.test(raw)) hadLinks = true;
+      var clean;
+      if (typeof window.DOMPurify !== 'undefined') {
+        clean = window.DOMPurify.sanitize(raw, {
+          FORBID_TAGS: ['a', 'script', 'iframe', 'object', 'embed', 'form', 'style', 'link', 'meta', 'base'],
+          FORBID_ATTR: ['style', 'formaction', 'action', 'href', 'xlink:href'],
+          KEEP_CONTENT: true,
+        });
+      } else {
+        // Fallback if the CDN fails to load: render escaped plain text rather
+        // than risk an under-sanitized innerHTML assignment.
+        clean = raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+      body.innerHTML = clean; // eslint-disable-line no-unsanitized/property -- DOMPurify-sanitized above
       modal.appendChild(body);
     }
 

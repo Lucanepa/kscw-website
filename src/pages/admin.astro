@@ -1063,7 +1063,7 @@ import '../styles/global.css';
           item.position_3 || '',
           item.source === 'wiedisync' ? 'Wiedisync' : 'Website',
           (item.notes || '').replace(/[\r\n]+/g, ' '),
-        ].map(function(v) { return '"' + v.replace(/"/g, '""') + '"'; }).join(';');
+        ].map(csvSafe).join(';');
       }).join('\n');
 
       var blob = new Blob([BOM + header + rows], { type: 'text/csv;charset=utf-8;' });
@@ -1558,9 +1558,19 @@ import '../styles/global.css';
       URL.revokeObjectURL(url);
     }
 
+    // SECURITY: Neutralize spreadsheet formula prefixes (=, +, -, @, TAB, CR) so
+    // attacker-controlled fields cannot execute formulas / DDE when admins open
+    // the CSV in Excel / Numbers / LibreOffice.
+    function csvSafe(val) {
+      var s = String(val == null ? '' : val);
+      if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+      return '"' + s.replace(/"/g, '""') + '"';
+    }
+
     function csvEscape(val) {
-      val = String(val);
-      if (val.indexOf(';') !== -1 || val.indexOf('"') !== -1 || val.indexOf('\n') !== -1) {
+      val = String(val == null ? '' : val);
+      if (/^[=+\-@\t\r]/.test(val)) val = "'" + val;
+      if (val.indexOf(';') !== -1 || val.indexOf('"') !== -1 || val.indexOf('\n') !== -1 || val.charAt(0) === "'") {
         return '"' + val.replace(/"/g, '""') + '"';
       }
       return val;
