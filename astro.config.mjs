@@ -14,6 +14,8 @@ export default defineConfig({
     },
   },
   redirects: {
-    '/en/volleyball/mixed-turnier': '/en/volleyball/mixed-tournament',
+    '/de/volleyball/mixed-turnier': '/de/volleyball',
+    '/en/volleyball/mixed-tournament': '/en/volleyball',
+    '/en/volleyball/mixed-turnier': '/en/volleyball',
   },
 });
