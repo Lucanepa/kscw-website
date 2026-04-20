@@ -960,6 +960,11 @@
   }
 
   // ── Promotion / relegation colors (volleyball) ─────────────────────
+  // Per SVRZ Volleyballreglement 25/26 Art. 102a:
+  //   1st = direct promotion (green), 2nd = barrage up (blue),
+  //   2nd-to-last = barrage down (orange), last = direct relegation (red).
+  // Men's league pyramid ends at 4L (no 5L for Herren per referee/scorer
+  // tables in the reglement), so men's 4L is the bottom league — no down moves.
   function getPromotionColor(league, rank, totalTeams, teamName, isWomen) {
     // Skip youth, classics, cup, etc.
     if (/U\d|Jugend|Junior|Classics|Cup|Turnier|Plausch|Mini/i.test(league)) return null;
@@ -974,16 +979,21 @@
 
     switch (level) {
       case 5:
+        // 5L is women-only and the bottom league — barrage up only.
         if (rank === 1) return green;
+        if (rank === 2) return blue;
         return null;
       case 4:
         if (rank === 1) return green;
-        // Men have 4 leagues (4L is lowest), women have 5 — only women can relegate from 4L
+        if (rank === 2) return blue;
+        // Only women's 4L has a lower league (5L) to drop into.
+        if (isWomen && rank === totalTeams - 1) return orange;
         if (isWomen && rank === totalTeams) return red;
         return null;
       case 3:
         if (rank === 1) return green;
         if (rank === 2) return blue;
+        if (rank === totalTeams - 1) return orange;
         if (rank === totalTeams) return red;
         return null;
       case 2:
