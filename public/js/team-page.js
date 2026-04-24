@@ -327,39 +327,28 @@
   }
 
   // ── Roster View Toggle ───────────────────────────────────────────
+  function getRosterView() {
+    try { return localStorage.getItem('kscw-roster-view') === 'list' ? 'list' : 'grid'; }
+    catch (e) { return 'grid'; }
+  }
+
   function initRosterViewToggle() {
     var toggle = document.getElementById('roster-view-toggle');
     if (!toggle) return;
     var gridBtn = toggle.querySelector('[data-view="grid"]');
     var listBtn = toggle.querySelector('[data-view="list"]');
-    var rosterEl = document.getElementById('roster-grid');
-    if (!gridBtn || !listBtn || !rosterEl) return;
+    if (!gridBtn || !listBtn) return;
 
-    var saved = null;
-    try { saved = localStorage.getItem('kscw-roster-view'); } catch (e) {}
-    if (saved === 'list') {
-      rosterEl.classList.add('roster-list');
-      gridBtn.classList.remove('active');
-      listBtn.classList.add('active');
+    function setActive(view) {
+      if (view === 'list') { listBtn.classList.add('active'); gridBtn.classList.remove('active'); }
+      else { gridBtn.classList.add('active'); listBtn.classList.remove('active'); }
     }
+    setActive(getRosterView());
 
-    function setView(mode) {
-      var coachEl = document.getElementById('coach-grid');
-      var guestEl = document.getElementById('guest-grid');
-      if (mode === 'list') {
-        rosterEl.classList.add('roster-list');
-        if (coachEl) coachEl.classList.add('roster-list');
-        if (guestEl) guestEl.classList.add('roster-list');
-        listBtn.classList.add('active');
-        gridBtn.classList.remove('active');
-      } else {
-        rosterEl.classList.remove('roster-list');
-        if (coachEl) coachEl.classList.remove('roster-list');
-        if (guestEl) guestEl.classList.remove('roster-list');
-        gridBtn.classList.add('active');
-        listBtn.classList.remove('active');
-      }
-      try { localStorage.setItem('kscw-roster-view', mode); } catch (e) {}
+    function setView(view) {
+      try { localStorage.setItem('kscw-roster-view', view); } catch (e) {}
+      setActive(view);
+      renderRosterView();
     }
     gridBtn.addEventListener('click', function () { setView('grid'); });
     listBtn.addEventListener('click', function () { setView('list'); });
@@ -413,55 +402,142 @@
   }
 
   // ── Render Roster ─────────────────────────────────────────────────
+  // Module-scoped state so the view toggle can re-render without re-fetching.
+  var ROSTER_STATE = null;
+
   function renderRoster(roster, coach, captain, showGuests) {
-    var el = document.getElementById('roster-grid');
-    if (!el) return;
     if (!roster.length) { hideSection('kader'); return; }
 
     roster.sort(function (a, b) {
-      if (a.guest_level !== b.guest_level) return a.guest_level - b.guest_level;
+      var ag = a.guest_level || 0, bg = b.guest_level || 0;
+      if (ag !== bg) return ag - bg;
       return (a.last_name || '').localeCompare(b.last_name || '');
     });
+    coach.sort(function (a, b) { return (a.last_name || '').localeCompare(b.last_name || ''); });
 
-    // Build captain lookup by full name
     var captainNames = {};
     for (var ci = 0; ci < captain.length; ci++) {
       captainNames[captain[ci].first_name + ' ' + captain[ci].last_name] = true;
     }
 
-    var frag = document.createDocumentFragment();
-    for (var i = 0; i < roster.length; i++) {
-      var m = roster[i];
-      if (m.guest_level > 0) continue;
+    ROSTER_STATE = { roster: roster, coach: coach, showGuests: showGuests, captainNames: captainNames };
+    renderRosterView();
+  }
 
-      var isCaptain = captainNames[m.first_name + ' ' + m.last_name] === true;
-      var card = document.createElement('div');
-      card.className = 'roster-card' + (isCaptain ? ' captain-card' : '');
+  function renderRosterView() {
+    if (!ROSTER_STATE) return;
+    var view = getRosterView();
+    var el = document.getElementById('roster-grid');
+    var metaEl = document.getElementById('roster-meta');
+    if (!el) return;
 
-      var photoId = m.photo_url || m.photo;
-      if (photoId && m.website_visible !== false) {
-        var img = document.createElement('img');
-        img.src = photoId.indexOf('http') === 0 ? photoId : DIRECTUS_URL + '/assets/' + photoId + '?width=200&quality=80';
-        img.alt = '';
-        img.className = 'roster-avatar';
-        img.style.objectFit = 'cover';
-        img.loading = 'lazy';
-        card.appendChild(img);
+    var data = ROSTER_STATE;
+    var mainPlayers = [];
+    var guests = [];
+    for (var i = 0; i < data.roster.length; i++) {
+      var m = data.roster[i];
+      if (m.guest_level > 0) {
+        if (data.showGuests) guests.push(m);
       } else {
-        var av = document.createElement('img');
-        av.className = 'roster-avatar';
-        av.src = '/images/kscw_weiss.png';
-        av.alt = '';
-        av.loading = 'lazy';
-        card.appendChild(av);
+        mainPlayers.push(m);
       }
+    }
 
-      var info = document.createElement('div');
-      var nameEl = document.createElement('div');
-      nameEl.className = 'roster-name';
-      nameEl.textContent = m.first_name + ' ' + m.last_name;
-      info.appendChild(nameEl);
+    el.textContent = '';
+    if (view === 'list') {
+      el.classList.remove('roster-grid');
+      el.classList.add('roster-list-wrap');
+      el.appendChild(buildRosterTable(mainPlayers, data.captainNames));
+    } else {
+      el.classList.remove('roster-list-wrap');
+      el.classList.add('roster-grid');
+      for (var ip = 0; ip < mainPlayers.length; ip++) {
+        var mp = mainPlayers[ip];
+        var isCap = data.captainNames[mp.first_name + ' ' + mp.last_name] === true;
+        el.appendChild(buildPersonCard(mp, { isCaptain: isCap }));
+      }
+    }
 
+    if (!metaEl) return;
+    metaEl.textContent = '';
+
+    // Coaches — always card layout (only have name + photo)
+    if (data.coach.length) {
+      var label = document.createElement('p');
+      label.style.fontWeight = '600';
+      label.style.fontSize = 'var(--text-sm)';
+      label.style.color = 'var(--text-secondary)';
+      label.textContent = i18n.t('teamCoach') + ':';
+      metaEl.appendChild(label);
+
+      var coachGrid = document.createElement('div');
+      coachGrid.className = 'roster-grid' + (view === 'list' ? ' roster-list' : '');
+      coachGrid.id = 'coach-grid';
+      coachGrid.style.marginTop = 'var(--space-sm)';
+      for (var ic = 0; ic < data.coach.length; ic++) {
+        coachGrid.appendChild(buildPersonCard(data.coach[ic], { isCoach: true }));
+      }
+      metaEl.appendChild(coachGrid);
+    }
+
+    // Guests — table in list view, cards in grid view
+    if (guests.length) {
+      var gLabel = document.createElement('p');
+      gLabel.style.fontWeight = '600';
+      gLabel.style.fontSize = 'var(--text-sm)';
+      gLabel.style.color = 'var(--text-secondary)';
+      gLabel.style.marginTop = 'var(--space-lg)';
+      gLabel.textContent = i18n.t(guests.length === 1 ? 'teamGuest' : 'teamGuests') + ':';
+      metaEl.appendChild(gLabel);
+
+      if (view === 'list') {
+        var gTable = buildRosterTable(guests, data.captainNames);
+        gTable.id = 'guest-grid';
+        gTable.style.marginTop = 'var(--space-sm)';
+        metaEl.appendChild(gTable);
+      } else {
+        var guestGrid = document.createElement('div');
+        guestGrid.className = 'roster-grid';
+        guestGrid.id = 'guest-grid';
+        guestGrid.style.marginTop = 'var(--space-sm)';
+        for (var ig = 0; ig < guests.length; ig++) {
+          guestGrid.appendChild(buildPersonCard(guests[ig], {}));
+        }
+        metaEl.appendChild(guestGrid);
+      }
+    }
+  }
+
+  function buildAvatar(m) {
+    var photoId = m.photo_url || m.photo;
+    var img = document.createElement('img');
+    img.className = 'roster-avatar';
+    img.alt = '';
+    img.loading = 'lazy';
+    if (photoId && m.website_visible !== false) {
+      img.src = photoId.indexOf('http') === 0
+        ? photoId
+        : DIRECTUS_URL + '/assets/' + photoId + '?width=200&quality=80';
+      img.style.objectFit = 'cover';
+    } else {
+      img.src = '/images/kscw_weiss.png';
+    }
+    return img;
+  }
+
+  function buildPersonCard(m, opts) {
+    opts = opts || {};
+    var card = document.createElement('div');
+    card.className = 'roster-card' + (opts.isCaptain ? ' captain-card' : '');
+    card.appendChild(buildAvatar(m));
+
+    var info = document.createElement('div');
+    var nameEl = document.createElement('div');
+    nameEl.className = 'roster-name';
+    nameEl.textContent = m.first_name + ' ' + m.last_name;
+    info.appendChild(nameEl);
+
+    if (!opts.isCoach) {
       var posText = positionText(m.position);
       var numText = m.number ? ' · #' + m.number : '';
       var subtitle = posText + numText;
@@ -471,150 +547,85 @@
         posEl.textContent = subtitle;
         info.appendChild(posEl);
       }
+    }
+    card.appendChild(info);
 
-      card.appendChild(info);
+    if (opts.isCaptain) {
+      var badge = document.createElement('div');
+      badge.className = 'captain-badge';
+      badge.textContent = 'K';
+      badge.title = i18n.t(IS_WOMEN ? 'teamCaptainF' : 'teamCaptain');
+      card.appendChild(badge);
+    }
+    return card;
+  }
 
+  function buildRosterTable(rows, captainNames) {
+    var table = document.createElement('table');
+    table.className = 'roster-table';
+
+    var thead = document.createElement('thead');
+    var thr = document.createElement('tr');
+    var headers = [
+      ['rt-num', 'teamColNumber'],
+      ['rt-photo', null],
+      ['rt-name', 'teamColName'],
+      ['rt-pos', 'teamColPosition'],
+      ['rt-yob', 'teamColYob']
+    ];
+    for (var h = 0; h < headers.length; h++) {
+      var th = document.createElement('th');
+      th.className = headers[h][0];
+      th.textContent = headers[h][1] ? i18n.t(headers[h][1]) : '';
+      thr.appendChild(th);
+    }
+    thead.appendChild(thr);
+    table.appendChild(thead);
+
+    var tbody = document.createElement('tbody');
+    for (var i = 0; i < rows.length; i++) {
+      var m = rows[i];
+      var isCaptain = captainNames[m.first_name + ' ' + m.last_name] === true;
+      var tr = document.createElement('tr');
+      if (isCaptain) tr.className = 'captain-row';
+
+      var tdNum = document.createElement('td');
+      tdNum.className = 'rt-num';
+      tdNum.textContent = m.number ? '#' + m.number : '';
+      tr.appendChild(tdNum);
+
+      var tdPhoto = document.createElement('td');
+      tdPhoto.className = 'rt-photo';
+      tdPhoto.appendChild(buildAvatar(m));
+      tr.appendChild(tdPhoto);
+
+      var tdName = document.createElement('td');
+      tdName.className = 'rt-name';
+      tdName.textContent = m.first_name + ' ' + m.last_name;
       if (isCaptain) {
-        var badge = document.createElement('div');
-        badge.className = 'captain-badge';
-        badge.textContent = 'K';
-        badge.title = i18n.t(IS_WOMEN ? 'teamCaptainF' : 'teamCaptain');
-        card.appendChild(badge);
+        var k = document.createElement('span');
+        k.className = 'captain-badge-inline';
+        k.textContent = 'K';
+        k.title = i18n.t(IS_WOMEN ? 'teamCaptainF' : 'teamCaptain');
+        tdName.appendChild(document.createTextNode(' '));
+        tdName.appendChild(k);
       }
+      tr.appendChild(tdName);
 
-      frag.appendChild(card);
+      var tdPos = document.createElement('td');
+      tdPos.className = 'rt-pos';
+      tdPos.textContent = positionText(m.position) || '';
+      tr.appendChild(tdPos);
+
+      var tdYob = document.createElement('td');
+      tdYob.className = 'rt-yob';
+      tdYob.textContent = m.yob || '';
+      tr.appendChild(tdYob);
+
+      tbody.appendChild(tr);
     }
-
-    el.textContent = '';
-    el.appendChild(frag);
-
-    var metaEl = document.getElementById('roster-meta');
-    if (metaEl) {
-      metaEl.textContent = '';
-
-      // Coach cards (sorted alphabetically by last name)
-      coach.sort(function (a, b) {
-        return (a.last_name || '').localeCompare(b.last_name || '');
-      });
-      if (coach.length) {
-        var label = document.createElement('p');
-        label.style.fontWeight = '600';
-        label.style.fontSize = 'var(--text-sm)';
-        label.style.color = 'var(--text-secondary)';
-        label.textContent = i18n.t('teamCoach') + ':';
-        metaEl.appendChild(label);
-
-        var coachGrid = document.createElement('div');
-        var isListMode = false;
-        try { isListMode = localStorage.getItem('kscw-roster-view') === 'list'; } catch (e) {}
-        coachGrid.className = 'roster-grid' + (isListMode ? ' roster-list' : '');
-        coachGrid.id = 'coach-grid';
-        coachGrid.style.marginTop = 'var(--space-sm)';
-
-        for (var ci = 0; ci < coach.length; ci++) {
-          var c = coach[ci];
-          var cCard = document.createElement('div');
-          cCard.className = 'roster-card';
-
-          var cPhotoId = c.photo_url || c.photo;
-          if (cPhotoId) {
-            var cImg = document.createElement('img');
-            cImg.src = cPhotoId.indexOf('http') === 0 ? cPhotoId : DIRECTUS_URL + '/assets/' + cPhotoId + '?width=200&quality=80';
-            cImg.alt = '';
-            cImg.className = 'roster-avatar';
-            cImg.style.objectFit = 'cover';
-            cImg.loading = 'lazy';
-            cCard.appendChild(cImg);
-          } else {
-            var cAv = document.createElement('img');
-            cAv.className = 'roster-avatar';
-            cAv.src = '/images/kscw_weiss.png';
-            cAv.alt = '';
-            cAv.loading = 'lazy';
-            cCard.appendChild(cAv);
-          }
-
-          var cInfo = document.createElement('div');
-          var cName = document.createElement('div');
-          cName.className = 'roster-name';
-          cName.textContent = c.first_name + ' ' + c.last_name;
-          cInfo.appendChild(cName);
-          cCard.appendChild(cInfo);
-          coachGrid.appendChild(cCard);
-        }
-
-        metaEl.appendChild(coachGrid);
-      }
-
-      // Guest cards (guest_level 1, 2, or 3) — only if team allows it
-      var guests = [];
-      if (showGuests) {
-        for (var gi = 0; gi < roster.length; gi++) {
-          if (roster[gi].guest_level > 0) guests.push(roster[gi]);
-        }
-      }
-      if (guests.length) {
-        var gLabel = document.createElement('p');
-        gLabel.style.fontWeight = '600';
-        gLabel.style.fontSize = 'var(--text-sm)';
-        gLabel.style.color = 'var(--text-secondary)';
-        gLabel.style.marginTop = 'var(--space-lg)';
-        gLabel.textContent = i18n.t(guests.length === 1 ? 'teamGuest' : 'teamGuests') + ':';
-        metaEl.appendChild(gLabel);
-
-        var guestGrid = document.createElement('div');
-        var isListMode2 = false;
-        try { isListMode2 = localStorage.getItem('kscw-roster-view') === 'list'; } catch (e) {}
-        guestGrid.className = 'roster-grid' + (isListMode2 ? ' roster-list' : '');
-        guestGrid.id = 'guest-grid';
-        guestGrid.style.marginTop = 'var(--space-sm)';
-
-        for (var gj = 0; gj < guests.length; gj++) {
-          var g = guests[gj];
-          var gCard = document.createElement('div');
-          gCard.className = 'roster-card';
-
-          var gPhotoId = g.photo_url || g.photo;
-          if (gPhotoId && g.website_visible !== false) {
-            var gImg = document.createElement('img');
-            gImg.src = gPhotoId.indexOf('http') === 0 ? gPhotoId : DIRECTUS_URL + '/assets/' + gPhotoId + '?width=200&quality=80';
-            gImg.alt = '';
-            gImg.className = 'roster-avatar';
-            gImg.style.objectFit = 'cover';
-            gImg.loading = 'lazy';
-            gCard.appendChild(gImg);
-          } else {
-            var gAv = document.createElement('img');
-            gAv.className = 'roster-avatar';
-            gAv.src = '/images/kscw_weiss.png';
-            gAv.alt = '';
-            gAv.loading = 'lazy';
-            gCard.appendChild(gAv);
-          }
-
-          var gInfo = document.createElement('div');
-          var gName = document.createElement('div');
-          gName.className = 'roster-name';
-          gName.textContent = g.first_name + ' ' + g.last_name;
-          gInfo.appendChild(gName);
-
-          var gPosText = positionText(g.position);
-          var gNumText = g.number ? ' · #' + g.number : '';
-          var gSubtitle = gPosText + gNumText;
-          if (gSubtitle) {
-            var gPosEl = document.createElement('div');
-            gPosEl.className = 'roster-position';
-            gPosEl.textContent = gSubtitle;
-            gInfo.appendChild(gPosEl);
-          }
-
-          gCard.appendChild(gInfo);
-          guestGrid.appendChild(gCard);
-        }
-
-        metaEl.appendChild(guestGrid);
-      }
-    }
+    table.appendChild(tbody);
+    return table;
   }
 
   // ── Render Trainings ──────────────────────────────────────────────
