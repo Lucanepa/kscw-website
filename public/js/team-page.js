@@ -447,7 +447,8 @@
     if (view === 'list') {
       el.classList.remove('roster-grid');
       el.classList.add('roster-list-wrap');
-      el.appendChild(buildRosterTable(mainPlayers, data.captainNames));
+      var sortedMain = mainPlayers.slice().sort(byNumberAsc);
+      el.appendChild(buildRosterTable(sortedMain, data.captainNames, { showNumber: true }));
     } else {
       el.classList.remove('roster-list-wrap');
       el.classList.add('roster-grid');
@@ -461,7 +462,7 @@
     if (!metaEl) return;
     metaEl.textContent = '';
 
-    // Coaches — always card layout (only have name + photo)
+    // Coaches — table in list view (name + YOB), cards in grid view
     if (data.coach.length) {
       var label = document.createElement('p');
       label.style.fontWeight = '600';
@@ -470,17 +471,24 @@
       label.textContent = i18n.t('teamCoach') + ':';
       metaEl.appendChild(label);
 
-      var coachGrid = document.createElement('div');
-      coachGrid.className = 'roster-grid' + (view === 'list' ? ' roster-list' : '');
-      coachGrid.id = 'coach-grid';
-      coachGrid.style.marginTop = 'var(--space-sm)';
-      for (var ic = 0; ic < data.coach.length; ic++) {
-        coachGrid.appendChild(buildPersonCard(data.coach[ic], { isCoach: true }));
+      if (view === 'list') {
+        var cTable = buildRosterTable(data.coach, {}, { showNumber: false, showPosition: false, isCoach: true });
+        cTable.id = 'coach-grid';
+        cTable.style.marginTop = 'var(--space-sm)';
+        metaEl.appendChild(cTable);
+      } else {
+        var coachGrid = document.createElement('div');
+        coachGrid.className = 'roster-grid';
+        coachGrid.id = 'coach-grid';
+        coachGrid.style.marginTop = 'var(--space-sm)';
+        for (var ic = 0; ic < data.coach.length; ic++) {
+          coachGrid.appendChild(buildPersonCard(data.coach[ic], { isCoach: true }));
+        }
+        metaEl.appendChild(coachGrid);
       }
-      metaEl.appendChild(coachGrid);
     }
 
-    // Guests — table in list view, cards in grid view
+    // Guests — table in list view (no number column), cards in grid view
     if (guests.length) {
       var gLabel = document.createElement('p');
       gLabel.style.fontWeight = '600';
@@ -491,7 +499,7 @@
       metaEl.appendChild(gLabel);
 
       if (view === 'list') {
-        var gTable = buildRosterTable(guests, data.captainNames);
+        var gTable = buildRosterTable(guests, data.captainNames, { showNumber: false });
         gTable.id = 'guest-grid';
         gTable.style.marginTop = 'var(--space-sm)';
         metaEl.appendChild(gTable);
@@ -506,6 +514,21 @@
         metaEl.appendChild(guestGrid);
       }
     }
+  }
+
+  function byNumberAsc(a, b) {
+    var an = a.number == null ? Infinity : Number(a.number);
+    var bn = b.number == null ? Infinity : Number(b.number);
+    if (an !== bn) return an - bn;
+    return (a.last_name || '').localeCompare(b.last_name || '');
+  }
+
+  function isLibero(m) {
+    if (!m || !m.position) return false;
+    for (var i = 0; i < m.position.length; i++) {
+      if (m.position[i] === 'libero') return true;
+    }
+    return false;
   }
 
   function buildAvatar(m) {
@@ -527,8 +550,11 @@
 
   function buildPersonCard(m, opts) {
     opts = opts || {};
+    var libero = !opts.isCoach && isLibero(m);
+    var classes = 'roster-card';
+    if (opts.isCaptain) classes += ' captain-card';
     var card = document.createElement('div');
-    card.className = 'roster-card' + (opts.isCaptain ? ' captain-card' : '');
+    card.className = classes;
     card.appendChild(buildAvatar(m));
 
     var info = document.createElement('div');
@@ -539,40 +565,45 @@
 
     if (!opts.isCoach) {
       var posText = positionText(m.position);
-      var numText = m.number ? ' · #' + m.number : '';
-      var subtitle = posText + numText;
-      if (subtitle) {
+      if (posText) {
         var posEl = document.createElement('div');
         posEl.className = 'roster-position';
-        posEl.textContent = subtitle;
+        posEl.textContent = posText;
         info.appendChild(posEl);
       }
     }
     card.appendChild(info);
 
-    if (opts.isCaptain) {
-      var badge = document.createElement('div');
-      badge.className = 'captain-badge';
-      badge.textContent = 'K';
-      badge.title = i18n.t(IS_WOMEN ? 'teamCaptainF' : 'teamCaptain');
-      card.appendChild(badge);
+    if (!opts.isCoach && m.number) {
+      var numClasses = 'roster-number';
+      if (opts.isCaptain) numClasses += ' is-captain';
+      else if (libero) numClasses += ' is-libero';
+      var numBadge = document.createElement('div');
+      numBadge.className = numClasses;
+      numBadge.textContent = '#' + m.number;
+      if (opts.isCaptain) numBadge.title = i18n.t(IS_WOMEN ? 'teamCaptainF' : 'teamCaptain');
+      card.appendChild(numBadge);
     }
     return card;
   }
 
-  function buildRosterTable(rows, captainNames) {
+  function buildRosterTable(rows, captainNames, opts) {
+    opts = opts || {};
+    var showNumber = opts.showNumber !== false;
+    var showPosition = opts.showPosition !== false;
+    captainNames = captainNames || {};
+
     var table = document.createElement('table');
     table.className = 'roster-table';
 
     var thead = document.createElement('thead');
     var thr = document.createElement('tr');
-    var headers = [
-      ['rt-num', 'teamColNumber'],
-      ['rt-photo', null],
-      ['rt-name', 'teamColName'],
-      ['rt-pos', 'teamColPosition'],
-      ['rt-yob', 'teamColYob']
-    ];
+    var headers = [];
+    if (showNumber) headers.push(['rt-num', 'teamColNumber']);
+    headers.push(['rt-photo', null]);
+    headers.push(['rt-name', 'teamColName']);
+    if (showPosition) headers.push(['rt-pos', 'teamColPosition']);
+    headers.push(['rt-yob', 'teamColYob']);
     for (var h = 0; h < headers.length; h++) {
       var th = document.createElement('th');
       th.className = headers[h][0];
@@ -586,13 +617,19 @@
     for (var i = 0; i < rows.length; i++) {
       var m = rows[i];
       var isCaptain = captainNames[m.first_name + ' ' + m.last_name] === true;
+      var libero = isLibero(m);
       var tr = document.createElement('tr');
       if (isCaptain) tr.className = 'captain-row';
 
-      var tdNum = document.createElement('td');
-      tdNum.className = 'rt-num';
-      tdNum.textContent = m.number ? '#' + m.number : '';
-      tr.appendChild(tdNum);
+      if (showNumber) {
+        var tdNum = document.createElement('td');
+        var numCls = 'rt-num';
+        if (isCaptain) numCls += ' is-captain';
+        else if (libero) numCls += ' is-libero';
+        tdNum.className = numCls;
+        tdNum.textContent = m.number ? '#' + m.number : '';
+        tr.appendChild(tdNum);
+      }
 
       var tdPhoto = document.createElement('td');
       tdPhoto.className = 'rt-photo';
@@ -612,10 +649,12 @@
       }
       tr.appendChild(tdName);
 
-      var tdPos = document.createElement('td');
-      tdPos.className = 'rt-pos';
-      tdPos.textContent = positionText(m.position) || '';
-      tr.appendChild(tdPos);
+      if (showPosition) {
+        var tdPos = document.createElement('td');
+        tdPos.className = 'rt-pos';
+        tdPos.textContent = positionText(m.position) || '';
+        tr.appendChild(tdPos);
+      }
 
       var tdYob = document.createElement('td');
       tdYob.className = 'rt-yob';
