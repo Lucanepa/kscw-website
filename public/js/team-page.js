@@ -781,6 +781,7 @@
       setsJson: g.sets_json || null,
       referees: g.referees || null,
       scorerTeam: g.scorer_team || null,
+      scorerName: g.scorer_name || null,
       bbOfficials: g.bb_officials || null,
       opponent: g.isHome ? g.away_team : g.home_team
     };
