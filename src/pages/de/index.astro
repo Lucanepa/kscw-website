@@ -256,11 +256,15 @@ try {
         // 7: score (results) or empty spacer (upcoming)
         if (showScore && game.homeScore != null && game.awayScore != null) {
           var scoreSpan = document.createElement('span');
-          var homeWin = game.homeScore > game.awayScore;
-          var kscwWin = isHome ? homeWin : !homeWin;
           scoreSpan.className = 'game-score';
-          if (kscwWin) scoreSpan.className += ' win';
-          else scoreSpan.className += ' loss';
+          var tied = game.homeScore === game.awayScore;
+          if (tied && game.sport === 'basketball') {
+            scoreSpan.className += ' tie';
+          } else {
+            var homeWin = game.homeScore > game.awayScore;
+            var kscwWin = isHome ? homeWin : !homeWin;
+            scoreSpan.className += kscwWin ? ' win' : ' loss';
+          }
           scoreSpan.textContent = game.homeScore + ':' + game.awayScore;
           tr.appendChild(makeCell(scoreSpan, 'gt-score'));
         } else {
