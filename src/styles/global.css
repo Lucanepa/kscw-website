@@ -2004,13 +2004,10 @@ tr:hover td {
 /* ── Roster Table (list view) ────────────────────────────── */
 .roster-list-wrap {
   width: 100%;
-  display: flex;
-  justify-content: center;
 }
 .roster-table {
   width: auto;
   max-width: 100%;
-  margin: 0 auto;
   border-collapse: collapse;
 }
 .roster-table th {
