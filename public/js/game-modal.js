@@ -115,14 +115,20 @@
       var isHome = game.type === 'home' || game.isHome;
       var isWin = isHome ? homeS > awayS : awayS > homeS;
       var isLoss = isHome ? homeS < awayS : awayS < homeS;
+      var isBasketballTie = homeS === awayS && (game.sport === 'basketball' || game.teamSport === 'basketball');
       var homeSpan = el('span', '', String(homeS));
       var awaySpan = el('span', '', String(awayS));
-      homeSpan.style.color = (game.type === 'home' || game.isHome)
-        ? (isWin ? 'var(--success)' : isLoss ? 'var(--danger)' : 'var(--text)')
-        : 'var(--text-muted)';
-      awaySpan.style.color = (game.type === 'away' || !game.isHome)
-        ? (isWin ? 'var(--success)' : isLoss ? 'var(--danger)' : 'var(--text)')
-        : 'var(--text-muted)';
+      if (isBasketballTie) {
+        homeSpan.style.color = 'var(--kscw-gold)';
+        awaySpan.style.color = 'var(--kscw-gold)';
+      } else {
+        homeSpan.style.color = (game.type === 'home' || game.isHome)
+          ? (isWin ? 'var(--success)' : isLoss ? 'var(--danger)' : 'var(--text)')
+          : 'var(--text-muted)';
+        awaySpan.style.color = (game.type === 'away' || !game.isHome)
+          ? (isWin ? 'var(--success)' : isLoss ? 'var(--danger)' : 'var(--text)')
+          : 'var(--text-muted)';
+      }
       center.appendChild(homeSpan);
       center.appendChild(el('span', 'colon', ':'));
       center.appendChild(awaySpan);

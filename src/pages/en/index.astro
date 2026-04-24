@@ -231,9 +231,15 @@ try {
         tr.appendChild(makeCell(game.homeTeam + ' vs ' + game.awayTeam, 'gt-matchup'));
         if (showScore && game.homeScore != null && game.awayScore != null) {
           var scoreSpan = document.createElement('span');
-          var homeWin = game.homeScore > game.awayScore;
-          var kscwWin = isHome ? homeWin : !homeWin;
-          scoreSpan.className = 'game-score' + (kscwWin ? ' win' : ' loss');
+          scoreSpan.className = 'game-score';
+          var tied = game.homeScore === game.awayScore;
+          if (tied && game.sport === 'basketball') {
+            scoreSpan.className += ' tie';
+          } else {
+            var homeWin = game.homeScore > game.awayScore;
+            var kscwWin = isHome ? homeWin : !homeWin;
+            scoreSpan.className += kscwWin ? ' win' : ' loss';
+          }
           scoreSpan.textContent = game.homeScore + ':' + game.awayScore;
           tr.appendChild(makeCell(scoreSpan, 'gt-score'));
         } else {
