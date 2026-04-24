@@ -230,7 +230,7 @@ try {
         tr.className = 'fade-in';
         tr._gameData = game; // store for click handler
 
-        var isHome = game.homeTeam && game.homeTeam.indexOf('KSCW') !== -1;
+        var isHome = game.isHome;
 
         // 1: sport icon
         tr.appendChild(makeCell(createIconEl(game), 'gt-icon'));
