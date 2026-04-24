@@ -1918,13 +1918,28 @@ tr:hover td {
   gap: var(--space-xs);
 }
 .roster-card {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-md);
   padding: var(--space-md);
+  padding-right: calc(var(--space-md) + 44px);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
 }
+.roster-number {
+  position: absolute;
+  top: var(--space-xs);
+  right: var(--space-sm);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+.roster-number.is-captain { color: #FFC832; }
+.roster-number.is-libero  { color: #ffffff; }
 .roster-list .roster-card {
   padding: var(--space-sm) var(--space-md);
 }
@@ -1989,9 +2004,13 @@ tr:hover td {
 /* ── Roster Table (list view) ────────────────────────────── */
 .roster-list-wrap {
   width: 100%;
+  display: flex;
+  justify-content: center;
 }
 .roster-table {
-  width: 100%;
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto;
   border-collapse: collapse;
 }
 .roster-table th {
@@ -2017,7 +2036,10 @@ tr:hover td {
   width: 56px;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+  font-weight: 700;
 }
+.roster-table .rt-num.is-captain { color: #FFC832; }
+.roster-table .rt-num.is-libero  { color: #ffffff; }
 .roster-table .rt-photo {
   width: 56px;
   padding-right: 0;
