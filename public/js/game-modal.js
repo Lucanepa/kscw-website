@@ -194,23 +194,28 @@
     modal.appendChild(info);
 
     // ── Officials section (referees, scorers, BB officials)
-    var hasOfficials = (game.referees && game.referees.length) || game.scorerTeam || game.bbOfficials;
+    var hasOfficials = (game.referees && game.referees.length) || game.scorerTeam || game.scorerName || game.bbOfficials;
     if (hasOfficials) {
       var officials = el('div', 'gm-section');
       officials.appendChild(el('div', 'gm-section-title', isDE ? 'Offizielle' : 'Officials'));
 
-      // Referees
+      // Referees — one row per referee labeled 1SR / 2SR (volleyball convention)
       if (game.referees && game.referees.length) {
-        var refNames = game.referees.map(function (r) { return [r.first_name, r.last_name].filter(Boolean).join(' '); }).join(', ');
-        officials.appendChild(infoRow(
-          game.referees.length > 1 ? (isDE ? 'Schiedsrichter' : 'Referees') : (isDE ? 'Schiedsrichter' : 'Referee'),
-          refNames
-        ));
+        var srLabels = ['1SR', '2SR', '3SR'];
+        for (var ri = 0; ri < game.referees.length; ri++) {
+          var r = game.referees[ri];
+          var refName = [r.first_name, r.last_name].filter(Boolean).join(' ');
+          officials.appendChild(infoRow(srLabels[ri] || ('SR ' + (ri + 1)), refName));
+        }
       }
 
-      // Scorer team (volleyball)
-      if (game.scorerTeam) {
-        officials.appendChild(infoRow(isDE ? 'Schreiber' : 'Scorer', game.scorerTeam));
+      // Scorer — show named scorer when assigned, otherwise the duty team
+      if (game.scorerName || game.scorerTeam) {
+        var scorerLabel = isDE ? 'Schreiber' : 'Scorer';
+        var scorerVal = game.scorerName
+          ? (game.scorerTeam ? game.scorerName + ' (' + game.scorerTeam + ')' : game.scorerName)
+          : game.scorerTeam;
+        officials.appendChild(infoRow(scorerLabel, scorerVal));
       }
 
       // Basketball officials
