@@ -1935,11 +1935,11 @@ tr:hover td {
   font-weight: 700;
   font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
-  color: var(--kscw-blue);
+  color: var(--text-muted);
   letter-spacing: 0.02em;
 }
 .roster-number.is-captain { color: #FFC832; }
-.roster-number.is-libero  { color: var(--kscw-blue); }
+.roster-number.is-libero  { color: #ffffff; }
 .roster-list .roster-card {
   padding: var(--space-sm) var(--space-md);
 }
@@ -2039,7 +2039,7 @@ tr:hover td {
   font-weight: 700;
 }
 .roster-table .rt-num.is-captain { color: #FFC832; }
-.roster-table .rt-num.is-libero  { color: var(--kscw-blue); }
+.roster-table .rt-num.is-libero  { color: #ffffff; }
 .roster-table .rt-photo {
   width: 56px;
   padding-right: 0;

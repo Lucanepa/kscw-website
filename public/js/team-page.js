@@ -250,7 +250,11 @@
         // Map Directus field names to expected names
         var roster = raw.roster || [];
         var coaches = raw.coaches || [];
-        var captains = raw.captains || [];
+        // API exposes `captain` as a single member ID; normalize to an ID array
+        // (also support a legacy `captains` array in case it's ever added).
+        var captainIds = Array.isArray(raw.captains)
+          ? raw.captains.map(function (c) { return typeof c === 'object' ? c.id : c; })
+          : (raw.captain != null ? [raw.captain] : []);
         var trainings = raw.upcoming_trainings || raw.trainings || [];
         var rawUpcoming = raw.upcoming_games || raw.upcoming || [];
         var rawResults = raw.results || [];
@@ -290,7 +294,7 @@
         }
 
         // Render tab content
-        renderRoster(roster, coaches, captains, raw.show_guests_on_website !== false);
+        renderRoster(roster, coaches, captainIds, raw.show_guests_on_website !== false);
         initRosterViewToggle();
         renderTrainings(trainings);
         renderHookGames(upcoming, results, teamData);
@@ -405,7 +409,7 @@
   // Module-scoped state so the view toggle can re-render without re-fetching.
   var ROSTER_STATE = null;
 
-  function renderRoster(roster, coach, captain, showGuests) {
+  function renderRoster(roster, coach, captainIds, showGuests) {
     if (!roster.length) { hideSection('kader'); return; }
 
     roster.sort(function (a, b) {
@@ -415,12 +419,12 @@
     });
     coach.sort(function (a, b) { return (a.last_name || '').localeCompare(b.last_name || ''); });
 
-    var captainNames = {};
-    for (var ci = 0; ci < captain.length; ci++) {
-      captainNames[captain[ci].first_name + ' ' + captain[ci].last_name] = true;
+    var captainIdSet = {};
+    for (var ci = 0; ci < (captainIds || []).length; ci++) {
+      captainIdSet[captainIds[ci]] = true;
     }
 
-    ROSTER_STATE = { roster: roster, coach: coach, showGuests: showGuests, captainNames: captainNames };
+    ROSTER_STATE = { roster: roster, coach: coach, showGuests: showGuests, captainIds: captainIdSet };
     renderRosterView();
   }
 
@@ -448,13 +452,13 @@
       el.classList.remove('roster-grid');
       el.classList.add('roster-list-wrap');
       var sortedMain = mainPlayers.slice().sort(byNumberAsc);
-      el.appendChild(buildRosterTable(sortedMain, data.captainNames, { showNumber: true }));
+      el.appendChild(buildRosterTable(sortedMain, data.captainIds, { showNumber: true }));
     } else {
       el.classList.remove('roster-list-wrap');
       el.classList.add('roster-grid');
       for (var ip = 0; ip < mainPlayers.length; ip++) {
         var mp = mainPlayers[ip];
-        var isCap = data.captainNames[mp.first_name + ' ' + mp.last_name] === true;
+        var isCap = data.captainIds[mp.id] === true;
         el.appendChild(buildPersonCard(mp, { isCaptain: isCap }));
       }
     }
@@ -499,7 +503,7 @@
       metaEl.appendChild(gLabel);
 
       if (view === 'list') {
-        var gTable = buildRosterTable(guests, data.captainNames, { showNumber: false });
+        var gTable = buildRosterTable(guests, data.captainIds, { showNumber: false });
         gTable.id = 'guest-grid';
         gTable.style.marginTop = 'var(--space-sm)';
         metaEl.appendChild(gTable);
@@ -587,11 +591,11 @@
     return card;
   }
 
-  function buildRosterTable(rows, captainNames, opts) {
+  function buildRosterTable(rows, captainIds, opts) {
     opts = opts || {};
     var showNumber = opts.showNumber !== false;
     var showPosition = opts.showPosition !== false;
-    captainNames = captainNames || {};
+    captainIds = captainIds || {};
 
     var table = document.createElement('table');
     table.className = 'roster-table';
@@ -616,7 +620,7 @@
     var tbody = document.createElement('tbody');
     for (var i = 0; i < rows.length; i++) {
       var m = rows[i];
-      var isCaptain = captainNames[m.first_name + ' ' + m.last_name] === true;
+      var isCaptain = captainIds[m.id] === true;
       var libero = isLibero(m);
       var tr = document.createElement('tr');
       if (isCaptain) tr.className = 'captain-row';
