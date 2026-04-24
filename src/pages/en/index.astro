@@ -219,7 +219,7 @@ try {
         var tr = document.createElement('tr');
         tr.className = 'fade-in';
         tr._gameData = game;
-        var isHome = game.homeTeam && game.homeTeam.indexOf('KSCW') !== -1;
+        var isHome = game.isHome;
         tr.appendChild(makeCell(createIconEl(game), 'gt-icon'));
         tr.appendChild(makeCell(formatDate(game.date), 'gt-date'));
         tr.appendChild(makeCell(game.time ? game.time.slice(0, 5) : '', 'gt-time'));
