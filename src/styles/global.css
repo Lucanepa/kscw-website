@@ -1339,6 +1339,22 @@ tr:hover td {
   width: 5rem;
   text-align: left;
 }
+.gm-sets {
+  table-layout: fixed;
+}
+.gm-sets th,
+.gm-sets td {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.gm-sets th:first-child,
+.gm-sets td:first-child {
+  text-align: left;
+}
+.gm-sets th:not(:first-child),
+.gm-sets td:not(:first-child) {
+  width: 3rem;
+}
 .gm-sets th {
   padding: var(--space-xs) var(--space-sm);
   font-size: var(--text-xs);
