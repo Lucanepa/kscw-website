@@ -138,18 +138,9 @@ const locale = 'en';
           <div class="changelog-group">
             <h3>News</h3>
             <ul>
-              <li>External links are no longer shown in the public news view — ticket and action links are reserved for Wiedisync (members area). Articles with links now display a small CTA pointing members to the Wiedisync login area</li>
-              <li>News body text: Justified alignment with automatic hyphenation is now the default, matching the Privacy/Imprint/About style. Per-paragraph admin overrides (center, right, justify) from the Quill editor are honored</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="changelog-entry">
-          <div class="changelog-meta">v3.2.2 — 2026-04-18</div>
-          <div class="changelog-group">
-            <h3>Bug fixes</h3>
-            <ul>
-              <li>News page: Fixed empty news view — a redundant filter caused 403 errors from Directus (affected homepage, news list, and RSS feed)</li>
+              <li>External links are no longer shown in the public news view — ticket and action links are reserved for Wiedisync (members area). Articles with links now display a CTA pointing members to the Wiedisync login</li>
+              <li>Justified alignment with automatic hyphenation is now the default. Admin per-paragraph overrides are honored</li>
+              <li>Fixed empty news view — a redundant filter caused 403 errors from Directus (homepage, news list, RSS feed)</li>
             </ul>
           </div>
         </div>
@@ -220,45 +211,21 @@ const locale = 'en';
         </div>
 
         <div class="changelog-entry">
-          <div class="changelog-meta">v1.2.1 — 2026-03-20</div>
-          <div class="changelog-group">
-            <h3>Bug Fixes</h3>
-            <ul>
-              <li>Fixed feedback form Turnstile validation — CAPTCHA token is now correctly transmitted</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="changelog-entry">
           <div class="changelog-meta">v1.2.0 — 2026-03-20</div>
           <div class="changelog-group">
             <h3>Testing</h3>
             <ul>
-              <li>Comprehensive test suite: Vitest (unit) + Playwright (E2E)</li>
-              <li>170 tests: i18n, data integrity, navigation, layout, islands, admin, accessibility</li>
+              <li>Comprehensive test suite: Vitest (unit) + Playwright (E2E), 170 tests</li>
               <li>GitHub Actions CI pipeline on push to dev/prod</li>
             </ul>
           </div>
           <div class="changelog-group">
             <h3>Bug Fixes</h3>
             <ul>
-              <li>Fixed missing EN translation keys</li>
-              <li>Fixed calendar grid overflow on desktop</li>
-              <li>Fixed Leaflet map overflow on mobile</li>
-              <li>Fixed theme toggle now working on all pages</li>
-              <li>Fixed sponsor carousel with async-loaded content</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="changelog-entry">
-          <div class="changelog-meta">v1.1.0 — 2026-03-19</div>
-          <div class="changelog-group">
-            <h3>Admin</h3>
-            <ul>
-              <li>Redesigned admin login page with glassmorphism card</li>
-              <li>Password visibility toggle (eye icon)</li>
-              <li>Dark mode & light mode support</li>
+              <li>Feedback form Turnstile validation fixed</li>
+              <li>Missing EN translation keys added</li>
+              <li>Calendar grid and Leaflet map: overflow issues fixed</li>
+              <li>Theme toggle and sponsor carousel: working across all pages</li>
             </ul>
           </div>
         </div>
@@ -268,45 +235,31 @@ const locale = 'en';
           <div class="changelog-group">
             <h3>Website</h3>
             <ul>
-              <li>Astro 6 static site with custom CSS design system</li>
-              <li>Directus API backend (directus.kscw.ch)</li>
-              <li>Hetzner hosting (Nuremberg datacenter)</li>
-              <li>Bilingual: German & English</li>
+              <li>Astro 6 static site with custom CSS design system, bilingual (DE/EN)</li>
+              <li>Directus API backend, Hetzner hosting (Nuremberg datacenter)</li>
             </ul>
           </div>
           <div class="changelog-group">
-            <h3>Teams</h3>
+            <h3>Teams, Games & Calendar</h3>
             <ul>
               <li>Dynamic team pages with live data (games, rankings, roster, training, photos)</li>
-              <li>Promotion/relegation color bands on volleyball rankings</li>
-              <li>Accordion navigation groups (Women/Men/Youth)</li>
-            </ul>
-          </div>
-          <div class="changelog-group">
-            <h3>Games & Scoreboard</h3>
-            <ul>
-              <li>Game modal with sets, referees, venue</li>
-              <li>Scoreboard with Absolute / Per Game toggle</li>
+              <li>Promotion/relegation color bands on volleyball rankings, accordion navigation (Women/Men/Youth)</li>
+              <li>Game modal with sets, referees, venue. Scoreboard with Absolute/Per-Game toggle</li>
               <li>Calendar grid with event tooltips</li>
             </ul>
           </div>
           <div class="changelog-group">
-            <h3>Feedback</h3>
+            <h3>Feedback & Admin</h3>
             <ul>
-              <li>Feedback form: Bug / Feature / Feedback</li>
-              <li>Cloudflare Turnstile CAPTCHA</li>
-              <li>Screenshot upload with drag & drop</li>
-              <li>Automatic GitHub issue creation</li>
+              <li>Feedback form (Bug/Feature/Feedback) with Turnstile CAPTCHA, screenshot upload, automatic GitHub issue creation</li>
+              <li>Admin area with glassmorphism login, password visibility toggle, dark/light mode</li>
             </ul>
           </div>
           <div class="changelog-group">
             <h3>Content</h3>
             <ul>
-              <li>History page with Leaflet map</li>
-              <li>Scorer course resources</li>
-              <li>Regulations with SVRZ embeds</li>
-              <li>Impressum & Privacy Policy</li>
-              <li>Sponsors page</li>
+              <li>History page with Leaflet map, scorer course resources, regulations with SVRZ embeds</li>
+              <li>Imprint, Privacy Policy, Sponsors page</li>
             </ul>
           </div>
         </div>
