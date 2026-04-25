@@ -138,18 +138,9 @@ const locale = 'de';
           <div class="changelog-group">
             <h3>News</h3>
             <ul>
-              <li>Externe Links werden in der News-Ansicht nicht mehr angezeigt — Ticket- und Aktionslinks sind ausschliesslich auf Wiedisync für Mitglieder verfügbar. Enthält ein Artikel Links, erscheint ein Hinweis mit Link zum Wiedisync-Loginbereich</li>
-              <li>News-Text: Blocksatz mit automatischer Silbentrennung als Standard, analog zu Datenschutz/Impressum/Über uns. Admin-Ausrichtungen pro Absatz (zentriert, rechts, Blocksatz) werden respektiert</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="changelog-entry">
-          <div class="changelog-meta">v3.2.2 — 2026-04-18</div>
-          <div class="changelog-group">
-            <h3>Fehlerbehebung</h3>
-            <ul>
-              <li>News-Seite: Leere Ansicht behoben — redundanter Filter führte zu 403-Fehler vom Directus (Homepage, News-Übersicht und RSS-Feed betroffen)</li>
+              <li>Externe Links werden in der News-Ansicht nicht mehr angezeigt — Ticket- und Aktionslinks sind ausschliesslich auf Wiedisync verfügbar. Bei Artikeln mit Links erscheint ein Hinweis mit Link zum Wiedisync-Loginbereich</li>
+              <li>Blocksatz mit automatischer Silbentrennung als Standard. Admin-Ausrichtungen pro Absatz werden respektiert</li>
+              <li>Leere News-Ansicht behoben — redundanter Filter führte zu 403-Fehler vom Directus (Homepage, News-Übersicht, RSS-Feed)</li>
             </ul>
           </div>
         </div>
@@ -220,45 +211,21 @@ const locale = 'de';
         </div>
 
         <div class="changelog-entry">
-          <div class="changelog-meta">v1.2.1 — 2026-03-20</div>
-          <div class="changelog-group">
-            <h3>Fehlerbehebungen</h3>
-            <ul>
-              <li>Feedback-Formular Turnstile-Validierung behoben — CAPTCHA-Token wird jetzt korrekt übermittelt</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="changelog-entry">
           <div class="changelog-meta">v1.2.0 — 2026-03-20</div>
           <div class="changelog-group">
             <h3>Testing</h3>
             <ul>
-              <li>Umfassende Test-Suite: Vitest (Unit) + Playwright (E2E)</li>
-              <li>170 Tests: i18n, Datenintegrität, Navigation, Layout, Inseln, Admin, Barrierefreiheit</li>
+              <li>Umfassende Test-Suite: Vitest (Unit) + Playwright (E2E), 170 Tests</li>
               <li>GitHub Actions CI-Pipeline bei Push auf dev/prod</li>
             </ul>
           </div>
           <div class="changelog-group">
             <h3>Fehlerbehebungen</h3>
             <ul>
-              <li>Fehlende EN-Übersetzungsschlüssel behoben</li>
-              <li>Kalender-Raster Overflow auf Desktop behoben</li>
-              <li>Leaflet-Karte Overflow auf Mobile behoben</li>
-              <li>Theme-Toggle funktioniert jetzt auf allen Seiten</li>
-              <li>Sponsor-Karussell funktioniert mit asynchron geladenen Inhalten</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="changelog-entry">
-          <div class="changelog-meta">v1.1.0 — 2026-03-19</div>
-          <div class="changelog-group">
-            <h3>Admin</h3>
-            <ul>
-              <li>Neue Admin-Login-Seite mit Glassmorphism-Design</li>
-              <li>Passwort-Sichtbarkeit umschalten (Auge-Symbol)</li>
-              <li>Dark Mode & Light Mode Unterstützung</li>
+              <li>Feedback-Formular Turnstile-Validierung behoben</li>
+              <li>Fehlende EN-Übersetzungsschlüssel ergänzt</li>
+              <li>Kalender und Leaflet-Karte: Overflow-Probleme behoben</li>
+              <li>Theme-Toggle und Sponsor-Karussell: Funktion auf allen Seiten</li>
             </ul>
           </div>
         </div>
@@ -268,45 +235,31 @@ const locale = 'de';
           <div class="changelog-group">
             <h3>Website</h3>
             <ul>
-              <li>Astro 6 statische Seite mit eigenem CSS Design System</li>
-              <li>Directus API Backend (directus.kscw.ch)</li>
-              <li>Hetzner Hosting (Rechenzentrum Nürnberg)</li>
-              <li>Zweisprachig: Deutsch & Englisch</li>
+              <li>Astro 6 statische Seite mit eigenem CSS Design System, zweisprachig (DE/EN)</li>
+              <li>Directus API Backend, Hetzner Hosting (Rechenzentrum Nürnberg)</li>
             </ul>
           </div>
           <div class="changelog-group">
-            <h3>Teams</h3>
+            <h3>Teams, Spiele & Kalender</h3>
             <ul>
               <li>Dynamische Team-Seiten mit Live-Daten (Spiele, Rangliste, Kader, Training, Fotos)</li>
-              <li>Aufstiegs-/Abstiegsfarben in der Volleyball-Rangliste</li>
-              <li>Akkordeon-Gruppen in der Navigation (Damen/Herren/Nachwuchs)</li>
-            </ul>
-          </div>
-          <div class="changelog-group">
-            <h3>Spiele & Scoreboard</h3>
-            <ul>
-              <li>Spiel-Modal mit Sätzen, Schiedsrichtern, Spielort</li>
-              <li>Scoreboard mit Absolut / Pro Spiel Umschaltung</li>
+              <li>Aufstiegs-/Abstiegsfarben in der Volleyball-Rangliste, Akkordeon-Navigation (Damen/Herren/Nachwuchs)</li>
+              <li>Spiel-Modal mit Sätzen, Schiedsrichtern, Spielort. Scoreboard mit Absolut/Pro-Spiel Umschaltung</li>
               <li>Kalender-Raster mit Event-Tooltips</li>
             </ul>
           </div>
           <div class="changelog-group">
-            <h3>Feedback</h3>
+            <h3>Feedback & Admin</h3>
             <ul>
-              <li>Feedback-Formular: Bug / Feature / Feedback</li>
-              <li>Cloudflare Turnstile CAPTCHA</li>
-              <li>Screenshot-Upload per Drag & Drop</li>
-              <li>Automatische GitHub-Issue-Erstellung</li>
+              <li>Feedback-Formular (Bug/Feature/Feedback) mit Turnstile CAPTCHA, Screenshot-Upload und automatischer GitHub-Issue-Erstellung</li>
+              <li>Admin-Bereich mit Glassmorphism-Login, Passwort-Sichtbarkeit, Dark/Light Mode</li>
             </ul>
           </div>
           <div class="changelog-group">
             <h3>Inhalt</h3>
             <ul>
-              <li>Geschichte mit Leaflet-Karte</li>
-              <li>Scorer-Kurs Ressourcen</li>
-              <li>Reglemente mit SVRZ-Einbettungen</li>
-              <li>Impressum & Datenschutz</li>
-              <li>Sponsoren-Seite</li>
+              <li>Geschichte mit Leaflet-Karte, Scorer-Kurs Ressourcen, Reglemente mit SVRZ-Einbettungen</li>
+              <li>Impressum, Datenschutz, Sponsoren-Seite</li>
             </ul>
           </div>
         </div>
