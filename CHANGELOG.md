@@ -2,6 +2,12 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [3.2.4] — 2026-05-06
+
+### Security
+- Upgraded dependencies to clear 4 advisories (2 high, 2 moderate): astro 6.0.8 → 6.2.2 (XSS in `define:vars`), and transitive fixes for vite (path traversal, dev-server WS arbitrary read), defu (prototype pollution), postcss (XSS in stringify)
+- Bumped `@playwright/test` 1.58.2 → 1.59.1 and `vitest` 4.1.1 → 4.1.5
+
 ## [3.2.3] — 2026-04-18
 
 ### Changed
