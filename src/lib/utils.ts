@@ -4,18 +4,24 @@
  */
 
 /**
- * Format ISO date string as locale-specific date
+ * Format ISO date string as Swiss-style `dd.mm.yyyy` regardless of caller
+ * locale. Hardcoded to `de-CH`: passing 'en-CH' would yield slashes
+ * (`30/03/2026`), which mixes formats across the site for English visitors.
+ * App-wide convention is dd.mm.yyyy — see wiedisync `INFRA.md → Time &
+ * Date Formatting`.
  * @param isoDate ISO date string (YYYY-MM-DD)
- * @param locale Locale code (default: 'de-CH')
- * @returns Formatted date (e.g., "30.03.2026" for de-CH)
+ * @param _locale Ignored; retained for backwards compatibility with old
+ *   callers that passed 'en-CH'. New callers should omit.
+ * @returns Formatted date (e.g., "30.03.2026")
  */
-export function formatDate(isoDate: string, locale = 'de-CH'): string {
+export function formatDate(isoDate: string, _locale?: string): string {
+  void _locale;
   if (!isoDate) return '–';
 
   try {
     const dateOnly = isoDate.length > 10 ? isoDate.slice(0, 10) : isoDate;
     const date = new Date(dateOnly + 'T12:00:00');
-    return date.toLocaleDateString(locale, {
+    return date.toLocaleDateString('de-CH', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

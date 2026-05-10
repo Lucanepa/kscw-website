@@ -340,7 +340,7 @@ if (container) {
     // Date & Time — g.date is YYYY-MM-DD; noon-anchor to avoid TZ day-shift
     const gDateOnly = g.date.length > 10 ? g.date.slice(0, 10) : g.date
     const dateObj = new Date(gDateOnly + 'T12:00:00')
-    const dateStr = dateObj.toLocaleDateString(lang === 'de' ? 'de-CH' : 'en-GB', {
+    const dateStr = dateObj.toLocaleDateString('de-CH', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     })
     const infoList = el('div', 'cal-detail-info')
@@ -405,7 +405,7 @@ if (container) {
     // Info — ev.date is wall-clock time stored as UTC; slice to date-only + noon-anchor to render admin's intended day in any timezone
     const dateOnly = ev.date.length > 10 ? ev.date.slice(0, 10) : ev.date
     const dateObj = new Date(dateOnly + 'T12:00:00')
-    const dateStr = dateObj.toLocaleDateString(lang === 'de' ? 'de-CH' : 'en-GB', {
+    const dateStr = dateObj.toLocaleDateString('de-CH', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     })
     const infoList = el('div', 'cal-detail-info')
@@ -854,7 +854,7 @@ if (container) {
     const modal = el('div', 'cal-modal')
     modal.addEventListener('click', (e) => e.stopPropagation())
 
-    const dateStr = date.toLocaleDateString(lang === 'de' ? 'de-CH' : 'en-GB', {
+    const dateStr = date.toLocaleDateString('de-CH', {
       weekday: 'long', day: 'numeric', month: 'long',
     })
 

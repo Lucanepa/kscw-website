@@ -19,6 +19,7 @@ npx astro build      # production build → dist/
 | Board/contacts | Static JSON in `src/data/` |
 | Islands | `src/islands/` for interactivity (nav, theme, animations) |
 | Output | `output: 'static'` — no SSR |
+| Time & date | All dates render as `dd.mm.yyyy` (Swiss dot format), all times as 24-hour `HH:MM`. ALWAYS use `de-CH` locale in `toLocaleDateString` / `toLocaleString` regardless of UI language — `en-CH` yields slashes (`30/03/2026`), `en-US` yields `mm/dd/yy`, both inconsistent with the rest of the platform. Prefer the central `formatDate` / `formatTime` helpers in `src/lib/utils.ts` over inline calls. Same rule lives in the wiedisync repo (`INFRA.md → Time & Date Formatting`). |
 
 ## Admin Page
 - `/admin` — hidden link in footer copyright text
