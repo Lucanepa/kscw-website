@@ -2,6 +2,11 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [3.3.1] — 2026-05-13
+
+### Changed
+- **Vorstand page**: redesigned as a hierarchical org chart (President → Vice → 5 Ressorts) with CSS-drawn connector lines. Each card shows role, name, and either tenure ("seit Saison X/Y") or a "neu" badge. Collapses to a single column on mobile. Data updated to reflect the new 2026/27 board
+
 ## [3.3.0] — 2026-05-13
 
 ### Added

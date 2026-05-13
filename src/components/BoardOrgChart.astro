@@ -1,0 +1,238 @@
+---
+import { t } from '../lib/i18n';
+import type { Locale } from '../lib/i18n';
+
+interface BoardMember {
+  name: string;
+  initials?: string;
+  role_de: string;
+  role_en: string;
+  tier: 'president' | 'vice' | 'ressort';
+  tier_order: number;
+  status: 'incumbent' | 'new';
+  since_season?: string;
+}
+
+interface Props {
+  members: BoardMember[];
+  locale: Locale;
+}
+
+const { members, locale } = Astro.props;
+
+const president = members.find(m => m.tier === 'president');
+const vice = members.find(m => m.tier === 'vice');
+const ressorts = members.filter(m => m.tier === 'ressort').sort((a, b) => a.tier_order - b.tier_order);
+
+const initials = (m: BoardMember) => m.initials || m.name.split(' ').map(w => w[0]).join('').toUpperCase();
+const role = (m: BoardMember) => locale === 'en' ? m.role_en : m.role_de;
+const statusLine = (m: BoardMember) =>
+  m.status === 'new'
+    ? t(locale, 'boardNew')
+    : (m.since_season ? t(locale, 'boardSinceSeason').replace('{season}', m.since_season) : '');
+---
+<div class="org-chart">
+  {president && (
+    <div class="org-tier org-tier-president">
+      <div class="org-card">
+        <div class="org-avatar">{initials(president)}</div>
+        <div class="org-role">{role(president)}</div>
+        <div class="org-name">{president.name}</div>
+        {statusLine(president) && <div class="org-status">{statusLine(president)}</div>}
+      </div>
+    </div>
+  )}
+
+  {vice && (
+    <div class="org-tier org-tier-vice">
+      <div class="org-card">
+        <div class="org-avatar">{initials(vice)}</div>
+        <div class="org-role">{role(vice)}</div>
+        <div class="org-name">{vice.name}</div>
+        {statusLine(vice) && <div class="org-status">{statusLine(vice)}</div>}
+      </div>
+    </div>
+  )}
+
+  {ressorts.length > 0 && (
+    <div class="org-tier org-tier-ressorts" data-count={ressorts.length}>
+      {ressorts.map(m => (
+        <div class="org-card">
+          <div class="org-avatar">{initials(m)}</div>
+          <div class="org-role">{role(m)}</div>
+          <div class="org-name">{m.name}</div>
+          {statusLine(m) && <div class="org-status">{statusLine(m)}</div>}
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
+<style>
+  .org-chart {
+    --org-line-color: var(--border, rgba(0, 0, 0, 0.15));
+    --org-line-width: 2px;
+    --org-card-bg: var(--kscw-blue);
+    --org-card-color: #fff;
+    --org-gap-v: var(--space-lg);
+    --org-gap-h: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--org-gap-v);
+    width: 100%;
+  }
+
+  .org-tier {
+    display: flex;
+    justify-content: center;
+    position: relative;
+  }
+
+  .org-tier-ressorts {
+    display: grid;
+    grid-template-columns: repeat(var(--ressort-count, 5), minmax(0, 1fr));
+    gap: var(--org-gap-h);
+    width: 100%;
+    max-width: 1100px;
+  }
+  .org-tier-ressorts[data-count="1"] { --ressort-count: 1; }
+  .org-tier-ressorts[data-count="2"] { --ressort-count: 2; }
+  .org-tier-ressorts[data-count="3"] { --ressort-count: 3; }
+  .org-tier-ressorts[data-count="4"] { --ressort-count: 4; }
+  .org-tier-ressorts[data-count="5"] { --ressort-count: 5; }
+  .org-tier-ressorts[data-count="6"] { --ressort-count: 6; }
+
+  .org-card {
+    background: var(--org-card-bg);
+    color: var(--org-card-color);
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    text-align: center;
+    min-width: 200px;
+    max-width: 260px;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .org-tier-ressorts .org-card { min-width: 0; max-width: none; }
+
+  .org-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.5rem;
+  }
+
+  .org-role {
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.85;
+    line-height: 1.25;
+  }
+
+  .org-name {
+    font-size: var(--text-base);
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .org-status {
+    font-size: var(--text-xs);
+    opacity: 0.8;
+    font-style: italic;
+  }
+
+  /* ── Connectors (desktop tree) ───────────────────────────── */
+  /* Vertical drop from President → Vice */
+  .org-tier-vice::before {
+    content: "";
+    position: absolute;
+    top: calc(var(--org-gap-v) * -1);
+    left: 50%;
+    width: var(--org-line-width);
+    height: var(--org-gap-v);
+    background: var(--org-line-color);
+    transform: translateX(-50%);
+    z-index: 1;
+  }
+
+  /* Vertical drop from Vice → horizontal trunk */
+  .org-tier-ressorts::before {
+    content: "";
+    position: absolute;
+    top: calc(var(--org-gap-v) * -1);
+    left: 50%;
+    width: var(--org-line-width);
+    height: calc(var(--org-gap-v) / 2);
+    background: var(--org-line-color);
+    transform: translateX(-50%);
+    z-index: 1;
+  }
+
+  /* Horizontal trunk above ressorts (drawn as top-border on each card,
+     filling the gap between siblings). */
+  .org-tier-ressorts .org-card::before {
+    content: "";
+    position: absolute;
+    top: calc(var(--org-gap-v) / -2);
+    left: 0;
+    right: 0;
+    height: var(--org-line-width);
+    background: var(--org-line-color);
+    z-index: 1;
+  }
+  .org-tier-ressorts .org-card:first-child::before { left: 50%; }
+  .org-tier-ressorts .org-card:last-child::before { right: 50%; }
+
+  /* Vertical drop from trunk → each ressort card */
+  .org-tier-ressorts .org-card::after {
+    content: "";
+    position: absolute;
+    top: calc(var(--org-gap-v) / -2);
+    left: 50%;
+    width: var(--org-line-width);
+    height: calc(var(--org-gap-v) / 2);
+    background: var(--org-line-color);
+    transform: translateX(-50%);
+    z-index: 1;
+  }
+
+  /* ── Mobile: collapse to single column ────────────────────── */
+  @media (max-width: 900px) {
+    .org-tier-ressorts {
+      grid-template-columns: 1fr;
+      max-width: 360px;
+    }
+    /* Horizontal trunk no longer makes sense — replace with simple vertical
+       line above each card. */
+    .org-tier-ressorts .org-card::before {
+      left: 50%;
+      right: auto;
+      width: var(--org-line-width);
+      height: var(--org-gap-v);
+      top: calc(var(--org-gap-v) * -1 + 1px);
+      transform: translateX(-50%);
+    }
+    .org-tier-ressorts .org-card::after { display: none; }
+    .org-tier-ressorts::before { display: none; }
+    .org-tier-ressorts {
+      display: flex;
+      flex-direction: column;
+      gap: var(--org-gap-v);
+    }
+  }
+</style>

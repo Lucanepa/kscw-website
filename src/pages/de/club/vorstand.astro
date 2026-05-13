@@ -1,12 +1,11 @@
 ---
 import PageLayout from '../../../layouts/PageLayout.astro';
-import BoardCard from '../../../components/BoardCard.astro';
+import BoardOrgChart from '../../../components/BoardOrgChart.astro';
 import CTA from '../../../components/CTA.astro';
 import { t } from '../../../lib/i18n';
 import boardMembers from '../../../data/board-members.json';
 
 const locale = 'de';
-const members = boardMembers;
 ---
 <PageLayout
   title="Vorstand — KSC Wiedikon"
@@ -15,27 +14,16 @@ const members = boardMembers;
   pageTitle={t(locale, 'boardTitle')}
   pageSubtitle={t(locale, 'boardSubtitle')}
 >
-  <!-- Board Members -->
   <section class="section">
     <div class="container">
-      <div class="board-grid">
-        {members.length > 0 ? (
-          members.map((m) => (
-            <BoardCard
-              name={m.name}
-              initials={m.initials ?? undefined}
-              role={m.role_de}
-              photoUrl={m.photo ?? undefined}
-            />
-          ))
-        ) : (
-          <p>Keine Vorstandsmitglieder gefunden.</p>
-        )}
-      </div>
+      {boardMembers.length > 0 ? (
+        <BoardOrgChart members={boardMembers} locale={locale} />
+      ) : (
+        <p>Keine Vorstandsmitglieder gefunden.</p>
+      )}
     </div>
   </section>
 
-  <!-- CTA -->
   <CTA
     title={t(locale, 'boardCTA')}
     text={t(locale, 'boardCTAText')}
@@ -45,20 +33,3 @@ const members = boardMembers;
 
   <script src="../../../islands/scroll-animations.ts"></script>
 </PageLayout>
-
-<style>
-  .board-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--space-xl);
-  }
-  @media (max-width: 1024px) {
-    .board-grid { grid-template-columns: repeat(3, 1fr); }
-  }
-  @media (max-width: 768px) {
-    .board-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (max-width: 480px) {
-    .board-grid { grid-template-columns: 1fr; }
-  }
-</style>

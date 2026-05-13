@@ -59,6 +59,8 @@
   "boardCTA": "Fragen an den Vorstand?",
   "boardCTAText": "Schreib uns — wir helfen dir gerne weiter.",
   "boardCTAButton": "Kontakt aufnehmen",
+  "boardSinceSeason": "bisher seit Saison {season}",
+  "boardNew": "neu",
   "contactTitle": "Kontakt",
   "contactSubtitle": "Wir freuen uns auf deine Nachricht",
   "contactFormHeading": "Nachricht senden",
