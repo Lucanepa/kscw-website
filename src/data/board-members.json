@@ -5,9 +5,7 @@
     "role_de": "Präsidentin",
     "role_en": "President",
     "tier": "president",
-    "tier_order": 1,
-    "status": "incumbent",
-    "since_season": "24/25"
+    "tier_order": 1
   },
   {
     "name": "Roger Rübsam",
@@ -15,8 +13,7 @@
     "role_de": "Vize-Präsident",
     "role_en": "Vice President",
     "tier": "vice",
-    "tier_order": 1,
-    "status": "new"
+    "tier_order": 1
   },
   {
     "name": "Thamy Kanagalingam",
@@ -24,9 +21,7 @@
     "role_de": "Technische Kommission Volleyball",
     "role_en": "Technical Committee Volleyball",
     "tier": "ressort",
-    "tier_order": 1,
-    "status": "incumbent",
-    "since_season": "23/24"
+    "tier_order": 1
   },
   {
     "name": "Anja Jiménez",
@@ -34,8 +29,7 @@
     "role_de": "Technische Kommission Basketball",
     "role_en": "Technical Committee Basketball",
     "tier": "ressort",
-    "tier_order": 2,
-    "status": "new"
+    "tier_order": 2
   },
   {
     "name": "Radomir Radovanovic",
@@ -43,9 +37,7 @@
     "role_de": "Kassier",
     "role_en": "Treasurer",
     "tier": "ressort",
-    "tier_order": 3,
-    "status": "incumbent",
-    "since_season": "25/26"
+    "tier_order": 3
   },
   {
     "name": "Luca Canepa",
@@ -53,8 +45,7 @@
     "role_de": "Aktuar",
     "role_en": "Secretary",
     "tier": "ressort",
-    "tier_order": 4,
-    "status": "new"
+    "tier_order": 4
   },
   {
     "name": "Anne Grimshaw",
@@ -62,8 +53,6 @@
     "role_de": "Beisitz",
     "role_en": "Assessor",
     "tier": "ressort",
-    "tier_order": 5,
-    "status": "incumbent",
-    "since_season": "18/19"
+    "tier_order": 5
   }
 ]
