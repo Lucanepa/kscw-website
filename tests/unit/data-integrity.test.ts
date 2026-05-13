@@ -14,8 +14,15 @@ describe('board-members.json', () => {
       expect(member.initials, `Missing initials for ${member.name}`).toBeTruthy();
       expect(member.role_de, `Missing role_de for ${member.name}`).toBeTruthy();
       expect(member.role_en, `Missing role_en for ${member.name}`).toBeTruthy();
-      expect(typeof member.order, `Invalid order for ${member.name}`).toBe('number');
+      expect(['president', 'vice', 'ressort']).toContain(member.tier);
+      expect(typeof member.tier_order, `Invalid tier_order for ${member.name}`).toBe('number');
     }
+  });
+
+  it('has exactly one president and one vice', () => {
+    const tiers = boardMembers.map(m => m.tier);
+    expect(tiers.filter(t => t === 'president').length).toBe(1);
+    expect(tiers.filter(t => t === 'vice').length).toBe(1);
   });
 });
 
