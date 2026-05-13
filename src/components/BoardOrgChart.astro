@@ -9,8 +9,7 @@ interface BoardMember {
   role_en: string;
   tier: 'president' | 'vice' | 'ressort';
   tier_order: number;
-  status: 'incumbent' | 'new';
-  since_season?: string;
+  photo?: string;
 }
 
 interface Props {
@@ -26,19 +25,17 @@ const ressorts = members.filter(m => m.tier === 'ressort').sort((a, b) => a.tier
 
 const initials = (m: BoardMember) => m.initials || m.name.split(' ').map(w => w[0]).join('').toUpperCase();
 const role = (m: BoardMember) => locale === 'en' ? m.role_en : m.role_de;
-const statusLine = (m: BoardMember) =>
-  m.status === 'new'
-    ? t(locale, 'boardNew')
-    : (m.since_season ? t(locale, 'boardSinceSeason').replace('{season}', m.since_season) : '');
+const photoSrc = (m: BoardMember) => m.photo ? `/images/board/${m.photo}` : null;
 ---
 <div class="org-chart">
   {president && (
     <div class="org-tier org-tier-president">
       <div class="org-card">
-        <div class="org-avatar">{initials(president)}</div>
+        {photoSrc(president)
+          ? <img class="org-photo" src={photoSrc(president)!} alt={president.name} loading="lazy" />
+          : <div class="org-avatar">{initials(president)}</div>}
         <div class="org-role">{role(president)}</div>
         <div class="org-name">{president.name}</div>
-        {statusLine(president) && <div class="org-status">{statusLine(president)}</div>}
       </div>
     </div>
   )}
@@ -46,10 +43,11 @@ const statusLine = (m: BoardMember) =>
   {vice && (
     <div class="org-tier org-tier-vice">
       <div class="org-card">
-        <div class="org-avatar">{initials(vice)}</div>
+        {photoSrc(vice)
+          ? <img class="org-photo" src={photoSrc(vice)!} alt={vice.name} loading="lazy" />
+          : <div class="org-avatar">{initials(vice)}</div>}
         <div class="org-role">{role(vice)}</div>
         <div class="org-name">{vice.name}</div>
-        {statusLine(vice) && <div class="org-status">{statusLine(vice)}</div>}
       </div>
     </div>
   )}
@@ -58,10 +56,11 @@ const statusLine = (m: BoardMember) =>
     <div class="org-tier org-tier-ressorts" data-count={ressorts.length}>
       {ressorts.map(m => (
         <div class="org-card">
-          <div class="org-avatar">{initials(m)}</div>
+          {photoSrc(m)
+            ? <img class="org-photo" src={photoSrc(m)!} alt={m.name} loading="lazy" />
+            : <div class="org-avatar">{initials(m)}</div>}
           <div class="org-role">{role(m)}</div>
           <div class="org-name">{m.name}</div>
-          {statusLine(m) && <div class="org-status">{statusLine(m)}</div>}
         </div>
       ))}
     </div>
@@ -121,10 +120,14 @@ const statusLine = (m: BoardMember) =>
   }
   .org-tier-ressorts .org-card { min-width: 0; max-width: none; }
 
-  .org-avatar {
+  .org-avatar,
+  .org-photo {
     width: 56px;
     height: 56px;
     border-radius: 50%;
+    margin-bottom: 0.5rem;
+  }
+  .org-avatar {
     background: rgba(255, 255, 255, 0.18);
     color: #fff;
     display: flex;
@@ -133,7 +136,10 @@ const statusLine = (m: BoardMember) =>
     font-size: 1.1rem;
     font-weight: 700;
     letter-spacing: 0.04em;
-    margin-bottom: 0.5rem;
+  }
+  .org-photo {
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.4);
   }
 
   .org-role {
