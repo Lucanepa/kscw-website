@@ -24,6 +24,7 @@
     "role_en": "Technical Committee Volleyball",
     "tier": "ressort",
     "tier_order": 1,
+    "branch": "left",
     "photo": "thamy-kanagalingam.webp"
   },
   {
@@ -33,6 +34,7 @@
     "role_en": "Technical Committee Basketball",
     "tier": "ressort",
     "tier_order": 2,
+    "branch": "left",
     "photo": "anja-jimenez.webp"
   },
   {
@@ -42,6 +44,7 @@
     "role_en": "Treasurer",
     "tier": "ressort",
     "tier_order": 3,
+    "branch": "right",
     "photo": "radomir-radovanovic.webp"
   },
   {
@@ -51,6 +54,7 @@
     "role_en": "Secretary",
     "tier": "ressort",
     "tier_order": 4,
+    "branch": "right",
     "photo": "luca-canepa.webp"
   },
   {
@@ -60,6 +64,7 @@
     "role_en": "Assessor",
     "tier": "ressort",
     "tier_order": 5,
+    "branch": "bottom",
     "photo": "anne-grimshaw.webp"
   }
 ]
