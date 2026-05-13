@@ -1174,15 +1174,37 @@ tr:hover td {
 }
 
 /* ── Game Table ────────────────────────────────────────────── */
+/* Rendered as CSS grid (not native table) so the chip can sit on a
+   second row beneath the rest of the data. */
 .game-table {
   width: 100%;
   border-collapse: collapse;
+  display: block;
+}
+.game-table thead { display: none; }
+.game-table tbody { display: block; }
+.game-table tr {
+  display: grid;
+  grid-template-columns: auto auto auto auto 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: var(--space-sm);
+  row-gap: 4px;
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
 }
 .game-table td {
-  padding: var(--space-sm) var(--space-sm);
+  padding: 0;
   vertical-align: middle;
-  border-bottom: 1px solid var(--border);
+  border: none;
 }
+.gt-icon    { grid-column: 1; grid-row: 1; }
+.gt-date    { grid-column: 2; grid-row: 1; }
+.gt-time    { grid-column: 3; grid-row: 1; }
+.gt-loc     { grid-column: 4; grid-row: 1; }
+.gt-matchup { grid-column: 5; grid-row: 1; }
+.gt-score   { grid-column: 6; grid-row: 1; }
+.gt-team    { grid-column: 2 / 5; grid-row: 2; padding-top: 2px; }
 .game-table tr:hover td {
   background: rgba(74, 85, 162, 0.05);
 }
@@ -1206,8 +1228,7 @@ tr:hover td {
 .gt-loc { white-space: nowrap; }
 .gt-matchup {
   font-weight: 500;
-  max-width: 0;
-  width: 100%;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1296,10 +1317,10 @@ tr:hover td {
   .gt-matchup .gt-home-team,
   .gt-matchup .gt-away-team {
     text-align: center;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
     min-width: 0;
+    line-height: 1.25;
   }
   .gt-matchup .gt-vs {
     color: var(--text-muted);
