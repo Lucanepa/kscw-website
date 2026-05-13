@@ -3512,9 +3512,36 @@ button:focus-visible {
   font-size: 0.7rem;
 }
 @media (max-width: 639px) {
-  /* Mobile: stack chips vertically and let each chip wrap at word boundaries,
-     not character-by-character. */
-  .sb-col-most {
+  /* Mobile: restructure each metric row as
+       [METRIC label spanning full width]
+       [SCHNITT value]  [MEISTE chip(s)]
+     so the team chip has the full half-row width instead of being squeezed. */
+  .scoreboard-table thead { display: none; }
+  .scoreboard-table,
+  .scoreboard-table tbody,
+  .scoreboard-table tr { display: block; }
+  .scoreboard-metric-row {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: var(--space-md);
+    row-gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-sm);
+    border-bottom: 1px solid var(--border);
+  }
+  .scoreboard-metric-row td { border: none; padding: 0; }
+  .scoreboard-metric-row .sb-col-metric {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  .scoreboard-metric-row .sb-col-total {
+    grid-column: 1;
+    grid-row: 2;
+    text-align: left;
+    align-self: start;
+  }
+  .scoreboard-metric-row .sb-col-most {
+    grid-column: 2;
+    grid-row: 2;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -3526,6 +3553,7 @@ button:focus-visible {
     text-align: left;
     max-width: 100%;
   }
+  .scoreboard-expand-cell { display: block; }
 }
 
 .sb-expand-icon {
