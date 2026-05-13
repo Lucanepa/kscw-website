@@ -1,10 +1,69 @@
 [
-  { "name": "Michelle Howald", "initials": "MH", "role_de": "Präsidentin", "role_en": "President", "order": 1 },
-  { "name": "Anja Jimenez", "initials": "AJ", "role_de": "Vizepräsidentin", "role_en": "Vice President", "order": 2 },
-  { "name": "Dario Kaufmann", "initials": "DK", "role_de": "Kassier", "role_en": "Treasurer", "order": 3 },
-  { "name": "Radomir Radovanovic", "initials": "RR", "role_de": "Kassier", "role_en": "Treasurer", "order": 4 },
-  { "name": "Roger Ruebsam", "initials": "RR", "role_de": "Aktuar", "role_en": "Secretary", "order": 5 },
-  { "name": "Anne Grimshaw", "initials": "AG", "role_de": "Beisitzerin", "role_en": "Assessor", "order": 6 },
-  { "name": "Rachel Moser", "initials": "RM", "role_de": "TK Basketball", "role_en": "TC Basketball", "order": 7 },
-  { "name": "Thamayanth Kanagalingam", "initials": "TK", "role_de": "TK Volleyball", "role_en": "TC Volleyball", "order": 8 }
+  {
+    "name": "Michelle Howald",
+    "initials": "MH",
+    "role_de": "Präsidentin",
+    "role_en": "President",
+    "tier": "president",
+    "tier_order": 1,
+    "status": "incumbent",
+    "since_season": "24/25"
+  },
+  {
+    "name": "Roger Rübsam",
+    "initials": "RR",
+    "role_de": "Vize-Präsident",
+    "role_en": "Vice President",
+    "tier": "vice",
+    "tier_order": 1,
+    "status": "new"
+  },
+  {
+    "name": "Thamy Kanagalingam",
+    "initials": "TK",
+    "role_de": "Technische Kommission Volleyball",
+    "role_en": "Technical Committee Volleyball",
+    "tier": "ressort",
+    "tier_order": 1,
+    "status": "incumbent",
+    "since_season": "23/24"
+  },
+  {
+    "name": "Anja Jiménez",
+    "initials": "AJ",
+    "role_de": "Technische Kommission Basketball",
+    "role_en": "Technical Committee Basketball",
+    "tier": "ressort",
+    "tier_order": 2,
+    "status": "new"
+  },
+  {
+    "name": "Radomir Radovanovic",
+    "initials": "RR",
+    "role_de": "Kassier",
+    "role_en": "Treasurer",
+    "tier": "ressort",
+    "tier_order": 3,
+    "status": "incumbent",
+    "since_season": "25/26"
+  },
+  {
+    "name": "Luca Canepa",
+    "initials": "LC",
+    "role_de": "Aktuar",
+    "role_en": "Secretary",
+    "tier": "ressort",
+    "tier_order": 4,
+    "status": "new"
+  },
+  {
+    "name": "Anne Grimshaw",
+    "initials": "AG",
+    "role_de": "Beisitz",
+    "role_en": "Assessor",
+    "tier": "ressort",
+    "tier_order": 5,
+    "status": "incumbent",
+    "since_season": "18/19"
+  }
 ]

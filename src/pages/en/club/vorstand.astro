@@ -1,12 +1,11 @@
 ---
 import PageLayout from '../../../layouts/PageLayout.astro';
-import BoardCard from '../../../components/BoardCard.astro';
+import BoardOrgChart from '../../../components/BoardOrgChart.astro';
 import CTA from '../../../components/CTA.astro';
 import { t } from '../../../lib/i18n';
 import boardMembers from '../../../data/board-members.json';
 
 const locale = 'en';
-const members = boardMembers;
 ---
 <PageLayout
   title="Board — KSC Wiedikon"
@@ -17,20 +16,11 @@ const members = boardMembers;
 >
   <section class="section">
     <div class="container">
-      <div class="board-grid">
-        {members.length > 0 ? (
-          members.map((m) => (
-            <BoardCard
-              name={m.name}
-              initials={m.initials ?? undefined}
-              role={m.role_en}
-              photoUrl={m.photo ?? undefined}
-            />
-          ))
-        ) : (
-          <p>No board members found.</p>
-        )}
-      </div>
+      {boardMembers.length > 0 ? (
+        <BoardOrgChart members={boardMembers} locale={locale} />
+      ) : (
+        <p>No board members found.</p>
+      )}
     </div>
   </section>
 
@@ -43,20 +33,3 @@ const members = boardMembers;
 
   <script src="../../../islands/scroll-animations.ts"></script>
 </PageLayout>
-
-<style>
-  .board-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--space-xl);
-  }
-  @media (max-width: 1024px) {
-    .board-grid { grid-template-columns: repeat(3, 1fr); }
-  }
-  @media (max-width: 768px) {
-    .board-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (max-width: 480px) {
-    .board-grid { grid-template-columns: 1fr; }
-  }
-</style>
