@@ -1254,6 +1254,73 @@ tr:hover td {
   .gt-matchup { font-size: var(--text-sm); }
   .game-table td { padding: var(--space-xs) var(--space-xs); }
 }
+
+/* Mobile: restructure each game row as
+     [DATE]            [TIME]
+     [HOME    vs    AWAY]
+     [HOMESCORE  :  AWAYSCORE]   ← scores centered under their team
+   Chip is hidden; matchup and score are 3-col grids so each team and
+   its score share a column and visually align. */
+@media (max-width: 639px) {
+  .game-table thead { display: none; }
+  .game-table,
+  .game-table tbody,
+  .game-table tr { display: block; }
+  .game-table tr {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: var(--space-sm);
+    row-gap: var(--space-xs);
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .game-table td { border: none; padding: 0; }
+  .gt-icon, .gt-loc, .gt-team { display: none; }
+  .gt-date { grid-column: 1; grid-row: 1; align-self: center; }
+  .gt-time { grid-column: 2; grid-row: 1; align-self: center; }
+  .gt-matchup {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    max-width: none;
+    width: 100%;
+    overflow: visible;
+    white-space: normal;
+    text-overflow: clip;
+  }
+  .gt-matchup-inner {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    column-gap: var(--space-sm);
+    align-items: center;
+  }
+  .gt-matchup .gt-home-team,
+  .gt-matchup .gt-away-team {
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .gt-matchup .gt-vs {
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+  }
+  .gt-score {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    width: auto;
+    text-align: center;
+  }
+  .gt-score .game-score {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    column-gap: var(--space-sm);
+    align-items: baseline;
+  }
+  .gt-score .gt-home-score { text-align: center; }
+  .gt-score .gt-away-score { text-align: center; }
+  .gt-score .gt-score-sep { color: var(--text-muted); }
+}
 .game-table tr { cursor: pointer; }
 
 /* ── Game Detail Modal ─────────────────────────────────────── */
@@ -3520,27 +3587,27 @@ button:focus-visible {
   .scoreboard-table,
   .scoreboard-table tbody,
   .scoreboard-table tr { display: block; }
-  .scoreboard-metric-row {
+  .scoreboard-table .scoreboard-metric-row {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: 1fr auto;
     column-gap: var(--space-md);
     row-gap: var(--space-xs);
     padding: var(--space-sm) var(--space-sm);
     border-bottom: 1px solid var(--border);
   }
-  .scoreboard-metric-row td { border: none; padding: 0; }
-  .scoreboard-metric-row .sb-col-metric {
-    grid-column: 1 / -1;
+  .scoreboard-table .scoreboard-metric-row td { border: none; padding: 0; }
+  .scoreboard-table .scoreboard-metric-row .sb-col-metric {
+    grid-column: 1;
     grid-row: 1;
   }
-  .scoreboard-metric-row .sb-col-total {
-    grid-column: 1;
-    grid-row: 2;
-    text-align: left;
-    align-self: start;
-  }
-  .scoreboard-metric-row .sb-col-most {
+  .scoreboard-table .scoreboard-metric-row .sb-col-total {
     grid-column: 2;
+    grid-row: 1;
+    text-align: right;
+    align-self: center;
+  }
+  .scoreboard-table .scoreboard-metric-row .sb-col-most {
+    grid-column: 1 / -1;
     grid-row: 2;
     display: flex;
     flex-direction: column;
