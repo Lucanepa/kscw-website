@@ -130,8 +130,21 @@ const locale = 'en';
         <h2 class="changelog-heading">
           <i data-lucide="scroll-text"></i>
           {t(locale, 'changelogTitle')}
-          <span class="changelog-badge">v3.2.4</span>
+          <span class="changelog-badge">v3.3.0</span>
         </h2>
+
+        <div class="changelog-entry">
+          <div class="changelog-meta">v3.3.0 — 2026-05-13</div>
+          <div class="changelog-group">
+            <h3>New</h3>
+            <ul>
+              <li><strong>Event signups</strong>: events can now host a signup form. Calendar shows an "Sign up" button with a live count. Admins paste the form URL in <code>/admin</code> and can view all responses as a table or one-click CSV export</li>
+              <li><strong>Self-hosted OpnForm at <code>forms.kscw.ch</code></strong>: replaces the ClubDesk-hosted signup pages that will break after the kscw.ch migration. KSCW-branded (color, logo) with weekly auto-update against upstream</li>
+              <li><strong>Trial trainings on team pages</strong>: teams open for new players now show their next Probetrainings (date · time · hall) right next to the "Get in touch" CTA</li>
+              <li><strong>Language preference remembered</strong>: clicking EN once routes future visits to the English site automatically. <code>kscw.ch</code> still defaults to German</li>
+            </ul>
+          </div>
+        </div>
 
         <div class="changelog-entry">
           <div class="changelog-meta">v3.2.4 — 2026-05-06</div>

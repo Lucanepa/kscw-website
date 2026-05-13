@@ -2,6 +2,17 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [3.3.0] — 2026-05-13
+
+### Added
+- **Event signups**: events have a new `signup_url` field. Calendar event detail shows an "Anmelden / Sign up" button when set, plus a live count of submissions. Admins manage `signup_url` directly in `/admin` and can open an "Anmeldungen" responses table per event with one-click CSV export
+- **OpnForm self-hosted at `forms.kscw.ch`**: replaces ClubDesk-hosted event signup pages that will break after the kscw.ch migration. Custom fork `Lucanepa/OpnForm` bakes in KSCW brand `#4A55A2`, removes the "Made with OpnForm" badge, falls back to the KSCW crest as default logo. Weekly auto-rebase against upstream via GitHub Actions
+- **Trial trainings on team pages**: teams open for new players now show their next Probetrainings (date · time · hall) right next to the "Get in touch" CTA, so prospective players see when to drop in without emailing first
+- **Language preference memory**: clicking EN/DE in the header now persists the choice. `kscw.ch` defaults to `/de/`, but visitors who previously chose English are routed to `/en/`
+
+### Changed
+- `docs/infra.md` consolidated: Hetzner/Coolify topology, the Directus container "not Coolify-managed" gotcha, recreation procedure for env var changes, AWS SES SMTP config, OpnForm fork lifecycle
+
 ## [3.2.4] — 2026-05-06
 
 ### Security

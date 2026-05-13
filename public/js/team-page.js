@@ -163,6 +163,50 @@
     p.textContent = i18n.t('teamCTAText');
     inner.appendChild(p);
 
+    // Upcoming trial trainings (Probetrainings) — only show when populated.
+    // Dates render dd.mm.yyyy per Swiss convention regardless of UI locale.
+    var trials = Array.isArray(raw.trial_trainings) ? raw.trial_trainings : [];
+    if (trials.length) {
+      var trialBox = document.createElement('div');
+      trialBox.className = 'cta-trial-trainings';
+      var trialHeading = document.createElement('h3');
+      trialHeading.className = 'cta-trial-heading';
+      trialHeading.textContent = i18n.t('teamTrialHeading');
+      trialBox.appendChild(trialHeading);
+      var trialList = document.createElement('ul');
+      trialList.className = 'cta-trial-list';
+      trials.forEach(function (t) {
+        var li = document.createElement('li');
+        var dateStr = '';
+        if (t.date) {
+          var d = new Date(String(t.date).slice(0, 10) + 'T12:00:00');
+          if (!isNaN(d.getTime())) {
+            var dd = String(d.getDate()).padStart(2, '0');
+            var mm = String(d.getMonth() + 1).padStart(2, '0');
+            dateStr = dd + '.' + mm + '.' + d.getFullYear();
+          }
+        }
+        var startTime = String(t.start_time || '').slice(0, 5);
+        var endTime = String(t.end_time || '').slice(0, 5);
+        var timeRange = startTime + (endTime ? '–' + endTime : '');
+        var hall = t.hall_name || '';
+        var pieces = [];
+        if (dateStr) pieces.push(dateStr);
+        if (timeRange.length > 1) pieces.push(timeRange);
+        if (hall) pieces.push(i18n.t('teamTrialAt') + ' ' + hall);
+        li.textContent = pieces.join(' · ');
+        if (t.notes) {
+          var notesSpan = document.createElement('span');
+          notesSpan.className = 'cta-trial-notes';
+          notesSpan.textContent = ' — ' + t.notes;
+          li.appendChild(notesSpan);
+        }
+        trialList.appendChild(li);
+      });
+      trialBox.appendChild(trialList);
+      inner.appendChild(trialBox);
+    }
+
     var btn = document.createElement('a');
     btn.href = mailto;
     btn.className = 'btn btn-gold';

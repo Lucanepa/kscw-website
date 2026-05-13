@@ -45,6 +45,7 @@ interface CalendarEvent {
   location?: string
   category: string
   body?: string
+  signupUrl?: string
 }
 
 const container = document.getElementById('calendar-grid')
@@ -413,6 +414,34 @@ if (container) {
     if (ev.time) infoList.appendChild(makeInfoRow('\u23F0', ev.time.slice(0, 5)))
     if (ev.location) infoList.appendChild(makeInfoRow('\uD83D\uDCCD', ev.location))
     modal.appendChild(infoList)
+
+    // Signup CTA + live count (OpnForm via Directus proxy)
+    if (ev.signupUrl && /^https?:\/\//i.test(ev.signupUrl)) {
+      const slugMatch = ev.signupUrl.match(/\/forms\/([a-z0-9][a-z0-9-]{0,80})/i)
+      if (slugMatch) {
+        const countEl = el('div', 'cal-modal-signup-count')
+        countEl.dataset.state = 'loading'
+        modal.appendChild(countEl)
+        fetch(`${DIRECTUS_URL}/kscw/opnform/forms/${encodeURIComponent(slugMatch[1])}/count`)
+          .then((r) => r.ok ? r.json() : Promise.reject(r.status))
+          .then((d) => {
+            const n = Number(d?.count ?? 0)
+            countEl.dataset.state = 'ok'
+            countEl.textContent = lang === 'de'
+              ? `${n} Anmeldung${n === 1 ? '' : 'en'}`
+              : `${n} sign-up${n === 1 ? '' : 's'}`
+          })
+          .catch(() => { countEl.remove() })
+      }
+
+      const cta = document.createElement('a')
+      cta.className = 'btn btn-primary cal-modal-signup'
+      cta.href = ev.signupUrl
+      cta.target = '_blank'
+      cta.rel = 'noopener noreferrer'
+      cta.textContent = lang === 'de' ? 'Anmelden' : 'Sign up'
+      modal.appendChild(cta)
+    }
 
     // Description
     if (ev.body) {

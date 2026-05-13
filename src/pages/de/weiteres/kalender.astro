@@ -17,6 +17,7 @@ try {
     category: ev.eventType || 'other',
     description: ev.description || '',
     body: ev.description || '',
+    signupUrl: ev.signupUrl || '',
   }));
 } catch (e) {
   console.warn('Failed to fetch events:', e);
