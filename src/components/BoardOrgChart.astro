@@ -123,19 +123,11 @@ const photoSrc = (m: BoardMember) => m.photo ? `/images/board/${m.photo}` : null
     max-width: none;
     height: 100%;
   }
-  /* Reserve consistent space for role + name so cards align across the
-     row regardless of line-wrap. */
-  .org-tier-ressorts .org-role {
-    min-height: 2.6em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+  /* Grid stretches all ressort cards to the tallest one's height; push the
+     name to the bottom of its card so all names align on the same baseline
+     regardless of how many lines the role label wraps to. */
   .org-tier-ressorts .org-name {
-    min-height: 2.6em;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
+    margin-top: auto;
   }
 
   .org-avatar,
@@ -242,28 +234,52 @@ const photoSrc = (m: BoardMember) => m.photo ? `/images/board/${m.photo}` : null
     z-index: 1;
   }
 
-  /* ── Mobile: collapse to single column ────────────────────── */
+  /* ── Mobile: drop the org-chart visualization, present compactly ──
+     Below 900px the hierarchy is no longer drawn (single-column tree
+     would be a long scroll). President + Vice each occupy a full-width
+     compact card; the 5 ressorts collapse into a 2-column grid. */
   @media (max-width: 900px) {
+    .org-chart {
+      --org-gap-v: var(--space-md);
+      max-width: 520px;
+    }
+    /* Drop all connector lines on mobile */
+    .org-tier-vice::before,
+    .org-tier-ressorts::before,
+    .org-tier-ressorts .org-card::before,
+    .org-tier-ressorts .org-card::after {
+      display: none;
+    }
+    /* Compact cards: smaller avatar, tighter padding */
+    .org-card {
+      padding: var(--space-sm) var(--space-md);
+      min-width: 0;
+      max-width: none;
+      width: 100%;
+    }
+    .org-avatar,
+    .org-photo {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 0.375rem;
+    }
+    .org-avatar { font-size: 1rem; }
+    .org-tier-president .org-card,
+    .org-tier-vice .org-card {
+      width: 100%;
+    }
+    /* Ressorts as 2-column grid */
     .org-tier-ressorts {
-      grid-template-columns: 1fr;
-      max-width: 360px;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-md);
     }
-    /* Horizontal trunk no longer makes sense — replace with simple vertical
-       line above each card. */
-    .org-tier-ressorts .org-card::before {
-      left: 50%;
-      right: auto;
-      width: var(--org-line-width);
-      height: var(--org-gap-v);
-      top: calc(var(--org-gap-v) * -1 + 1px);
-      transform: translateX(-50%);
+    .org-tier-ressorts .org-name {
+      font-size: var(--text-sm);
     }
-    .org-tier-ressorts .org-card::after { display: none; }
-    .org-tier-ressorts::before { display: none; }
-    .org-tier-ressorts {
-      display: flex;
-      flex-direction: column;
-      gap: var(--org-gap-v);
-    }
+  }
+
+  @media (max-width: 420px) {
+    /* Very narrow phones: ressorts go single-column */
+    .org-tier-ressorts { grid-template-columns: 1fr; }
   }
 </style>
