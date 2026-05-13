@@ -228,7 +228,21 @@ try {
         badge.className = 'game-badge ' + (isHome ? 'home' : 'away');
         badge.textContent = isHome ? 'Home' : 'Away';
         tr.appendChild(makeCell(badge, 'gt-loc'));
-        tr.appendChild(makeCell(game.homeTeam + ' vs ' + game.awayTeam, 'gt-matchup'));
+        var matchupInner = document.createElement('span');
+        matchupInner.className = 'gt-matchup-inner';
+        var homeNameEl = document.createElement('span');
+        homeNameEl.className = 'gt-home-team';
+        homeNameEl.textContent = game.homeTeam;
+        var vsEl = document.createElement('span');
+        vsEl.className = 'gt-vs';
+        vsEl.textContent = ' vs ';
+        var awayNameEl = document.createElement('span');
+        awayNameEl.className = 'gt-away-team';
+        awayNameEl.textContent = game.awayTeam;
+        matchupInner.appendChild(homeNameEl);
+        matchupInner.appendChild(vsEl);
+        matchupInner.appendChild(awayNameEl);
+        tr.appendChild(makeCell(matchupInner, 'gt-matchup'));
         if (showScore && game.homeScore != null && game.awayScore != null) {
           var scoreSpan = document.createElement('span');
           scoreSpan.className = 'game-score';
@@ -240,7 +254,18 @@ try {
             var kscwWin = isHome ? homeWin : !homeWin;
             scoreSpan.className += kscwWin ? ' win' : ' loss';
           }
-          scoreSpan.textContent = game.homeScore + ':' + game.awayScore;
+          var homeScoreEl = document.createElement('span');
+          homeScoreEl.className = 'gt-home-score';
+          homeScoreEl.textContent = game.homeScore;
+          var sepEl = document.createElement('span');
+          sepEl.className = 'gt-score-sep';
+          sepEl.textContent = ':';
+          var awayScoreEl = document.createElement('span');
+          awayScoreEl.className = 'gt-away-score';
+          awayScoreEl.textContent = game.awayScore;
+          scoreSpan.appendChild(homeScoreEl);
+          scoreSpan.appendChild(sepEl);
+          scoreSpan.appendChild(awayScoreEl);
           tr.appendChild(makeCell(scoreSpan, 'gt-score'));
         } else {
           tr.appendChild(makeCell('', 'gt-score'));
