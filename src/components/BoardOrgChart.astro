@@ -118,7 +118,25 @@ const photoSrc = (m: BoardMember) => m.photo ? `/images/board/${m.photo}` : null
     align-items: center;
     gap: 0.25rem;
   }
-  .org-tier-ressorts .org-card { min-width: 0; max-width: none; }
+  .org-tier-ressorts .org-card {
+    min-width: 0;
+    max-width: none;
+    height: 100%;
+  }
+  /* Reserve consistent space for role + name so cards align across the
+     row regardless of line-wrap. */
+  .org-tier-ressorts .org-role {
+    min-height: 2.6em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .org-tier-ressorts .org-name {
+    min-height: 2.6em;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
 
   .org-avatar,
   .org-photo {
@@ -189,20 +207,27 @@ const photoSrc = (m: BoardMember) => m.photo ? `/images/board/${m.photo}` : null
     z-index: 1;
   }
 
-  /* Horizontal trunk above ressorts (drawn as top-border on each card,
-     filling the gap between siblings). */
+  /* Horizontal trunk above ressorts: each card draws its own segment,
+     extended into the side gaps by half so neighbours' segments meet
+     without visible breaks. First/last child stop at their own centre. */
   .org-tier-ressorts .org-card::before {
     content: "";
     position: absolute;
     top: calc(var(--org-gap-v) / -2);
-    left: 0;
-    right: 0;
+    left: calc(var(--org-gap-h) / -2);
+    right: calc(var(--org-gap-h) / -2);
     height: var(--org-line-width);
     background: var(--org-line-color);
     z-index: 1;
   }
-  .org-tier-ressorts .org-card:first-child::before { left: 50%; }
-  .org-tier-ressorts .org-card:last-child::before { right: 50%; }
+  .org-tier-ressorts .org-card:first-child::before {
+    left: 50%;
+    right: calc(var(--org-gap-h) / -2);
+  }
+  .org-tier-ressorts .org-card:last-child::before {
+    left: calc(var(--org-gap-h) / -2);
+    right: 50%;
+  }
 
   /* Vertical drop from trunk → each ressort card */
   .org-tier-ressorts .org-card::after {
