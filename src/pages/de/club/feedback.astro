@@ -130,8 +130,21 @@ const locale = 'de';
         <h2 class="changelog-heading">
           <i data-lucide="scroll-text"></i>
           {t(locale, 'changelogTitle')}
-          <span class="changelog-badge">v3.2.4</span>
+          <span class="changelog-badge">v3.3.0</span>
         </h2>
+
+        <div class="changelog-entry">
+          <div class="changelog-meta">v3.3.0 — 2026-05-13</div>
+          <div class="changelog-group">
+            <h3>Neu</h3>
+            <ul>
+              <li><strong>Event-Anmeldungen</strong>: Events können neu ein Anmeldeformular hinterlegen. Im Kalender erscheint ein "Anmelden"-Button mit Live-Zähler der Anmeldungen. Admins verwalten den Link direkt in <code>/admin</code> und können die Antworten als Tabelle einsehen oder als CSV exportieren</li>
+              <li><strong>OpnForm selbst gehostet auf <code>forms.kscw.ch</code></strong>: ersetzt die ClubDesk-Anmeldeseiten, die nach dem Umzug von kscw.ch nicht mehr funktionieren. KSCW-Branding (Blau, Logo) und wöchentliches automatisches Update gegen die Originalquelle</li>
+              <li><strong>Probetrainings auf Team-Seiten</strong>: Teams, die für neue Spielende offen sind, zeigen jetzt die nächsten Probetrainings (Datum · Zeit · Halle) direkt beim "Kontakt aufnehmen"-Button</li>
+              <li><strong>Sprachpräferenz wird gespeichert</strong>: Wer einmal auf EN klickt, landet beim nächsten Besuch automatisch auf der englischen Version. <code>kscw.ch</code> bleibt standardmässig deutsch</li>
+            </ul>
+          </div>
+        </div>
 
         <div class="changelog-entry">
           <div class="changelog-meta">v3.2.4 — 2026-05-06</div>

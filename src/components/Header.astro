@@ -150,9 +150,9 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
           </div>
         <a href="https://wiedisync.kscw.ch" class="nav-link btn btn-gold btn-sm" target="_blank" rel="noopener"><i data-lucide="lock" style="width:14px;height:14px;"></i> Wiedisync</a>
         <div class="lang-toggle" role="radiogroup" aria-label="Language">
-          <a href={locale === 'de' ? currentPath : dePath} class={`lang-btn ${locale === 'de' ? 'active' : ''}`} aria-label="Deutsch">DE</a>
+          <a href={locale === 'de' ? currentPath : dePath} class={`lang-btn ${locale === 'de' ? 'active' : ''}`} aria-label="Deutsch" data-lang-choice="de">DE</a>
           <span class="lang-sep">|</span>
-          <a href={locale === 'en' ? currentPath : enPath} class={`lang-btn ${locale === 'en' ? 'active' : ''}`} aria-label="English">EN</a>
+          <a href={locale === 'en' ? currentPath : enPath} class={`lang-btn ${locale === 'en' ? 'active' : ''}`} aria-label="English" data-lang-choice="en">EN</a>
         </div>
         </div>
 
@@ -169,9 +169,9 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
     <!-- Mobile Navigation -->
     <div class="mobile-nav">
       <div class="lang-toggle mobile-lang-toggle" role="radiogroup" aria-label="Language">
-        <a href={locale === 'de' ? currentPath : dePath} class={`lang-btn-mobile ${locale === 'de' ? 'active' : ''}`} aria-label="Deutsch">DE</a>
+        <a href={locale === 'de' ? currentPath : dePath} class={`lang-btn-mobile ${locale === 'de' ? 'active' : ''}`} aria-label="Deutsch" data-lang-choice="de">DE</a>
         <span class="lang-sep">|</span>
-        <a href={locale === 'en' ? currentPath : enPath} class={`lang-btn-mobile ${locale === 'en' ? 'active' : ''}`} aria-label="English">EN</a>
+        <a href={locale === 'en' ? currentPath : enPath} class={`lang-btn-mobile ${locale === 'en' ? 'active' : ''}`} aria-label="English" data-lang-choice="en">EN</a>
       </div>
 
       <div class="mobile-nav-item">
@@ -295,3 +295,13 @@ const enPath = currentPath.replace(`/de/`, `/en/`).replace(/^\/de$/, '/en');
         </div>
     </div>
   </header>
+
+  <script is:inline>
+    // Persist the user's language choice so root visits to kscw.ch
+    // honor it on subsequent loads (see src/pages/index.astro).
+    document.querySelectorAll('[data-lang-choice]').forEach(function(el) {
+      el.addEventListener('click', function() {
+        try { localStorage.setItem('kscw-locale', el.dataset.langChoice); } catch (e) {}
+      });
+    });
+  </script>

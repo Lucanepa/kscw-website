@@ -6,9 +6,13 @@
   <meta charset="UTF-8">
   <title>KSC Wiedikon</title>
   <script is:inline>
+    // Root defaults to /de/. Only honor an explicit prior choice (set when
+    // the user clicked EN/DE in the header) to avoid breaking the default
+    // German experience for first-time visitors with English browsers.
     (function() {
-      var lang = navigator.language || '';
-      var locale = lang.startsWith('en') ? 'en' : 'de';
+      var pref = null;
+      try { pref = localStorage.getItem('kscw-locale'); } catch (e) {}
+      var locale = pref === 'en' ? 'en' : 'de';
       window.location.replace('/' + locale + '/');
     })();
   </script>

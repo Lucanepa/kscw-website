@@ -759,6 +759,20 @@ import '../styles/global.css';
             var actions = document.createElement('div');
             actions.className = 'admin-list-actions';
 
+            // Responses button (events only, when signup_url set)
+            if (currentTab === 'events' && item.signup_url) {
+              var slugMatch = String(item.signup_url).match(/\/forms\/([a-z0-9][a-z0-9-]{0,80})/i);
+              if (slugMatch) {
+                var respBtn = document.createElement('button');
+                respBtn.className = 'admin-btn admin-btn-sm';
+                respBtn.textContent = 'Anmeldungen';
+                respBtn.addEventListener('click', (function(slug, eventTitle) {
+                  return function() { openResponsesModal(slug, eventTitle); };
+                })(slugMatch[1], title));
+                actions.appendChild(respBtn);
+              }
+            }
+
             var editBtn = document.createElement('button');
             editBtn.className = 'admin-btn admin-btn-sm';
             editBtn.textContent = t('edit');
@@ -1740,6 +1754,7 @@ import '../styles/global.css';
         formHtml += fieldDate('end_date', t('endDate'), item ? (item.end_date || '').substring(0, 10) : '');
         formHtml += fieldCheckbox('all_day', t('allDay'), item ? item.all_day : true);
         formHtml += fieldInput('location', t('location'), item ? (item.location || '') : '');
+        formHtml += fieldInput('signup_url', 'Anmelde-Link (OpnForm)', item ? (item.signup_url || '') : '', { placeholder: 'https://forms.kscw.ch/forms/...' });
         formHtml += '<div class="admin-field"><label>' + t('description') + '</label><div id="quill-editor" style="min-height:150px;"></div></div>';
 
         // Participation section
@@ -1892,6 +1907,137 @@ import '../styles/global.css';
       quillInstance = null;
     }
 
+    // ── OpnForm responses (admin) ──────────────────────────────
+    function openResponsesModal(slug, eventTitle) {
+      var modal = document.getElementById('admin-modal');
+      modal.textContent = '';
+      var content = document.createElement('div');
+      content.className = 'admin-modal-content';
+      content.style.maxWidth = '90vw';
+      var hdr = document.createElement('div');
+      hdr.className = 'admin-modal-header';
+      var h2 = document.createElement('h2');
+      h2.textContent = 'Anmeldungen — ' + (eventTitle || '');
+      hdr.appendChild(h2);
+      var closeBtn = document.createElement('button');
+      closeBtn.className = 'admin-modal-close';
+      closeBtn.textContent = '×';
+      closeBtn.addEventListener('click', closeModal);
+      hdr.appendChild(closeBtn);
+      content.appendChild(hdr);
+      var body = document.createElement('div');
+      body.id = 'resp-body';
+      body.style.cssText = 'padding:1rem;min-height:120px;';
+      var loading = document.createElement('div');
+      loading.className = 'admin-empty';
+      loading.textContent = 'Lade…';
+      body.appendChild(loading);
+      content.appendChild(body);
+      modal.appendChild(content);
+      modal.style.display = 'flex';
+
+      getValidToken().then(function(token) {
+        return fetch(DIRECTUS_URL + '/kscw/opnform/forms/' + encodeURIComponent(slug) + '/submissions?per_page=100', {
+          headers: { 'Authorization': 'Bearer ' + token },
+        });
+      }).then(function(res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      }).then(function(payload) {
+        body.textContent = '';
+        var fields = ((payload && payload.fields) || []).filter(function(f) { return f.type !== 'nf-text'; });
+        var rows = (payload && payload.data) || [];
+        var total = payload && payload.total != null ? payload.total : rows.length;
+
+        var header = document.createElement('div');
+        header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;';
+        var summary = document.createElement('div');
+        summary.style.cssText = 'font-size:var(--text-sm);color:var(--text-muted);';
+        summary.textContent = total + ' Antwort' + (total === 1 ? '' : 'en');
+        header.appendChild(summary);
+        if (total > 0) {
+          var csvBtn = document.createElement('button');
+          csvBtn.className = 'admin-btn admin-btn-sm admin-btn-primary';
+          csvBtn.textContent = 'CSV exportieren';
+          csvBtn.addEventListener('click', function() {
+            exportResponsesCSV(slug, fields, rows);
+          });
+          header.appendChild(csvBtn);
+        }
+        body.appendChild(header);
+
+        if (!rows.length) {
+          var empty = document.createElement('div');
+          empty.className = 'admin-empty';
+          empty.textContent = 'Noch keine Anmeldungen.';
+          body.appendChild(empty);
+          return;
+        }
+
+        var tableWrap = document.createElement('div');
+        tableWrap.style.cssText = 'overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius-md);';
+        var table = document.createElement('table');
+        table.style.cssText = 'width:100%;border-collapse:collapse;font-size:var(--text-sm);';
+        var thead = document.createElement('thead');
+        var thRow = document.createElement('tr');
+        ['Datum'].concat(fields.map(function(f) { return f.name; })).forEach(function(label) {
+          var th = document.createElement('th');
+          th.textContent = label;
+          th.style.cssText = 'text-align:left;padding:0.5rem 0.75rem;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.04);font-weight:600;';
+          thRow.appendChild(th);
+        });
+        thead.appendChild(thRow);
+        table.appendChild(thead);
+        var tbody = document.createElement('tbody');
+        rows.forEach(function(r) {
+          var tr = document.createElement('tr');
+          var dateTd = document.createElement('td');
+          dateTd.textContent = (r.created_at || '').substring(0, 16).replace('T', ' ');
+          dateTd.style.cssText = 'padding:0.5rem 0.75rem;border-bottom:1px solid var(--border);color:var(--text-muted);white-space:nowrap;';
+          tr.appendChild(dateTd);
+          fields.forEach(function(f) {
+            var td = document.createElement('td');
+            var v = r[f.id];
+            td.textContent = (v == null || v === '') ? '—' : (Array.isArray(v) ? v.join(', ') : String(v));
+            td.style.cssText = 'padding:0.5rem 0.75rem;border-bottom:1px solid var(--border);';
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        tableWrap.appendChild(table);
+        body.appendChild(tableWrap);
+      }).catch(function(err) {
+        body.textContent = '';
+        var errDiv = document.createElement('div');
+        errDiv.className = 'admin-empty';
+        errDiv.textContent = 'Fehler beim Laden: ' + (err && err.message ? err.message : 'unbekannt');
+        body.appendChild(errDiv);
+      });
+    }
+
+    function exportResponsesCSV(slug, fields, rows) {
+      var headers = ['date_iso'].concat(fields.map(function(f) { return f.name; }));
+      var lines = [headers.map(csvEscape).join(',')];
+      rows.forEach(function(r) {
+        var row = [r.created_at || ''].concat(fields.map(function(f) {
+          var v = r[f.id];
+          if (v == null) return '';
+          if (Array.isArray(v)) return v.join('; ');
+          return String(v);
+        }));
+        lines.push(row.map(csvEscape).join(','));
+      });
+      var csv = lines.join('\n');
+      var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'anmeldungen-' + slug + '.csv';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
     // ── Upload file to Directus ─────────────────────────────
     async function uploadFile(token, file) {
       var fd = new FormData();
@@ -2014,10 +2160,14 @@ import '../styles/global.css';
     }
 
     // ── Form field helpers (all values escaped) ───────────────
-    function fieldInput(name, label, value, required) {
+    function fieldInput(name, label, value, opts) {
+      var required = opts === true || (opts && opts.required);
+      var placeholder = (opts && typeof opts === 'object' && opts.placeholder) ? opts.placeholder : '';
       return '<div class="admin-field">' +
         '<label for="f-' + name + '">' + escapeHtml(label) + '</label>' +
-        '<input type="text" name="' + name + '" id="f-' + name + '" value="' + escapeAttr(value || '') + '"' + (required ? ' required' : '') + '>' +
+        '<input type="text" name="' + name + '" id="f-' + name + '" value="' + escapeAttr(value || '') + '"' +
+          (placeholder ? ' placeholder="' + escapeAttr(placeholder) + '"' : '') +
+          (required ? ' required' : '') + '>' +
       '</div>';
     }
     function fieldTextarea(name, label, value) {
