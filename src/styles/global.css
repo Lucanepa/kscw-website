@@ -1201,7 +1201,8 @@ tr:hover td {
   color: var(--text-muted);
   white-space: nowrap;
 }
-.gt-team { white-space: nowrap; }
+.gt-team { white-space: normal; }
+.gt-team .chip { white-space: normal; text-align: center; line-height: 1.15; }
 .gt-loc { white-space: nowrap; }
 .gt-matchup {
   font-weight: 500;
