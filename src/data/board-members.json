@@ -5,7 +5,8 @@
     "role_de": "Präsidentin",
     "role_en": "President",
     "tier": "president",
-    "tier_order": 1
+    "tier_order": 1,
+    "photo": "michelle-howald.webp"
   },
   {
     "name": "Roger Rübsam",
@@ -13,7 +14,8 @@
     "role_de": "Vize-Präsident",
     "role_en": "Vice President",
     "tier": "vice",
-    "tier_order": 1
+    "tier_order": 1,
+    "photo": "roger-ruebsam.webp"
   },
   {
     "name": "Thamy Kanagalingam",
@@ -21,7 +23,8 @@
     "role_de": "Technische Kommission Volleyball",
     "role_en": "Technical Committee Volleyball",
     "tier": "ressort",
-    "tier_order": 1
+    "tier_order": 1,
+    "photo": "thamy-kanagalingam.webp"
   },
   {
     "name": "Anja Jiménez",
@@ -37,7 +40,8 @@
     "role_de": "Kassier",
     "role_en": "Treasurer",
     "tier": "ressort",
-    "tier_order": 3
+    "tier_order": 3,
+    "photo": "radomir-radovanovic.webp"
   },
   {
     "name": "Luca Canepa",
@@ -45,7 +49,8 @@
     "role_de": "Aktuar",
     "role_en": "Secretary",
     "tier": "ressort",
-    "tier_order": 4
+    "tier_order": 4,
+    "photo": "luca-canepa.webp"
   },
   {
     "name": "Anne Grimshaw",
@@ -53,6 +58,7 @@
     "role_de": "Beisitz",
     "role_en": "Assessor",
     "tier": "ressort",
-    "tier_order": 5
+    "tier_order": 5,
+    "photo": "anne-grimshaw.webp"
   }
 ]
