@@ -2,6 +2,11 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [3.4.0] — 2026-05-13
+
+### Changed
+- **Team-CTA "Kontakt aufnehmen"**: Button on team pages now opens the central contact form (`/de/club/kontakt`) with sport + team pre-filled, instead of a `mailto:` link that exposed coach/TR email addresses. Delivery routes server-side through the Directus `/kscw/contact` endpoint, which resolves the recipients (team coaches + TR) via the M2M relations (`teams_coaches`, `teams_responsibles`) and sends mail through the existing SES setup — addresses never leave the server. Email subject is "Kontakt {Team}" (DE) or "Contact {Team}" (EN), keyed to the URL locale of the originating page
+
 ## [3.3.2] — 2026-05-13
 
 ### Fixed

@@ -124,30 +124,17 @@
     // Only show CTA if team is open for new players
     if (!raw.open_for_players) return;
 
-    var coaches = raw.coaches || [];
     var sport = raw.sport || '';
+    if (sport !== 'volleyball' && sport !== 'basketball') return;
 
-    // Build mailto: coach email(s) as TO, sport responsible as CC
-    var coachEmails = coaches.map(function (c) { return c.email; }).filter(Boolean);
-    var ccEmails = [];
-    if (sport === 'volleyball') {
-      ccEmails = ['volleyball@kscw.ch'];
-    } else if (sport === 'basketball') {
-      ccEmails = ['anja.jimenez@kscw.ch', 'rachel.moser@kscw.ch'];
-    }
-
-    // If no coach emails, use sport responsible as TO instead
-    var toEmails = coachEmails.length > 0 ? coachEmails : ccEmails;
-    var finalCc = coachEmails.length > 0 ? ccEmails : [];
-
-    if (toEmails.length === 0) return;
-
-    var teamName = teamData.full_name || teamData.name || TEAM;
-    var subject = encodeURIComponent(i18n.t('teamCTAMailSubject', { team: teamName }));
-    var mailto = 'mailto:' + toEmails.join(',');
-    var params = ['subject=' + subject];
-    if (finalCc.length > 0) params.push('cc=' + finalCc.join(','));
-    mailto += '?' + params.join('&');
+    // Route to the central contact form, prefilled with sport + team.
+    // The Directus /kscw/contact endpoint resolves the team's coaches + TR
+    // server-side, so no email addresses are ever exposed in the browser.
+    var locale = window.location.pathname.indexOf('/en/') === 0 ? 'en' : 'de';
+    var contactPath = '/' + locale + '/club/kontakt';
+    var qs = '?sport=' + encodeURIComponent(sport)
+      + (TEAM_DIRECTUS_ID ? '&teamId=' + encodeURIComponent(TEAM_DIRECTUS_ID) : '');
+    var contactHref = contactPath + qs;
 
     var section = document.createElement('section');
     section.className = 'cta-section';
@@ -208,7 +195,7 @@
     }
 
     var btn = document.createElement('a');
-    btn.href = mailto;
+    btn.href = contactHref;
     btn.className = 'btn btn-gold';
     btn.textContent = i18n.t('teamCTAButton');
     inner.appendChild(btn);

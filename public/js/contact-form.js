@@ -204,10 +204,12 @@
       body: JSON.stringify({
         first_name: firstName,
         last_name: lastName,
+        name: (firstName + ' ' + lastName).trim(),
         email: email,
         subject: subject,
         team_id: teamIdVal,
         message: message,
+        locale: window.location.pathname.indexOf('/en/') === 0 ? 'en' : 'de',
         turnstile_token: turnstileToken,
       }),
     })
