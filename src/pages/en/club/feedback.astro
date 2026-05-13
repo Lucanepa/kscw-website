@@ -130,8 +130,21 @@ const locale = 'en';
         <h2 class="changelog-heading">
           <i data-lucide="scroll-text"></i>
           {t(locale, 'changelogTitle')}
-          <span class="changelog-badge">v3.3.1</span>
+          <span class="changelog-badge">v3.3.2</span>
         </h2>
+
+        <div class="changelog-entry">
+          <div class="changelog-meta">v3.3.2 — 2026-05-13</div>
+          <div class="changelog-group">
+            <h3>Fixed</h3>
+            <ul>
+              <li><strong>Board page on mobile</strong>: org chart now renders as a fishbone — President → Vice → central spine with TKs on the left and Kassier/Aktuar on the right, Beisitz centered at the bottom. All cards share the same width and height</li>
+              <li><strong>Recent results / upcoming games</strong>: long team chips no longer push the table off-screen on mobile (chips wrap at word boundaries). On desktop the chip moved to its own row beneath each game, giving the matchup column more breathing room</li>
+              <li><strong>Games table on mobile</strong>: each row now stacks as date+time / home vs away / score, with each score centered under its respective team. Long team names wrap instead of being truncated</li>
+              <li><strong>Scoreboard on mobile</strong>: metric label sits on its own line above the average + leading team so the team chip column stops being squeezed character-by-character</li>
+            </ul>
+          </div>
+        </div>
 
         <div class="changelog-entry">
           <div class="changelog-meta">v3.3.1 — 2026-05-13</div>

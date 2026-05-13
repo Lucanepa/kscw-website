@@ -2,6 +2,14 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [3.3.2] — 2026-05-13
+
+### Fixed
+- **Vorstand mobile**: org chart now renders as a fishbone — President → Vice → central spine with TKs branching left and Kassier/Aktuar branching right, Beisitz centered at the bottom. All cards share the same width and height (sized to the tallest card)
+- **Recent results / upcoming games**: long team chips (e.g. "Herren 3 (Unicorns) H4") used to push the table off-screen on mobile; chips now wrap at word boundaries. On desktop, the chip moved to its own second row beneath each game so the matchup column has more room
+- **Game-table mobile**: each row now stacks as date+time / home vs away / score, with each score centered under its respective team. Long team names wrap instead of being truncated
+- **Scoreboard mobile**: metric label sits on its own line above the average + leading team, so the team chip column stops being squeezed character-by-character
+
 ## [3.3.1] — 2026-05-13
 
 ### Changed
