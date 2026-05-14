@@ -57,9 +57,13 @@
   function fetchTeams(sport, callback) {
     if (teamCache[sport]) return callback(teamCache[sport]);
 
+    // Only list teams currently recruiting (open_for_players === true).
+    // Closed teams are hidden from the dropdown — if a stale ?teamId points
+    // to a closed team, the pre-select silently no-ops.
     var url = DIRECTUS_URL + '/items/teams'
       + '?filter[sport][_eq]=' + sport
       + '&filter[active][_eq]=true'
+      + '&filter[open_for_players][_eq]=true'
       + '&fields=id,name,league'
       + '&sort=name'
       + '&limit=-1';

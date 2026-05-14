@@ -2,6 +2,11 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [3.4.1] — 2026-05-14
+
+### Changed
+- **Kontaktformular Team-Dropdown**: zeigt nur noch Mannschaften, die aktuell für neue Spielende offen sind (`open_for_players = true`). Geschlossene Teams stehen nicht mehr zur Auswahl. Mit Pre-Select via URL (`?sport=…&teamId=…`) bleibt das Dropdown frei änderbar
+
 ## [3.4.0] — 2026-05-13
 
 ### Changed
