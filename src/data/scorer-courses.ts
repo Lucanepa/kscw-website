@@ -56,9 +56,10 @@ export function getUpcomingScorerCourses(
   courses: ScorerCourse[] = scorerCourses,
   now: Date = new Date(),
 ): ScorerCourse[] {
-  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  // Compare on the calendar day in Europe/Zurich, host-TZ-independent.
+  const todayISO = now.toLocaleDateString('en-CA', { timeZone: 'Europe/Zurich' }); // yyyy-mm-dd
   return courses
-    .filter(c => c.dateISO == null || new Date(c.dateISO + 'T00:00:00Z').getTime() >= todayMidnight)
+    .filter(c => c.dateISO == null || c.dateISO >= todayISO)
     .sort((a, b) => {
       if (a.dateISO == null) return 1;
       if (b.dateISO == null) return -1;
