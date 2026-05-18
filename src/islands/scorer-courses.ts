@@ -22,8 +22,6 @@ if (container) {
       recorded: container.dataset.modeRecorded || '',
       both: container.dataset.modeBoth || '',
     } as Record<ScorerCourse['mode'], string>,
-    countOne: container.dataset.countOne || '1',
-    countMany: container.dataset.countMany || '{n}',
   };
   const section = container.closest<HTMLElement>('[data-scorer-section]');
   const base = getDirectusUrl();
@@ -47,19 +45,6 @@ if (container) {
     formSlugDe: normalizeFormSlug(r.form_slug_de as string | null),
     formSlugEn: normalizeFormSlug(r.form_slug_en as string | null),
   });
-
-  const fillCount = (badge: HTMLElement, slug: string) => {
-    fetch(`${base}/kscw/opnform/forms/${encodeURIComponent(slug)}/count`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((json) => {
-        const count = Number(json?.count);
-        if (!Number.isFinite(count) || count < 1) return;
-        const tpl = count === 1 ? txt.countOne : txt.countMany;
-        badge.textContent = tpl.replace('{n}', String(count));
-        badge.hidden = false;
-      })
-      .catch(() => { /* upstream unreachable — leave hidden */ });
-  };
 
   const render = (courses: ScorerCourse[]) => {
     for (const course of courses) {
@@ -89,12 +74,6 @@ if (container) {
         class: 'chip',
         style: 'background: var(--kscw-gold); color: var(--text-on-gold);',
       }, txt.mode[course.mode] || ''));
-      if (slug) {
-        const badge = el('span', { class: 'scorer-count' });
-        badge.hidden = true;
-        metaRow.appendChild(badge);
-        fillCount(badge, slug);
-      }
       body.appendChild(metaRow);
 
       if (slug) {
