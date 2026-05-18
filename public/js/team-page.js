@@ -188,6 +188,14 @@
           notesSpan.textContent = ' — ' + t.notes;
           li.appendChild(notesSpan);
         }
+        var recruit = Array.isArray(t.recruiting_positions) ? t.recruiting_positions : [];
+        var recruitText = positionText(recruit);
+        if (recruitText) {
+          var posSpan = document.createElement('span');
+          posSpan.className = 'cta-trial-positions';
+          posSpan.textContent = ' · ' + i18n.t('teamTrialLookingFor') + ': ' + recruitText;
+          li.appendChild(posSpan);
+        }
         trialList.appendChild(li);
       });
       trialBox.appendChild(trialList);
