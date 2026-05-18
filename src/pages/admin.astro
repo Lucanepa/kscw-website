@@ -2157,7 +2157,11 @@ import '../styles/global.css';
         return res.json();
       }).then(function(payload) {
         body.textContent = '';
-        var fields = ((payload && payload.fields) || []).filter(function(f) { return f.type !== 'nf-text'; });
+        // Drop OpnForm presentational blocks (nf-text, nf-divider,
+        // nf-page-break, nf-image, …) — they are layout, not answers.
+        var fields = ((payload && payload.fields) || []).filter(function(f) {
+          return f && typeof f.type === 'string' && f.type.indexOf('nf-') !== 0;
+        });
         var rows = (payload && payload.data) || [];
         var total = payload && payload.total != null ? payload.total : rows.length;
 
