@@ -290,6 +290,7 @@
         var rawUpcoming = raw.upcoming_games || raw.upcoming || [];
         var rawResults = raw.results || [];
         var rankings = raw.rankings || [];
+        var barrageRankings = raw.barrage_rankings || [];
         var sponsors = raw.sponsors || [];
 
         // Map raw game objects to the format buildGameRow expects
@@ -323,13 +324,16 @@
         for (var ri = 0; ri < rankings.length; ri++) {
           if (!rankings[ri].sport) rankings[ri].sport = teamData.sport || 'volleyball';
         }
+        for (var bi = 0; bi < barrageRankings.length; bi++) {
+          if (!barrageRankings[bi].sport) barrageRankings[bi].sport = teamData.sport || 'volleyball';
+        }
 
         // Render tab content
         renderRoster(roster, coaches, captainIds, raw.show_guests_on_website !== false);
         initRosterViewToggle();
         renderTrainings(trainings);
         renderHookGames(upcoming, results, teamData);
-        renderHookRankings(rankings, teamData);
+        renderHookRankings(rankings, teamData, barrageRankings);
         renderSponsors(sponsors);
 
         // Update static tab labels and headings with i18n
@@ -924,12 +928,13 @@
   }
 
   // ── Render Rankings from hook response ─────────────────────────────
-  function renderHookRankings(rankings, teamInfo) {
+  function renderHookRankings(rankings, teamInfo, barrageRankings) {
     var rankEl = document.getElementById('rankings-table');
     if (!rankEl) return;
     rankEl.textContent = '';
 
-    if (!rankings.length) {
+    var barrage = barrageRankings || [];
+    if (!rankings.length && !barrage.length) {
       var p = document.createElement('p');
       p.className = 'text-muted text-sm';
       p.textContent = i18n.t('teamNoRankings');
@@ -937,112 +942,132 @@
       return;
     }
 
-    var h2 = document.createElement('h2');
-    h2.style.fontSize = 'var(--text-2xl)';
-    h2.style.marginBottom = 'var(--space-lg)';
-    h2.textContent = teamInfo.league || i18n.t('rankingRankings');
-    rankEl.appendChild(h2);
-
-    // Detect sport from first ranking entry
-    var isVB = rankings.length > 0 && rankings[0].sport === 'volleyball';
-
-    var wrap = document.createElement('div');
-    wrap.className = 'table-wrap';
-    var table = document.createElement('table');
-
-    var thead = document.createElement('thead');
-    var headRow = document.createElement('tr');
-    var headers = ['#', i18n.t('rankingPoints'), i18n.t('rankingTeam'), i18n.t('rankingPlayed'), i18n.t('rankingWon'), i18n.t('rankingLost')];
-    if (isVB) headers.push(i18n.t('rankingSets'));
-    headers.forEach(function (t) {
-      var th = document.createElement('th'); th.textContent = t; headRow.appendChild(th);
-    });
-    thead.appendChild(headRow);
-    table.appendChild(thead);
-
     var myTeamId = teamInfo.team_id || '';
-    var totalTeams = rankings.length;
-    var tbody = document.createElement('tbody');
-    for (var j = 0; j < rankings.length; j++) {
-      var rw = rankings[j];
-      var tr = document.createElement('tr');
-      if (rw.team_id === myTeamId) tr.className = 'table-highlight';
 
-      // Promotion/relegation color band (volleyball only)
-      var promoColor = isVB ? getPromotionColor(teamInfo.league || '', rw.rank, totalTeams, rw.team_name || rw.team, IS_WOMEN, rankings) : null;
-      if (promoColor) {
-        tr.style.borderLeft = '4px solid ' + promoColor;
+    // Renders one standings table under its own heading. `promoLeague` drives
+    // the regular promotion/relegation colour band. When `isBarrage` is set,
+    // the band instead marks the winner (rank 1, green = promoted) vs the
+    // loser(s) (red), mirroring the regular Rangliste colour language.
+    function appendSection(rows, label, promoLeague, isBarrage) {
+      if (!rows.length) return;
+
+      var h2 = document.createElement('h2');
+      h2.style.fontSize = 'var(--text-2xl)';
+      h2.style.marginBottom = 'var(--space-lg)';
+      // Top margin only when a previous section was already rendered.
+      if (rankEl.children.length) h2.style.marginTop = 'var(--space-2xl)';
+      h2.textContent = label || i18n.t('rankingRankings');
+      rankEl.appendChild(h2);
+
+      // Detect sport from first ranking entry
+      var isVB = rows[0].sport === 'volleyball';
+
+      var wrap = document.createElement('div');
+      wrap.className = 'table-wrap';
+      var table = document.createElement('table');
+
+      var thead = document.createElement('thead');
+      var headRow = document.createElement('tr');
+      var headers = ['#', i18n.t('rankingPoints'), i18n.t('rankingTeam'), i18n.t('rankingPlayed'), i18n.t('rankingWon'), i18n.t('rankingLost')];
+      if (isVB) headers.push(i18n.t('rankingSets'));
+      headers.forEach(function (t) {
+        var th = document.createElement('th'); th.textContent = t; headRow.appendChild(th);
+      });
+      thead.appendChild(headRow);
+      table.appendChild(thead);
+
+      var totalTeams = rows.length;
+      var tbody = document.createElement('tbody');
+      for (var j = 0; j < rows.length; j++) {
+        var rw = rows[j];
+        var tr = document.createElement('tr');
+        if (rw.team_id === myTeamId) tr.className = 'table-highlight';
+
+        // Promotion/relegation color band (volleyball only). Barrage: rank 1
+        // = green (won → promoted), the rest = red (lost). Regular league:
+        // the full getPromotionColor scheme.
+        var promoColor = null;
+        if (isVB) {
+          if (isBarrage) promoColor = rw.rank === 1 ? '#22c55e' : '#ef4444';
+          else if (promoLeague) promoColor = getPromotionColor(promoLeague, rw.rank, totalTeams, rw.team_name || rw.team, IS_WOMEN, rows);
+        }
+        if (promoColor) {
+          tr.style.borderLeft = '4px solid ' + promoColor;
+        }
+
+        // Rank
+        var tdRank = document.createElement('td');
+        tdRank.className = 'table-rank';
+        tdRank.textContent = rw.rank != null ? rw.rank : '-';
+        tr.appendChild(tdRank);
+
+        // Points (bold)
+        var tdPts = document.createElement('td');
+        var strong = document.createElement('strong');
+        strong.textContent = rw.points != null ? rw.points : '-';
+        tdPts.appendChild(strong);
+        tr.appendChild(tdPts);
+
+        // Team name (ellipsis on overflow)
+        var tdTeam = document.createElement('td');
+        tdTeam.className = 'table-team';
+        tdTeam.style.maxWidth = '180px';
+        tdTeam.style.overflow = 'hidden';
+        tdTeam.style.textOverflow = 'ellipsis';
+        tdTeam.textContent = rw.team_name || rw.team || '?';
+        tr.appendChild(tdTeam);
+
+        // Played
+        var tdSp = document.createElement('td');
+        tdSp.textContent = rw.played != null ? rw.played : '-';
+        tr.appendChild(tdSp);
+
+        // Wins — with clear/narrow split for VB
+        var tdW = document.createElement('td');
+        if (isVB && (rw.wins_clear || rw.wins_narrow)) {
+          tdW.textContent = (rw.won || 0);
+          var wSub = document.createElement('span');
+          wSub.style.fontSize = 'var(--text-xs)';
+          wSub.style.color = 'var(--text-muted)';
+          wSub.style.display = 'block';
+          wSub.textContent = (rw.wins_clear || 0) + '/' + (rw.wins_narrow || 0);
+          tdW.appendChild(wSub);
+        } else {
+          tdW.textContent = rw.won != null ? rw.won : '-';
+        }
+        tr.appendChild(tdW);
+
+        // Losses — with clear/narrow split for VB
+        var tdL = document.createElement('td');
+        if (isVB && (rw.defeats_clear || rw.defeats_narrow)) {
+          tdL.textContent = (rw.lost || 0);
+          var lSub = document.createElement('span');
+          lSub.style.fontSize = 'var(--text-xs)';
+          lSub.style.color = 'var(--text-muted)';
+          lSub.style.display = 'block';
+          lSub.textContent = (rw.defeats_clear || 0) + '/' + (rw.defeats_narrow || 0);
+          tdL.appendChild(lSub);
+        } else {
+          tdL.textContent = rw.lost != null ? rw.lost : '-';
+        }
+        tr.appendChild(tdL);
+
+        // Sets (VB only)
+        if (isVB) {
+          var tdSets = document.createElement('td');
+          tdSets.textContent = (rw.sets_won || 0) + ':' + (rw.sets_lost || 0);
+          tr.appendChild(tdSets);
+        }
+
+        tbody.appendChild(tr);
       }
-
-      // Rank
-      var tdRank = document.createElement('td');
-      tdRank.className = 'table-rank';
-      tdRank.textContent = rw.rank != null ? rw.rank : '-';
-      tr.appendChild(tdRank);
-
-      // Points (bold)
-      var tdPts = document.createElement('td');
-      var strong = document.createElement('strong');
-      strong.textContent = rw.points != null ? rw.points : '-';
-      tdPts.appendChild(strong);
-      tr.appendChild(tdPts);
-
-      // Team name (ellipsis on overflow)
-      var tdTeam = document.createElement('td');
-      tdTeam.className = 'table-team';
-      tdTeam.style.maxWidth = '180px';
-      tdTeam.style.overflow = 'hidden';
-      tdTeam.style.textOverflow = 'ellipsis';
-      tdTeam.textContent = rw.team_name || rw.team || '?';
-      tr.appendChild(tdTeam);
-
-      // Played
-      var tdSp = document.createElement('td');
-      tdSp.textContent = rw.played != null ? rw.played : '-';
-      tr.appendChild(tdSp);
-
-      // Wins — with clear/narrow split for VB
-      var tdW = document.createElement('td');
-      if (isVB && (rw.wins_clear || rw.wins_narrow)) {
-        tdW.textContent = (rw.won || 0);
-        var wSub = document.createElement('span');
-        wSub.style.fontSize = 'var(--text-xs)';
-        wSub.style.color = 'var(--text-muted)';
-        wSub.style.display = 'block';
-        wSub.textContent = (rw.wins_clear || 0) + '/' + (rw.wins_narrow || 0);
-        tdW.appendChild(wSub);
-      } else {
-        tdW.textContent = rw.won != null ? rw.won : '-';
-      }
-      tr.appendChild(tdW);
-
-      // Losses — with clear/narrow split for VB
-      var tdL = document.createElement('td');
-      if (isVB && (rw.defeats_clear || rw.defeats_narrow)) {
-        tdL.textContent = (rw.lost || 0);
-        var lSub = document.createElement('span');
-        lSub.style.fontSize = 'var(--text-xs)';
-        lSub.style.color = 'var(--text-muted)';
-        lSub.style.display = 'block';
-        lSub.textContent = (rw.defeats_clear || 0) + '/' + (rw.defeats_narrow || 0);
-        tdL.appendChild(lSub);
-      } else {
-        tdL.textContent = rw.lost != null ? rw.lost : '-';
-      }
-      tr.appendChild(tdL);
-
-      // Sets (VB only)
-      if (isVB) {
-        var tdSets = document.createElement('td');
-        tdSets.textContent = (rw.sets_won || 0) + ':' + (rw.sets_lost || 0);
-        tr.appendChild(tdSets);
-      }
-
-      tbody.appendChild(tr);
+      table.appendChild(tbody);
+      wrap.appendChild(table);
+      rankEl.appendChild(wrap);
     }
-    table.appendChild(tbody);
-    wrap.appendChild(table);
-    rankEl.appendChild(wrap);
+
+    appendSection(rankings, teamInfo.league, teamInfo.league || '', false);
+    appendSection(barrage, barrage.length ? barrage[0].league : '', null, true);
   }
 
   // ── Promotion / relegation colors (volleyball) ─────────────────────
