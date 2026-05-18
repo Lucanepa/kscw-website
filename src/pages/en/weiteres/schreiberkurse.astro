@@ -2,11 +2,8 @@
 import PageLayout from '../../../layouts/PageLayout.astro';
 import SectionHeader from '../../../components/SectionHeader.astro';
 import { t } from '../../../lib/i18n';
-import { getUpcomingScorerCourses, localeSlug } from '../../../data/scorer-courses';
-import { formatDate } from '../../../lib/utils';
 
 const locale = 'en';
-const upcomingCourses = getUpcomingScorerCourses();
 ---
 <PageLayout
   title="Volleyball Scorer Courses — KSC Wiedikon"
@@ -26,60 +23,25 @@ const upcomingCourses = getUpcomingScorerCourses();
     </div>
   </section>
 
-  {upcomingCourses.length > 0 && (
-  <section class="section">
+  <section class="section" data-scorer-section hidden>
     <div class="container">
       <SectionHeader title={t(locale, 'scorerSignupTitle')} />
       <p style="max-width: 800px; color: var(--text-secondary); margin-bottom: var(--space-lg);">
         {t(locale, 'scorerSignupIntro')}
       </p>
-      <div style="display: flex; flex-direction: column; gap: var(--space-xl); max-width: 760px;">
-        {upcomingCourses.map((course) => {
-          const slug = localeSlug(course, locale);
-          const modeKey = course.mode === 'in_person' ? 'scorerModeInPerson'
-            : course.mode === 'recorded' ? 'scorerModeRecorded' : 'scorerModeBoth';
-          return (
-            <div class="card">
-              <div class="card-body" style="display: flex; flex-direction: column; gap: var(--space-md);">
-                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-md); flex-wrap: wrap;">
-                  <h3 style="margin: 0;">{course.titleEn}</h3>
-                  <span style="font-weight: 600; color: var(--kscw-blue);">
-                    {course.dateISO ? formatDate(course.dateISO) : t(locale, 'scorerSignupSoon')}
-                    {course.dateISO && course.time ? ` · ${course.time}` : ''}
-                  </span>
-                </div>
-                <div style="display: flex; align-items: center; gap: var(--space-md); flex-wrap: wrap;">
-                  <span class="chip" style="background: var(--kscw-gold); color: var(--text-on-gold);">{t(locale, modeKey)}</span>
-                  {slug && (
-                    <span
-                      class="scorer-count"
-                      data-count-slug={slug}
-                      data-count-one={t(locale, 'scorerSignupCountOne')}
-                      data-count-many={t(locale, 'scorerSignupCountMany')}
-                      hidden
-                    ></span>
-                  )}
-                </div>
-                {slug ? (
-                  <iframe
-                    class="scorer-iframe"
-                    src={`https://forms.kscw.ch/forms/${slug}`}
-                    title={course.titleEn}
-                    loading="lazy"
-                  ></iframe>
-                ) : (
-                  <p style="color: var(--text-muted); font-style: italic; margin: 0;">
-                    {t(locale, 'scorerSignupSoon')}
-                  </p>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <div
+        data-scorer-courses
+        data-locale={locale}
+        data-soon={t(locale, 'scorerSignupSoon')}
+        data-mode-in_person={t(locale, 'scorerModeInPerson')}
+        data-mode-recorded={t(locale, 'scorerModeRecorded')}
+        data-mode-both={t(locale, 'scorerModeBoth')}
+        data-count-one={t(locale, 'scorerSignupCountOne')}
+        data-count-many={t(locale, 'scorerSignupCountMany')}
+        style="display: flex; flex-direction: column; gap: var(--space-xl); max-width: 760px;"
+      ></div>
     </div>
   </section>
-  )}
 
   <!-- Resources Grid -->
   <section class="section-alt">
@@ -204,5 +166,5 @@ const upcomingCourses = getUpcomingScorerCourses();
     </div>
   </section>
 
-  <script src="../../../islands/scorer-count.ts"></script>
+  <script src="../../../islands/scorer-courses.ts"></script>
 </PageLayout>

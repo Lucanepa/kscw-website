@@ -156,6 +156,26 @@ import '../styles/global.css';
         sponsorConfirmDelete: 'Diesen Sponsor wirklich löschen?',
         sponsorActive_badge: 'Aktiv',
         sponsorInactive_badge: 'Inaktiv',
+        scorerCourses: 'Schreiberkurse',
+        scorerCoursesNoEntries: 'Keine Schreiberkurse vorhanden.',
+        scorerCoursesConfirmDelete: 'Diesen Schreiberkurs wirklich löschen?',
+        scSlugId: 'Slug-ID',
+        scTitleDe: 'Titel (DE)',
+        scTitleEn: 'Titel (EN)',
+        scDateIso: 'Datum (JJJJ-MM-TT, leer = noch offen)',
+        scTime: 'Uhrzeit (HH:MM)',
+        scMode: 'Modus',
+        scModeInPerson: 'Vor Ort',
+        scModeRecorded: 'Aufzeichnung',
+        scModeBoth: 'Vor Ort oder Aufzeichnung',
+        scFormSlugDe: 'OpnForm-Slug (DE)',
+        scFormSlugEn: 'OpnForm-Slug (EN)',
+        scActive: 'Aktiv',
+        scSort: 'Reihenfolge',
+        scResponsesDe: 'Antworten (DE)',
+        scResponsesEn: 'Antworten (EN)',
+        scActive_badge: 'Aktiv',
+        scInactive_badge: 'Inaktiv',
         mixedTurnier: 'Mixed Turnier',
         mixedTurnierNoEntries: 'Keine Anmeldungen vorhanden.',
         mixedTurnierExportCSV: 'CSV Export',
@@ -246,6 +266,26 @@ import '../styles/global.css';
         sponsorConfirmDelete: 'Are you sure you want to delete this sponsor?',
         sponsorActive_badge: 'Active',
         sponsorInactive_badge: 'Inactive',
+        scorerCourses: 'Scorer courses',
+        scorerCoursesNoEntries: 'No scorer courses found.',
+        scorerCoursesConfirmDelete: 'Are you sure you want to delete this scorer course?',
+        scSlugId: 'Slug ID',
+        scTitleDe: 'Title (DE)',
+        scTitleEn: 'Title (EN)',
+        scDateIso: 'Date (YYYY-MM-DD, empty = TBA)',
+        scTime: 'Time (HH:MM)',
+        scMode: 'Mode',
+        scModeInPerson: 'In person',
+        scModeRecorded: 'Recording',
+        scModeBoth: 'In person or recording',
+        scFormSlugDe: 'OpnForm slug (DE)',
+        scFormSlugEn: 'OpnForm slug (EN)',
+        scActive: 'Active',
+        scSort: 'Sort order',
+        scResponsesDe: 'Responses (DE)',
+        scResponsesEn: 'Responses (EN)',
+        scActive_badge: 'Active',
+        scInactive_badge: 'Inactive',
         mixedTurnier: 'Mixed Turnier',
         mixedTurnierNoEntries: 'No signups found.',
         mixedTurnierExportCSV: 'CSV Export',
@@ -567,6 +607,7 @@ import '../styles/global.css';
             '<button class="admin-tab' + (currentTab === 'events' ? ' active' : '') + '" data-tab="events">Events</button>' +
             '<button class="admin-tab' + (currentTab === 'registrations' ? ' active' : '') + '" data-tab="registrations">' + t('registrations') + '</button>' +
             '<button class="admin-tab' + (currentTab === 'sponsors' ? ' active' : '') + '" data-tab="sponsors">' + t('sponsors') + '</button>' +
+            '<button class="admin-tab' + (currentTab === 'scorer_courses' ? ' active' : '') + '" data-tab="scorer_courses">' + t('scorerCourses') + '</button>' +
             '<button class="admin-tab' + (currentTab === 'mixed_turnier' ? ' active' : '') + '" data-tab="mixed_turnier">' + t('mixedTurnier') + '</button>' +
           '</div>' +
           '<div class="admin-content" id="admin-content"></div>' +
@@ -682,6 +723,26 @@ import '../styles/global.css';
         }).then(function(r) { return r.json(); })
           .then(function(data) {
             renderSponsorsList(data.data || []);
+          })
+          .catch(function(err) {
+            content.textContent = '';
+            var errDiv = document.createElement('div');
+            errDiv.className = 'admin-error';
+            errDiv.textContent = t('loadError') + err.message;
+            content.appendChild(errDiv);
+          });
+        return;
+      }
+
+      // ── Scorer courses tab ──
+      if (currentTab === 'scorer_courses') {
+        getValidToken().then(function(token) {
+          return fetch(DIRECTUS_URL + '/items/scorer_courses?sort=sort,date_iso&limit=-1', {
+            headers: { 'Authorization': 'Bearer ' + token },
+          });
+        }).then(function(r) { return r.json(); })
+          .then(function(data) {
+            renderScorerCoursesList(data.data || []);
           })
           .catch(function(err) {
             content.textContent = '';
@@ -1703,11 +1764,123 @@ import '../styles/global.css';
       content.appendChild(list);
     }
 
+    function renderScorerCoursesList(items) {
+      var content = document.getElementById('admin-content');
+      if (!content) return;
+      content.textContent = '';
+
+      if (!items.length) {
+        var emptyDiv = document.createElement('div');
+        emptyDiv.className = 'admin-empty';
+        emptyDiv.textContent = t('scorerCoursesNoEntries');
+        content.appendChild(emptyDiv);
+        return;
+      }
+
+      var modeKeyMap = { in_person: 'scModeInPerson', recorded: 'scModeRecorded', both: 'scModeBoth' };
+
+      var list = document.createElement('div');
+      list.className = 'admin-list';
+
+      items.forEach(function(sc) {
+        var row = document.createElement('div');
+        row.className = 'admin-list-item';
+
+        var info = document.createElement('div');
+        info.className = 'admin-list-info';
+
+        var textCol = document.createElement('div');
+        var h3 = document.createElement('h3');
+        h3.className = 'admin-list-title';
+        h3.textContent = sc.title_en || sc.title_de || sc.slug_id || '(?)';
+        textCol.appendChild(h3);
+
+        var meta = document.createElement('div');
+        meta.className = 'admin-list-meta';
+
+        var dateBadge = document.createElement('span');
+        dateBadge.className = 'admin-badge';
+        dateBadge.textContent = (sc.date_iso || t('scDateIso')) + (sc.time ? ' · ' + sc.time : '');
+        meta.appendChild(dateBadge);
+
+        var modeBadge = document.createElement('span');
+        modeBadge.className = 'admin-badge admin-badge-gray';
+        modeBadge.textContent = t(modeKeyMap[sc.mode] || 'scModeInPerson');
+        meta.appendChild(modeBadge);
+
+        var activeBadge = document.createElement('span');
+        activeBadge.className = sc.active ? 'admin-badge admin-badge-green' : 'admin-badge admin-badge-gray';
+        activeBadge.textContent = sc.active ? t('scActive_badge') : t('scInactive_badge');
+        meta.appendChild(activeBadge);
+
+        var slugSpan = document.createElement('span');
+        slugSpan.style.cssText = 'color:var(--text-muted);font-size:var(--text-xs);';
+        slugSpan.textContent = 'DE: ' + (sc.form_slug_de || '—') + '  EN: ' + (sc.form_slug_en || '—');
+        meta.appendChild(slugSpan);
+
+        textCol.appendChild(meta);
+        info.appendChild(textCol);
+        row.appendChild(info);
+
+        var actions = document.createElement('div');
+        actions.className = 'admin-list-actions';
+
+        if (sc.form_slug_de) {
+          var respDe = document.createElement('button');
+          respDe.className = 'admin-btn admin-btn-sm';
+          respDe.textContent = t('scResponsesDe');
+          respDe.addEventListener('click', (function(slug, ttl) {
+            return function() { openResponsesModal(slug, ttl); };
+          })(sc.form_slug_de, (sc.title_de || sc.slug_id) + ' (DE)'));
+          actions.appendChild(respDe);
+        }
+        if (sc.form_slug_en) {
+          var respEn = document.createElement('button');
+          respEn.className = 'admin-btn admin-btn-sm';
+          respEn.textContent = t('scResponsesEn');
+          respEn.addEventListener('click', (function(slug, ttl) {
+            return function() { openResponsesModal(slug, ttl); };
+          })(sc.form_slug_en, (sc.title_en || sc.slug_id) + ' (EN)'));
+          actions.appendChild(respEn);
+        }
+
+        var editBtn = document.createElement('button');
+        editBtn.className = 'admin-btn admin-btn-sm';
+        editBtn.textContent = t('edit');
+        editBtn.addEventListener('click', function() { openModal(sc); });
+        actions.appendChild(editBtn);
+
+        var deleteBtn = document.createElement('button');
+        deleteBtn.className = 'admin-btn admin-btn-sm admin-btn-danger';
+        deleteBtn.textContent = t('delete');
+        deleteBtn.addEventListener('click', function() {
+          if (confirm(t('scorerCoursesConfirmDelete'))) {
+            getValidToken().then(function(token) {
+              return fetch(DIRECTUS_URL + '/items/scorer_courses/' + sc.id, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token },
+              });
+            }).then(function(res) {
+              if (!res.ok) throw new Error('HTTP ' + res.status);
+              loadItems();
+            }).catch(function(err) { alert(t('deleteError') + err.message); });
+          }
+        });
+        actions.appendChild(deleteBtn);
+
+        row.appendChild(actions);
+        list.appendChild(row);
+      });
+
+      content.appendChild(list);
+    }
+
     // ── Modal (Create / Edit) ─────────────────────────────────
     function openModal(item) {
       var modal = document.getElementById('admin-modal');
       var isEdit = !!item;
       var isNews = currentTab === 'news';
+      var isScorerCourse = currentTab === 'scorer_courses';
       var modalTitle = isEdit ? t('edit') : t('newItem');
 
       // Build form HTML (all values escaped)
@@ -1729,6 +1902,29 @@ import '../styles/global.css';
         formHtml += fieldNumber('sort_order', t('sponsorSortOrder'), item ? item.sort_order : '');
         formHtml += fieldCheckbox('active', t('sponsorActive'), item ? item.active !== false : true, { toggle: true });
         formHtml += fieldCheckbox('team_page_only', t('sponsorTeamPageOnly'), item ? !!item.team_page_only : false, { toggle: true });
+      } else if (currentTab === 'scorer_courses') {
+        // Scorer-course form
+        formHtml += fieldInput('slug_id', t('scSlugId'), item ? (item.slug_id || '') : '', { required: true, placeholder: '2026-07-08-en' });
+        formHtml += fieldInput('title_de', t('scTitleDe'), item ? (item.title_de || '') : '', true);
+        formHtml += fieldInput('title_en', t('scTitleEn'), item ? (item.title_en || '') : '', true);
+        formHtml += fieldDate('date_iso', t('scDateIso'), item ? ((item.date_iso || '').substring(0, 10)) : '');
+        formHtml += fieldInput('time', t('scTime'), item ? (item.time || '') : '', { placeholder: '18:00' });
+        var scModes = [
+          { v: 'in_person', l: t('scModeInPerson') },
+          { v: 'recorded', l: t('scModeRecorded') },
+          { v: 'both', l: t('scModeBoth') },
+        ];
+        var scModeSel = item ? item.mode : 'in_person';
+        var scModeHtml = '<div class="admin-field"><label for="f-mode">' + escapeHtml(t('scMode')) + '</label><select name="mode" id="f-mode">';
+        scModes.forEach(function(m) {
+          scModeHtml += '<option value="' + escapeAttr(m.v) + '"' + (m.v === scModeSel ? ' selected' : '') + '>' + escapeHtml(m.l) + '</option>';
+        });
+        scModeHtml += '</select></div>';
+        formHtml += scModeHtml;
+        formHtml += fieldInput('form_slug_de', t('scFormSlugDe'), item ? (item.form_slug_de || '') : '', { placeholder: 'scorer-2026-07-08-de' });
+        formHtml += fieldInput('form_slug_en', t('scFormSlugEn'), item ? (item.form_slug_en || '') : '', { placeholder: 'scorer-2026-07-08-en' });
+        formHtml += fieldNumber('sort', t('scSort'), item ? item.sort : 0);
+        formHtml += fieldCheckbox('active', t('scActive'), item ? item.active !== false : true, { toggle: true });
       } else {
       // Title with silent auto-translation
       var titleVal = item ? (adminLang === 'en' && item.title_en ? item.title_en : item.title) : '';
@@ -1874,7 +2070,7 @@ import '../styles/global.css';
       }
 
       // ── Participation toggle (events only) ───────────────────
-      if (!isNews && currentTab !== 'sponsors') {
+      if (!isNews && !isScorerCourse && currentTab !== 'sponsors') {
         var partCheck = document.querySelector('[name="participation_required"]');
         var partFields = document.getElementById('participation-fields');
         if (partCheck && partFields) {
@@ -2060,7 +2256,8 @@ import '../styles/global.css';
 
       var isNews = currentTab === 'news';
       var isSponsor = currentTab === 'sponsors';
-      var collection = isSponsor ? 'sponsors' : (isNews ? 'news' : 'events');
+      var isScorerCourse = currentTab === 'scorer_courses';
+      var collection = isScorerCourse ? 'scorer_courses' : (isSponsor ? 'sponsors' : (isNews ? 'news' : 'events'));
       var payload = {};
 
       try {
@@ -2078,6 +2275,18 @@ import '../styles/global.css';
           if (logoInput && logoInput.files.length > 0) {
             payload.logo = await uploadFile(token, logoInput.files[0]);
           }
+        } else if (isScorerCourse) {
+          payload.slug_id = form.querySelector('[name="slug_id"]').value.trim();
+          payload.title_de = form.querySelector('[name="title_de"]').value.trim();
+          payload.title_en = form.querySelector('[name="title_en"]').value.trim();
+          payload.date_iso = form.querySelector('[name="date_iso"]').value || null;
+          payload.time = form.querySelector('[name="time"]').value.trim() || null;
+          payload.mode = form.querySelector('[name="mode"]').value;
+          payload.form_slug_de = form.querySelector('[name="form_slug_de"]').value.trim() || null;
+          payload.form_slug_en = form.querySelector('[name="form_slug_en"]').value.trim() || null;
+          var scSortVal = form.querySelector('[name="sort"]').value;
+          payload.sort = scSortVal ? Number(scSortVal) : 0;
+          payload.active = form.querySelector('[name="active"]').checked;
         } else if (isNews) {
           var rawTitle = form.querySelector('[name="title"]').value;
           var translatedTitle = form.querySelector('[name="title_en"]').value;
