@@ -36,7 +36,7 @@ import '../styles/global.css';
     var TURNSTILE_SITE_KEY = '0x4AAAAAACoYmx3xiDfRbmv9';
     var app = document.getElementById('admin-app');
     var currentTab = 'news';
-    var adminLang = localStorage.getItem('admin-lang') || 'de';
+    var adminLang = 'en';
     var quillInstance = null;
     var turnstileWidgetId = null;
     var turnstileToken = '';
@@ -293,7 +293,7 @@ import '../styles/global.css';
         mixedTurnierMember: 'Member',
       }
     };
-    function t(key) { return (i18n[adminLang] || i18n.de)[key] || key; }
+    function t(key) { return i18n.en[key] || key; }
     var cachedTeams = null; // [{id, name, sport}]
     var cachedMembers = null; // [{id, first_name, last_name, email}]
 
@@ -338,6 +338,16 @@ import '../styles/global.css';
     }
     function escapeAttr(str) {
       return (str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    // Accepts a bare OpnForm slug or a full forms.kscw.ch URL → bare slug.
+    // Idempotent for bare slugs; empty/null → ''. Mirrors normalizeFormSlug
+    // in src/data/scorer-courses.ts.
+    function normalizeFormSlug(value) {
+      if (!value) return '';
+      var v = String(value).trim();
+      if (!v) return '';
+      var m = v.match(/\/forms\/([^/?#]+)/i);
+      return (m ? m[1] : v).replace(/^\/+/, '').replace(/[/?#].*$/, '').trim();
     }
 
     // ── Safe DOM helpers (avoid innerHTML with user data) ─────
@@ -426,7 +436,7 @@ import '../styles/global.css';
         turnstileWidgetId = window.turnstile.render(adminTurnstileEl, {
           sitekey: TURNSTILE_SITE_KEY,
           theme: 'auto',
-          size: 'compact',
+          size: 'normal',
           callback: function(token) { turnstileToken = token; },
           'expired-callback': function() { turnstileToken = ''; },
         });
@@ -594,10 +604,6 @@ import '../styles/global.css';
                 '<span style="line-height:1.1;font-size:0.85em;">Website<br>Admin</span>' +
               '</a>' +
               '<div class="admin-header-actions">' +
-                '<button class="admin-lang-toggle" id="lang-toggle">' +
-                  '<span class="admin-lang-opt' + (adminLang === 'de' ? ' active' : '') + '" data-lang="de">DE</span>' +
-                  '<span class="admin-lang-opt' + (adminLang === 'en' ? ' active' : '') + '" data-lang="en">EN</span>' +
-                '</button>' +
                 '<button class="admin-btn admin-btn-ghost" id="logout-btn">' + t('logout') + '</button>' +
               '</div>' +
             '</div>' +
@@ -625,12 +631,6 @@ import '../styles/global.css';
       document.getElementById('logout-btn').addEventListener('click', function() {
         sessionStorage.removeItem(AUTH_KEY);
         render();
-      });
-
-      document.getElementById('lang-toggle').addEventListener('click', function() {
-        adminLang = adminLang === 'de' ? 'en' : 'de';
-        localStorage.setItem('admin-lang', adminLang);
-        renderAdmin();
       });
 
       document.querySelectorAll('.admin-tab').forEach(function(tab) {
@@ -826,7 +826,7 @@ import '../styles/global.css';
               if (slugMatch) {
                 var respBtn = document.createElement('button');
                 respBtn.className = 'admin-btn admin-btn-sm';
-                respBtn.textContent = 'Anmeldungen';
+                respBtn.textContent = 'Signups';
                 respBtn.addEventListener('click', (function(slug, eventTitle) {
                   return function() { openResponsesModal(slug, eventTitle); };
                 })(slugMatch[1], title));
@@ -1071,9 +1071,9 @@ import '../styles/global.css';
       var table = document.createElement('table');
       table.className = 'admin-table';
       table.innerHTML = '<thead><tr>' +
-        '<th>Datum</th><th>Name</th><th>Email</th><th>Geschlecht</th>' +
+        '<th>Date</th><th>Name</th><th>Email</th><th>Gender</th>' +
         '<th>Team</th><th>Pos 1</th><th>Pos 2</th><th>Pos 3</th>' +
-        '<th>Quelle</th><th>Bemerkungen</th>' +
+        '<th>Source</th><th>Notes</th>' +
         '</tr></thead>';
 
       var tbody = document.createElement('tbody');
@@ -1157,7 +1157,7 @@ import '../styles/global.css';
       var clean = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(text) : escapeHtml(text);
       modal.innerHTML = '<div class="admin-modal-content">' +
         '<div class="admin-modal-header">' +
-          '<h2>Bemerkungen</h2>' +
+          '<h2>Notes</h2>' +
           '<button class="admin-modal-close" id="mt-note-close">&times;</button>' +
         '</div>' +
         '<div class="admin-modal-body" style="white-space:pre-wrap;">' + clean + '</div>' +
@@ -1184,35 +1184,35 @@ import '../styles/global.css';
           '<span class="admin-badge ' + (item.status === 'approved' ? 'admin-badge-green' : item.status === 'rejected' ? 'admin-badge-danger' : '') + '">' + escapeHtml(item.status || '') + '</span>' +
         '</div>' +
 
-        fieldInput('reg-vorname', 'Vorname', item.vorname, true) +
-        fieldInput('reg-nachname', 'Nachname', item.nachname, true) +
-        fieldInput('reg-email', 'E-Mail', item.email, true) +
-        fieldInput('reg-telefon', 'Telefon', item.telefon_mobil) +
-        fieldInput('reg-adresse', 'Adresse', item.adresse) +
-        fieldInput('reg-plz', 'PLZ', item.plz) +
-        fieldInput('reg-ort', 'Ort', item.ort) +
-        fieldDate('reg-dob', 'Geburtsdatum', item.geburtsdatum ? item.geburtsdatum.substring(0, 10) : '') +
-        fieldInput('reg-nation', 'Nationalität', item.nationalitaet) +
-        fieldInput('reg-gender', 'Geschlecht', item.geschlecht) +
+        fieldInput('reg-vorname', 'First name', item.vorname, true) +
+        fieldInput('reg-nachname', 'Last name', item.nachname, true) +
+        fieldInput('reg-email', 'Email', item.email, true) +
+        fieldInput('reg-telefon', 'Phone', item.telefon_mobil) +
+        fieldInput('reg-adresse', 'Address', item.adresse) +
+        fieldInput('reg-plz', 'Postal code', item.plz) +
+        fieldInput('reg-ort', 'City', item.ort) +
+        fieldDate('reg-dob', 'Date of birth', item.geburtsdatum ? item.geburtsdatum.substring(0, 10) : '') +
+        fieldInput('reg-nation', 'Nationality', item.nationalitaet) +
+        fieldInput('reg-gender', 'Gender', item.geschlecht) +
         fieldInput('reg-team', 'Team', item.team) +
-        fieldInput('reg-fee', 'Beitragskategorie', item.beitragskategorie) +
-        fieldInput('reg-ahv', 'AHV', item.ahv_nummer) +
-        fieldInput('reg-ks', 'Kantonsschule', item.kantonsschule) +
-        fieldInput('reg-rolle', 'Funktion', item.rolle) +
-        fieldInput('reg-lizenz', 'Offiziellen Lizenz', item.lizenz) +
-        fieldInput('reg-refstufe', 'Schiedsrichter-Stufe', item.schiedsrichter_stufe) +
-        fieldTextarea('reg-bemerkungen', 'Bemerkungen', item.bemerkungen) +
+        fieldInput('reg-fee', 'Membership category', item.beitragskategorie) +
+        fieldInput('reg-ahv', 'AHV number', item.ahv_nummer) +
+        fieldInput('reg-ks', 'Cantonal school', item.kantonsschule) +
+        fieldInput('reg-rolle', 'Role', item.rolle) +
+        fieldInput('reg-lizenz', 'Official license', item.lizenz) +
+        fieldInput('reg-refstufe', 'Referee level', item.schiedsrichter_stufe) +
+        fieldTextarea('reg-bemerkungen', 'Notes', item.bemerkungen) +
 
-        (item.id_upload_front ? '<div class="admin-field"><label>ID Vorderseite</label>' +
-          '<a href="' + escapeAttr(DIRECTUS_URL + '/assets/' + item.id_upload_front) + '" target="_blank" class="admin-btn admin-btn-sm">Ansehen</a></div>' : '') +
-        (item.id_upload_back ? '<div class="admin-field"><label>ID Rückseite</label>' +
-          '<a href="' + escapeAttr(DIRECTUS_URL + '/assets/' + item.id_upload_back) + '" target="_blank" class="admin-btn admin-btn-sm">Ansehen</a></div>' : '') +
-        (item.bb_doc_lizenz ? '<div class="admin-field"><label>Lizenzantrag (PDF)</label>' +
-          '<a href="' + escapeAttr(DIRECTUS_URL + '/assets/' + item.bb_doc_lizenz) + '" target="_blank" class="admin-btn admin-btn-sm">Ansehen</a></div>' : '') +
+        (item.id_upload_front ? '<div class="admin-field"><label>ID front</label>' +
+          '<a href="' + escapeAttr(DIRECTUS_URL + '/assets/' + item.id_upload_front) + '" target="_blank" class="admin-btn admin-btn-sm">View</a></div>' : '') +
+        (item.id_upload_back ? '<div class="admin-field"><label>ID back</label>' +
+          '<a href="' + escapeAttr(DIRECTUS_URL + '/assets/' + item.id_upload_back) + '" target="_blank" class="admin-btn admin-btn-sm">View</a></div>' : '') +
+        (item.bb_doc_lizenz ? '<div class="admin-field"><label>License application (PDF)</label>' +
+          '<a href="' + escapeAttr(DIRECTUS_URL + '/assets/' + item.bb_doc_lizenz) + '" target="_blank" class="admin-btn admin-btn-sm">View</a></div>' : '') +
         (item.bb_doc_selfdecl ? '<div class="admin-field"><label>Self Declaration (PDF)</label>' +
-          '<a href="' + escapeAttr(DIRECTUS_URL + '/assets/' + item.bb_doc_selfdecl) + '" target="_blank" class="admin-btn admin-btn-sm">Ansehen</a></div>' : '') +
+          '<a href="' + escapeAttr(DIRECTUS_URL + '/assets/' + item.bb_doc_selfdecl) + '" target="_blank" class="admin-btn admin-btn-sm">View</a></div>' : '') +
         (item.bb_doc_natdecl ? '<div class="admin-field"><label>National Team Decl. (PDF)</label>' +
-          '<a href="' + escapeAttr(DIRECTUS_URL + '/assets/' + item.bb_doc_natdecl) + '" target="_blank" class="admin-btn admin-btn-sm">Ansehen</a></div>' : '') +
+          '<a href="' + escapeAttr(DIRECTUS_URL + '/assets/' + item.bb_doc_natdecl) + '" target="_blank" class="admin-btn admin-btn-sm">View</a></div>' : '') +
 
         '<div class="admin-modal-footer">' +
         '<button type="button" class="admin-btn" id="modal-cancel">' + t('cancel') + '</button>' +
@@ -1950,7 +1950,7 @@ import '../styles/global.css';
         formHtml += fieldDate('end_date', t('endDate'), item ? (item.end_date || '').substring(0, 10) : '');
         formHtml += fieldCheckbox('all_day', t('allDay'), item ? item.all_day : true);
         formHtml += fieldInput('location', t('location'), item ? (item.location || '') : '');
-        formHtml += fieldInput('signup_url', 'Anmelde-Link (OpnForm)', item ? (item.signup_url || '') : '', { placeholder: 'https://forms.kscw.ch/forms/...' });
+        formHtml += fieldInput('signup_url', 'Signup link (OpnForm)', item ? (item.signup_url || '') : '', { placeholder: 'https://forms.kscw.ch/forms/...' });
         formHtml += '<div class="admin-field"><label>' + t('description') + '</label><div id="quill-editor" style="min-height:150px;"></div></div>';
 
         // Participation section
@@ -2105,6 +2105,7 @@ import '../styles/global.css';
 
     // ── OpnForm responses (admin) ──────────────────────────────
     function openResponsesModal(slug, eventTitle) {
+      slug = normalizeFormSlug(slug);
       var modal = document.getElementById('admin-modal');
       modal.textContent = '';
       var content = document.createElement('div');
@@ -2113,7 +2114,7 @@ import '../styles/global.css';
       var hdr = document.createElement('div');
       hdr.className = 'admin-modal-header';
       var h2 = document.createElement('h2');
-      h2.textContent = 'Anmeldungen — ' + (eventTitle || '');
+      h2.textContent = 'Signups — ' + (eventTitle || '');
       hdr.appendChild(h2);
       var closeBtn = document.createElement('button');
       closeBtn.className = 'admin-modal-close';
@@ -2123,10 +2124,10 @@ import '../styles/global.css';
       content.appendChild(hdr);
       var body = document.createElement('div');
       body.id = 'resp-body';
-      body.style.cssText = 'padding:1rem;min-height:120px;';
+      body.style.cssText = 'padding:1rem;min-height:120px;overflow-y:auto;flex:1 1 auto;';
       var loading = document.createElement('div');
       loading.className = 'admin-empty';
-      loading.textContent = 'Lade…';
+      loading.textContent = 'Loading…';
       body.appendChild(loading);
       content.appendChild(body);
       modal.appendChild(content);
@@ -2149,12 +2150,12 @@ import '../styles/global.css';
         header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;';
         var summary = document.createElement('div');
         summary.style.cssText = 'font-size:var(--text-sm);color:var(--text-muted);';
-        summary.textContent = total + ' Antwort' + (total === 1 ? '' : 'en');
+        summary.textContent = total + ' response' + (total === 1 ? '' : 's');
         header.appendChild(summary);
         if (total > 0) {
           var csvBtn = document.createElement('button');
           csvBtn.className = 'admin-btn admin-btn-sm admin-btn-primary';
-          csvBtn.textContent = 'CSV exportieren';
+          csvBtn.textContent = 'Export CSV';
           csvBtn.addEventListener('click', function() {
             exportResponsesCSV(slug, fields, rows);
           });
@@ -2165,7 +2166,7 @@ import '../styles/global.css';
         if (!rows.length) {
           var empty = document.createElement('div');
           empty.className = 'admin-empty';
-          empty.textContent = 'Noch keine Anmeldungen.';
+          empty.textContent = 'No signups yet.';
           body.appendChild(empty);
           return;
         }
@@ -2176,7 +2177,7 @@ import '../styles/global.css';
         table.style.cssText = 'width:100%;border-collapse:collapse;font-size:var(--text-sm);';
         var thead = document.createElement('thead');
         var thRow = document.createElement('tr');
-        ['Datum'].concat(fields.map(function(f) { return f.name; })).forEach(function(label) {
+        ['Date'].concat(fields.map(function(f) { return f.name; })).forEach(function(label) {
           var th = document.createElement('th');
           th.textContent = label;
           th.style.cssText = 'text-align:left;padding:0.5rem 0.75rem;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.04);font-weight:600;';
@@ -2207,7 +2208,7 @@ import '../styles/global.css';
         body.textContent = '';
         var errDiv = document.createElement('div');
         errDiv.className = 'admin-empty';
-        errDiv.textContent = 'Fehler beim Laden: ' + (err && err.message ? err.message : 'unbekannt');
+        errDiv.textContent = 'Error loading: ' + (err && err.message ? err.message : 'unknown');
         body.appendChild(errDiv);
       });
     }
@@ -2282,8 +2283,8 @@ import '../styles/global.css';
           payload.date_iso = form.querySelector('[name="date_iso"]').value || null;
           payload.time = form.querySelector('[name="time"]').value.trim() || null;
           payload.mode = form.querySelector('[name="mode"]').value;
-          payload.form_slug_de = form.querySelector('[name="form_slug_de"]').value.trim() || null;
-          payload.form_slug_en = form.querySelector('[name="form_slug_en"]').value.trim() || null;
+          payload.form_slug_de = normalizeFormSlug(form.querySelector('[name="form_slug_de"]').value) || null;
+          payload.form_slug_en = normalizeFormSlug(form.querySelector('[name="form_slug_en"]').value) || null;
           var scSortVal = form.querySelector('[name="sort"]').value;
           payload.sort = scSortVal ? Number(scSortVal) : 0;
           payload.active = form.querySelector('[name="active"]').checked;
@@ -2661,26 +2662,6 @@ import '../styles/global.css';
     align-items: center;
     gap: var(--space-sm);
   }
-  .admin-lang-toggle {
-    display: flex;
-    background: var(--surface-2, rgba(255,255,255,0.06));
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    cursor: pointer;
-    padding: 0;
-  }
-  .admin-lang-opt {
-    padding: 4px 10px;
-    font-size: var(--text-xs);
-    font-weight: 600;
-    color: var(--text-muted);
-    transition: background 0.15s, color 0.15s;
-  }
-  .admin-lang-opt.active {
-    background: var(--kscw-blue);
-    color: #fff;
-  }
   .admin-logo {
     display: flex;
     align-items: center;
@@ -2831,14 +2812,23 @@ import '../styles/global.css';
   .admin-fab:hover { background: var(--kscw-blue-dark); transform: scale(1.05); }
 
   /* ── Toggle switch ──────────────────────────────────────── */
-  .admin-field-toggle { margin: var(--space-lg) 0 var(--space-md) 0; }
+  .admin-field-toggle {
+    margin: var(--space-md) 0;
+    padding: var(--space-md) var(--space-lg);
+    background: var(--bg-light);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .admin-field-toggle:hover { border-color: var(--kscw-blue-light); }
   .admin-toggle-label {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: var(--space-lg);
     font-size: var(--text-sm);
-    font-weight: 500;
-    color: var(--text-secondary);
+    font-weight: 600;
+    color: var(--text-primary);
     cursor: pointer;
   }
   .admin-toggle { position: relative; display: inline-block; }
@@ -2986,6 +2976,13 @@ import '../styles/global.css';
     color: var(--text-muted);
     margin-bottom: var(--space-xl);
     opacity: 0.7;
+  }
+
+  #admin-turnstile {
+    display: flex;
+    justify-content: center;
+    margin: var(--space-md) 0;
+    min-height: 65px;
   }
 
   .admin-login-btn {
@@ -3229,8 +3226,10 @@ import '../styles/global.css';
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
     z-index: var(--z-modal);
     padding: var(--space-xl);
@@ -3243,7 +3242,10 @@ import '../styles/global.css';
     width: 100%;
     max-width: 640px;
     box-shadow: var(--shadow-xl);
-    margin-top: var(--space-xl);
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100dvh - var(--space-xl) * 2);
+    overflow: hidden;
   }
   .admin-modal-header {
     display: flex;
@@ -3251,6 +3253,7 @@ import '../styles/global.css';
     justify-content: space-between;
     padding: var(--space-lg) var(--space-xl);
     border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
   }
   .admin-modal-header h2 {
     font-size: var(--text-lg);
@@ -3270,14 +3273,20 @@ import '../styles/global.css';
   .admin-modal-close:hover { color: var(--text-primary); }
   .admin-modal-body {
     padding: var(--space-xl);
+    overflow-y: auto;
+    flex: 1 1 auto;
   }
   .admin-modal-footer {
     display: flex;
     justify-content: flex-end;
     gap: var(--space-sm);
-    padding-top: var(--space-lg);
+    padding: var(--space-md) var(--space-xl);
     border-top: 1px solid var(--border);
-    margin-top: var(--space-lg);
+    margin: var(--space-lg) calc(var(--space-xl) * -1) calc(var(--space-xl) * -1);
+    position: sticky;
+    bottom: calc(var(--space-xl) * -1);
+    background: var(--bg-white);
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
   }
 
   /* ── Quill Overrides ───────────────────────────────────────── */

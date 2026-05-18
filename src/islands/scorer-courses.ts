@@ -6,7 +6,7 @@
 // per slug via the Directus OpnForm proxy. Admin edits appear on next
 // page load — no rebuild. Degrades silently if Directus is unreachable.
 
-import { getUpcomingScorerCourses, localeSlug, type ScorerCourse } from '../data/scorer-courses';
+import { getUpcomingScorerCourses, localeSlug, normalizeFormSlug, type ScorerCourse } from '../data/scorer-courses';
 import { formatDate } from '../lib/utils';
 import { getDirectusUrl } from '../lib/directus';
 
@@ -44,8 +44,8 @@ if (container) {
     mode: (['in_person', 'recorded', 'both'].includes(r.mode as string)
       ? (r.mode as ScorerCourse['mode'])
       : 'in_person'),
-    formSlugDe: (r.form_slug_de as string | null) ?? null,
-    formSlugEn: (r.form_slug_en as string | null) ?? null,
+    formSlugDe: normalizeFormSlug(r.form_slug_de as string | null),
+    formSlugEn: normalizeFormSlug(r.form_slug_en as string | null),
   });
 
   const fillCount = (badge: HTMLElement, slug: string) => {

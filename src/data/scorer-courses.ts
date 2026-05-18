@@ -49,6 +49,21 @@ export function localeSlug(c: ScorerCourse, locale: 'de' | 'en'): string | null 
 }
 
 /**
+ * Accepts either a bare OpnForm slug ("scorer-2026-07-08-en") or a full
+ * forms.kscw.ch form URL ("https://forms.kscw.ch/forms/<slug>") and returns
+ * the bare slug. Idempotent for already-bare slugs; null/empty → null.
+ * Strips any query string, hash, or trailing slash.
+ */
+export function normalizeFormSlug(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const v = String(value).trim();
+  if (!v) return null;
+  const m = v.match(/\/forms\/([^/?#]+)/i);
+  const slug = (m ? m[1] : v).replace(/^\/+/, '').replace(/[/?#].*$/, '').trim();
+  return slug || null;
+}
+
+/**
  * Upcoming = date in the future OR not yet announced (null date).
  * Sorted ascending by date; null-date entries last.
  */

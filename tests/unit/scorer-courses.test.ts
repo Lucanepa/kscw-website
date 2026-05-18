@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { scorerCourses, getUpcomingScorerCourses, localeSlug, type ScorerCourse } from 'src/data/scorer-courses';
+import { scorerCourses, getUpcomingScorerCourses, localeSlug, normalizeFormSlug, type ScorerCourse } from 'src/data/scorer-courses';
 
 const base: ScorerCourse = {
   id: 't', titleDe: 'Kurs', titleEn: 'Course',
@@ -28,5 +28,19 @@ describe('scorer-courses data', () => {
   it('localeSlug returns the locale form slug or null', () => {
     expect(localeSlug(base, 'en')).toBe('schreiberkurs-2026-07-08-en');
     expect(localeSlug(base, 'de')).toBeNull();
+  });
+
+  it('normalizeFormSlug extracts the bare slug from a full forms.kscw.ch URL', () => {
+    expect(normalizeFormSlug('https://forms.kscw.ch/forms/scorer-kurse-2026-en-l3tcje'))
+      .toBe('scorer-kurse-2026-en-l3tcje');
+    expect(normalizeFormSlug('http://forms.kscw.ch/forms/abc-123/')).toBe('abc-123');
+    expect(normalizeFormSlug('https://forms.kscw.ch/forms/abc-123?foo=1#x')).toBe('abc-123');
+  });
+
+  it('normalizeFormSlug is idempotent for already-bare slugs and null-safe', () => {
+    expect(normalizeFormSlug('scorer-2026-07-08-en')).toBe('scorer-2026-07-08-en');
+    expect(normalizeFormSlug(null)).toBeNull();
+    expect(normalizeFormSlug('')).toBeNull();
+    expect(normalizeFormSlug('   ')).toBeNull();
   });
 });
