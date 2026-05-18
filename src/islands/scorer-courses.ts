@@ -16,6 +16,7 @@ if (container) {
   const locale = (container.dataset.locale === 'en' ? 'en' : 'de') as 'de' | 'en';
   const txt = {
     soon: container.dataset.soon || '',
+    opensSoon: container.dataset.opensSoon || '',
     mode: {
       in_person: container.dataset.modeInPerson || '',
       recorded: container.dataset.modeRecorded || '',
@@ -104,10 +105,13 @@ if (container) {
           loading: 'lazy',
         });
         body.appendChild(frame);
-      } else {
+      } else if (course.dateISO) {
+        // Date is set but no sign-up form yet — say so without re-claiming
+        // the date is TBD. When the date itself is null the header span
+        // already shows the full "date to be announced" message.
         body.appendChild(el('p', {
           style: 'color: var(--text-muted); font-style: italic; margin: 0;',
-        }, txt.soon));
+        }, txt.opensSoon));
       }
 
       card.appendChild(body);

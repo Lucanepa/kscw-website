@@ -416,6 +416,7 @@
   "scorerSignupTitle": "Sign-up",
   "scorerSignupIntro": "Sign up here for an upcoming scorer course.",
   "scorerSignupSoon": "Date to be announced — sign-up opens soon.",
+  "scorerSignupOpensSoon": "Sign-up opens soon.",
   "scorerSignupCountOne": "1 person signed up",
   "scorerSignupCountMany": "{n} people signed up",
   "scorerModeInPerson": "In person",

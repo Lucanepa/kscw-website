@@ -416,6 +416,7 @@
   "scorerSignupTitle": "Anmeldung",
   "scorerSignupIntro": "Melde dich hier für einen kommenden Schreiberkurs an.",
   "scorerSignupSoon": "Datum wird noch bekannt gegeben — Anmeldung folgt in Kürze.",
+  "scorerSignupOpensSoon": "Anmeldung folgt in Kürze.",
   "scorerSignupCountOne": "1 Person angemeldet",
   "scorerSignupCountMany": "{n} Personen angemeldet",
   "scorerModeInPerson": "Vor Ort",
