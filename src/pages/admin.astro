@@ -349,6 +349,12 @@ import '../styles/global.css';
       var m = v.match(/\/forms\/([^/?#]+)/i);
       return (m ? m[1] : v).replace(/^\/+/, '').replace(/[/?#].*$/, '').trim();
     }
+    // 'yyyy-mm-dd[...]' -> Swiss 'dd.mm.yyyy' (mirrors formatDate in
+    // src/lib/utils.ts; this is:inline script cannot import it).
+    function isoToSwissDate(iso) {
+      var p = String(iso || '').substring(0, 10).split('-');
+      return p.length === 3 ? p[2] + '.' + p[1] + '.' + p[0] : String(iso || '');
+    }
 
     // ── Safe DOM helpers (avoid innerHTML with user data) ─────
     function setAppContent(html) {
@@ -1800,7 +1806,16 @@ import '../styles/global.css';
 
         var dateBadge = document.createElement('span');
         dateBadge.className = 'admin-badge';
-        dateBadge.textContent = (sc.date_iso || t('scDateIso')) + (sc.time ? ' · ' + sc.time : '');
+        dateBadge.style.cssText = 'text-align:center;line-height:1.35;border-radius:var(--radius-md);';
+        if (sc.date_iso) {
+          dateBadge.appendChild(document.createTextNode(isoToSwissDate(sc.date_iso)));
+          if (sc.time) {
+            dateBadge.appendChild(document.createElement('br'));
+            dateBadge.appendChild(document.createTextNode(String(sc.time).substring(0, 5)));
+          }
+        } else {
+          dateBadge.textContent = t('scDateIso');
+        }
         meta.appendChild(dateBadge);
 
         var modeBadge = document.createElement('span');
