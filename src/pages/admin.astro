@@ -2202,14 +2202,17 @@ import '../styles/global.css';
         table.appendChild(thead);
         var tbody = document.createElement('tbody');
         rows.forEach(function(r) {
+          // OpnForm nests answers + metadata under r.data; fall back to r
+          // itself if the proxy shape ever flattens.
+          var d = (r && r.data) || r || {};
           var tr = document.createElement('tr');
           var dateTd = document.createElement('td');
-          dateTd.textContent = (r.created_at || '').substring(0, 16).replace('T', ' ');
+          dateTd.textContent = String(d.created_at || '').substring(0, 16).replace('T', ' ');
           dateTd.style.cssText = 'padding:0.5rem 0.75rem;border-bottom:1px solid var(--border);color:var(--text-muted);white-space:nowrap;';
           tr.appendChild(dateTd);
           fields.forEach(function(f) {
             var td = document.createElement('td');
-            var v = r[f.id];
+            var v = d[f.id];
             td.textContent = (v == null || v === '') ? '—' : (Array.isArray(v) ? v.join(', ') : String(v));
             td.style.cssText = 'padding:0.5rem 0.75rem;border-bottom:1px solid var(--border);';
             tr.appendChild(td);
@@ -2232,8 +2235,9 @@ import '../styles/global.css';
       var headers = ['date_iso'].concat(fields.map(function(f) { return f.name; }));
       var lines = [headers.map(csvEscape).join(',')];
       rows.forEach(function(r) {
-        var row = [r.created_at || ''].concat(fields.map(function(f) {
-          var v = r[f.id];
+        var d = (r && r.data) || r || {};
+        var row = [d.created_at || ''].concat(fields.map(function(f) {
+          var v = d[f.id];
           if (v == null) return '';
           if (Array.isArray(v)) return v.join('; ');
           return String(v);
