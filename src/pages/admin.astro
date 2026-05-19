@@ -840,9 +840,16 @@ import '../styles/global.css';
           return fetch(DIRECTUS_URL + '/kscw/wadmin/admins', {
             headers: { 'Authorization': 'Bearer ' + token },
           });
-        }).then(function(r) { return r.ok ? r.json() : { data: [] }; }).then(function(j) {
+        }).then(function(r) { return r.ok ? r.json() : { _loadError: true }; }).then(function(j) {
           var rows = (j && j.data) || [];
           host.replaceChildren();
+          if (j && j._loadError) {
+            var errDiv = document.createElement('div');
+            errDiv.className = 'admin-empty';
+            errDiv.textContent = 'Failed to load — try refreshing.';
+            host.appendChild(errDiv);
+            return;
+          }
           if (!rows.length) {
             var em = document.createElement('div');
             em.className = 'admin-empty';
@@ -2865,7 +2872,8 @@ import '../styles/global.css';
       var byId = {};
       rows.forEach(function(u) { byId[u.id] = u.sections.slice(); });
       var timers = {};
-      host.addEventListener('change', function(e) {
+      if (host._grantBound) host.removeEventListener('change', host._grantBound);
+      var handler = function(e) {
         var cb = e.target;
         if (!cb || cb.type !== 'checkbox') return;
         var uid = cb.getAttribute('data-uid');
@@ -2877,7 +2885,9 @@ import '../styles/global.css';
         byId[uid] = arr;
         clearTimeout(timers[uid]);
         timers[uid] = setTimeout(function() { saveGrant(uid, arr); }, 400);
-      });
+      };
+      host._grantBound = handler;
+      host.addEventListener('change', handler);
     }
     async function saveGrant(uid, sections) {
       var status = document.getElementById('grant-status');
