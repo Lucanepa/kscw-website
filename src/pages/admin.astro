@@ -828,6 +828,72 @@ import '../styles/global.css';
         return;
       }
 
+      // ── Admin (section grant grid) tab — superuser only ──
+      if (currentTab === 'admin' && adminAccess.isSuperuser) {
+        var host = content;
+        host.replaceChildren();
+        var loading = document.createElement('div');
+        loading.className = 'admin-grid-loading';
+        loading.textContent = 'Loading…';
+        host.appendChild(loading);
+        getValidToken().then(function(token) {
+          return fetch(DIRECTUS_URL + '/kscw/wadmin/admins', {
+            headers: { 'Authorization': 'Bearer ' + token },
+          });
+        }).then(function(r) { return r.ok ? r.json() : { data: [] }; }).then(function(j) {
+          var rows = (j && j.data) || [];
+          host.replaceChildren();
+          if (!rows.length) {
+            var em = document.createElement('div');
+            em.className = 'admin-empty';
+            em.textContent = 'No Website Admin users yet. (Users gain this role in the Phase C migration.)';
+            host.appendChild(em);
+            return;
+          }
+          var table = document.createElement('table');
+          table.className = 'admin-grant-grid';
+          var thead = document.createElement('tr');
+          var th0 = document.createElement('th');
+          th0.textContent = 'User';
+          thead.appendChild(th0);
+          SECTION_ORDER.forEach(function(s) {
+            var th = document.createElement('th');
+            th.textContent = s;
+            thead.appendChild(th);
+          });
+          table.appendChild(thead);
+          rows.forEach(function(u) {
+            var tr = document.createElement('tr');
+            var td0 = document.createElement('td');
+            var nameDiv = document.createElement('div');
+            nameDiv.textContent = u.name;
+            var emailSmall = document.createElement('small');
+            emailSmall.textContent = u.email;
+            td0.appendChild(nameDiv);
+            td0.appendChild(emailSmall);
+            tr.appendChild(td0);
+            SECTION_ORDER.forEach(function(s) {
+              var td = document.createElement('td');
+              var cb = document.createElement('input');
+              cb.type = 'checkbox';
+              cb.checked = u.sections.indexOf(s) !== -1;
+              cb.setAttribute('data-uid', u.id);
+              cb.setAttribute('data-sec', s);
+              td.appendChild(cb);
+              tr.appendChild(td);
+            });
+            table.appendChild(tr);
+          });
+          var status = document.createElement('div');
+          status.className = 'admin-grant-status';
+          status.id = 'grant-status';
+          host.appendChild(table);
+          host.appendChild(status);
+          bindGrantGrid(host, rows);
+        });
+        return;
+      }
+
       var collection = currentTab === 'news' ? 'news' : 'events';
       var sort = currentTab === 'news' ? '-published_at' : '-start_date';
 
@@ -2792,6 +2858,41 @@ import '../styles/global.css';
           }
         });
       });
+    }
+
+    // ── Admin grant grid helpers ──────────────────────────────
+    function bindGrantGrid(host, rows) {
+      var byId = {};
+      rows.forEach(function(u) { byId[u.id] = u.sections.slice(); });
+      var timers = {};
+      host.addEventListener('change', function(e) {
+        var cb = e.target;
+        if (!cb || cb.type !== 'checkbox') return;
+        var uid = cb.getAttribute('data-uid');
+        var sec = cb.getAttribute('data-sec');
+        var arr = byId[uid] || [];
+        var i = arr.indexOf(sec);
+        if (cb.checked && i === -1) arr.push(sec);
+        if (!cb.checked && i !== -1) arr.splice(i, 1);
+        byId[uid] = arr;
+        clearTimeout(timers[uid]);
+        timers[uid] = setTimeout(function() { saveGrant(uid, arr); }, 400);
+      });
+    }
+    async function saveGrant(uid, sections) {
+      var status = document.getElementById('grant-status');
+      if (status) status.textContent = 'Saving…';
+      try {
+        var token = await getValidToken();
+        var res = await fetch(DIRECTUS_URL + '/kscw/wadmin/admins/' + encodeURIComponent(uid), {
+          method: 'PUT',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sections: sections }),
+        });
+        if (status) status.textContent = res.ok ? 'Saved' : 'Save failed';
+      } catch (e) {
+        if (status) status.textContent = 'Save failed';
+      }
     }
 
     // ── Init ──────────────────────────────────────────────────
