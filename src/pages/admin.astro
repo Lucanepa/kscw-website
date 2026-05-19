@@ -2202,6 +2202,9 @@ import '../styles/global.css';
           th.style.cssText = 'text-align:left;padding:0.5rem 0.75rem;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.04);font-weight:600;';
           thRow.appendChild(th);
         });
+        var thAct = document.createElement('th');
+        thAct.style.cssText = 'padding:0.5rem 0.75rem;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.04);';
+        thRow.appendChild(thAct);
         thead.appendChild(thRow);
         table.appendChild(thead);
         var tbody = document.createElement('tbody');
@@ -2221,6 +2224,32 @@ import '../styles/global.css';
             td.style.cssText = 'padding:0.5rem 0.75rem;border-bottom:1px solid var(--border);';
             tr.appendChild(td);
           });
+          var actTd = document.createElement('td');
+          actTd.style.cssText = 'padding:0.5rem 0.75rem;border-bottom:1px solid var(--border);white-space:nowrap;';
+          var subId = (r && r.id != null) ? r.id : d.id;
+          if (subId != null) {
+            var delBtn = document.createElement('button');
+            delBtn.className = 'admin-btn admin-btn-sm admin-btn-danger';
+            delBtn.textContent = t('delete');
+            delBtn.addEventListener('click', function() {
+              if (!confirm(t('confirmDelete'))) return;
+              delBtn.disabled = true;
+              getValidToken().then(function(token) {
+                return fetch(DIRECTUS_URL + '/kscw/opnform/forms/' + encodeURIComponent(slug) + '/submissions/' + encodeURIComponent(subId), {
+                  method: 'DELETE',
+                  headers: { 'Authorization': 'Bearer ' + token },
+                });
+              }).then(function(res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                openResponsesModal(slug, eventTitle); // refresh list + count
+              }).catch(function(err) {
+                delBtn.disabled = false;
+                alert(t('deleteError') + (err && err.message ? err.message : 'unknown'));
+              });
+            });
+            actTd.appendChild(delBtn);
+          }
+          tr.appendChild(actTd);
           tbody.appendChild(tr);
         });
         table.appendChild(tbody);
