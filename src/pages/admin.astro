@@ -81,21 +81,27 @@ import '../styles/global.css';
       return fetch(DIRECTUS_URL + '/kscw/wadmin/' + section + '/' + subpath, Object.assign({}, o, { headers: headers }));
     }
     // Mutates module-scope adminAccess AND returns it; callers MUST await before reading adminAccess.
+    // A transient /me failure must NOT downgrade an already-good access (server still
+    // re-authorizes every data call); first load keeps the fail-closed empty default.
+    function failClosedAccess() {
+      if (!adminAccess.isSuperuser && adminAccess.sections.length === 0) return adminAccess;
+      return adminAccess; // keep last-known-good on transient failure
+    }
     async function loadAccess() {
       var token = await getValidToken();
-      if (!token) { adminAccess = { isSuperuser: false, sections: [] }; return adminAccess; }
+      if (!token) { return failClosedAccess(); }
       try {
         var res = await fetch(DIRECTUS_URL + '/kscw/wadmin/me', {
           headers: { 'Authorization': 'Bearer ' + token },
         });
-        if (!res.ok) { adminAccess = { isSuperuser: false, sections: [] }; return adminAccess; }
+        if (!res.ok) { return failClosedAccess(); }
         var j = await res.json();
         adminAccess = {
           isSuperuser: !!j.isSuperuser,
           sections: Array.isArray(j.sections) ? j.sections : [],
         };
       } catch (e) {
-        adminAccess = { isSuperuser: false, sections: [] };
+        return failClosedAccess();
       }
       return adminAccess;
     }
