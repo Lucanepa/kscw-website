@@ -1,14 +1,24 @@
 // Scorer-course sign-up — dynamic client render.
 // Replaces the former build-time array: fetches active courses from the
 // Directus `scorer_courses` collection (public read), applies the same
-// upcoming/null-last filter as getUpcomingScorerCourses, renders a card +
-// a sign-up button per course that opens the OpnForm in a new tab.
+// upcoming/null-last filter as getUpcomingScorerCourses, renders a card
+// per course with a sign-up button (opens the OpnForm in a new tab) and
+// an "add to calendar" button that downloads a generated .ics.
 // Admin edits appear on next
 // page load — no rebuild. Degrades silently if Directus is unreachable.
 
 import { getUpcomingScorerCourses, localeSlug, normalizeFormSlug, type ScorerCourse } from '../data/scorer-courses';
 import { formatDate } from '../lib/utils';
 import { getDirectusUrl } from '../lib/directus';
+
+// All KSCW scorer courses take place at the clubhouse. The collection has
+// no location/end-time fields, so these are fixed: in-person courses use
+// the clubhouse address, and a course runs DEFAULT_HOURS from its start
+// time (the published courses are 18:00–21:00 = 3h). Defaults only — if
+// the Directus schema later gains real fields, prefer those.
+const KSCW_LOCATION = 'KSC Wiedikon, Goldbrunnenstrasse 80, 8055 Zürich, Switzerland';
+const DEFAULT_TIME = '18:00';
+const DEFAULT_HOURS = 3;
 
 const container = document.querySelector<HTMLElement>('[data-scorer-courses]');
 
@@ -18,6 +28,7 @@ if (container) {
     soon: container.dataset.soon || '',
     opensSoon: container.dataset.opensSoon || '',
     cta: container.dataset.cta || '',
+    cal: container.dataset.cal || '',
     mode: {
       in_person: container.dataset.modeInPerson || '',
       recorded: container.dataset.modeRecorded || '',
@@ -34,6 +45,16 @@ if (container) {
     return n;
   };
 
+  // <i data-lucide> placeholder; lucide.createIcons() swaps it for an SVG
+  // after the cards are in the DOM.
+  const icon = (name: string) =>
+    el('i', { 'data-lucide': name, style: 'width: 18px; height: 18px;' });
+
+  const labelBtn = (node: HTMLElement, iconName: string, label: string) => {
+    node.appendChild(icon(iconName));
+    node.appendChild(el('span', {}, label));
+  };
+
   const mapRow = (r: Record<string, unknown>): ScorerCourse => ({
     id: String(r.slug_id ?? r.id ?? ''),
     titleDe: String(r.title_de ?? ''),
@@ -47,10 +68,100 @@ if (container) {
     formSlugEn: normalizeFormSlug(r.form_slug_en as string | null),
   });
 
+  // Wall-clock Europe/Zurich → exact UTC instant, DST-safe (CET/CEST
+  // offset is resolved for the given date via Intl, not hard-coded).
+  const zurichToUTC = (dateISO: string, hhmm: string): Date => {
+    const [y, m, d] = dateISO.split('-').map(Number);
+    const [hh, mi] = hhmm.split(':').map(Number);
+    const asUTC = Date.UTC(y, m - 1, d, hh, mi, 0);
+    const dtf = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Europe/Zurich', hour12: false,
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+    });
+    const p = Object.fromEntries(
+      dtf.formatToParts(new Date(asUTC))
+        .filter((x) => x.type !== 'literal')
+        .map((x) => [x.type, x.value]),
+    ) as Record<string, string>;
+    const hour = p.hour === '24' ? '00' : p.hour;
+    const zurichAsUTC = Date.UTC(
+      +p.year, +p.month - 1, +p.day, +hour, +p.minute, +p.second,
+    );
+    return new Date(asUTC - (zurichAsUTC - asUTC));
+  };
+
+  const icsStamp = (dt: Date): string =>
+    dt.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+
+  const escapeICS = (s: string): string =>
+    s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+
+  // RFC 5545 line folding — split on octet boundaries (UTF-8 safe).
+  const foldICS = (line: string): string => {
+    const enc = new TextEncoder();
+    if (enc.encode(line).length <= 75) return line;
+    const out: string[] = [];
+    let cur = '';
+    let curBytes = 0;
+    for (const ch of line) {
+      const b = enc.encode(ch).length;
+      const limit = out.length === 0 ? 75 : 74; // continuation lines lead with a space
+      if (curBytes + b > limit) {
+        out.push(cur);
+        cur = '';
+        curBytes = 0;
+      }
+      cur += ch;
+      curBytes += b;
+    }
+    out.push(cur);
+    return out.join('\r\n ');
+  };
+
+  const buildICS = (course: ScorerCourse, title: string, signupUrl: string): string => {
+    const start = zurichToUTC(course.dateISO as string, course.time || DEFAULT_TIME);
+    const end = new Date(start.getTime() + DEFAULT_HOURS * 3600_000);
+    const withLocation = course.mode === 'in_person' || course.mode === 'both';
+    const description = signupUrl ? `${title}\n\n${signupUrl}` : title;
+    const lines = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//KSC Wiedikon//Scorer Course//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      `UID:scorer-${course.id || course.dateISO}@kscw.ch`,
+      `DTSTAMP:${icsStamp(new Date())}`,
+      `DTSTART:${icsStamp(start)}`,
+      `DTEND:${icsStamp(end)}`,
+      `SUMMARY:${escapeICS(title)}`,
+      `DESCRIPTION:${escapeICS(description)}`,
+      ...(withLocation ? [`LOCATION:${escapeICS(KSCW_LOCATION)}`] : []),
+      ...(signupUrl ? [`URL:${escapeICS(signupUrl)}`] : []),
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ];
+    return lines.map(foldICS).join('\r\n');
+  };
+
+  const downloadICS = (course: ScorerCourse, title: string, signupUrl: string) => {
+    const blob = new Blob([buildICS(course, title, signupUrl)], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `kscw-scorer-${course.id || course.dateISO}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
   const render = (courses: ScorerCourse[]) => {
     for (const course of courses) {
       const slug = localeSlug(course, locale);
       const title = locale === 'en' ? course.titleEn : course.titleDe;
+      const signupUrl = slug ? `https://forms.kscw.ch/forms/${slug}` : '';
 
       const card = el('div', { class: 'card' });
       const body = el('div', {
@@ -77,15 +188,35 @@ if (container) {
       }, txt.mode[course.mode] || ''));
       body.appendChild(metaRow);
 
-      if (slug) {
-        const cta = el('a', {
-          class: 'btn btn-primary scorer-cta',
-          href: `https://forms.kscw.ch/forms/${slug}`,
-          target: '_blank',
-          rel: 'noopener noreferrer',
-        }, `${txt.cta} ↗`);
-        body.appendChild(cta);
-      } else if (course.dateISO) {
+      if ((course.mode === 'in_person' || course.mode === 'both')) {
+        body.appendChild(el('p', { class: 'scorer-location' }, KSCW_LOCATION));
+      }
+
+      if (slug || course.dateISO) {
+        const actions = el('div', { class: 'scorer-actions' });
+
+        if (slug) {
+          const cta = el('a', {
+            class: 'btn btn-primary',
+            href: signupUrl,
+            target: '_blank',
+            rel: 'noopener noreferrer',
+          });
+          labelBtn(cta, 'user-plus', txt.cta);
+          actions.appendChild(cta);
+        }
+
+        if (course.dateISO) {
+          const calBtn = el('button', { type: 'button', class: 'btn btn-outline' });
+          labelBtn(calBtn, 'calendar-plus', txt.cal);
+          calBtn.addEventListener('click', () => downloadICS(course, title, signupUrl));
+          actions.appendChild(calBtn);
+        }
+
+        body.appendChild(actions);
+      }
+
+      if (!slug && course.dateISO) {
         // Date is set but no sign-up form yet — say so without re-claiming
         // the date is TBD. When the date itself is null the header span
         // already shows the full "date to be announced" message.
@@ -97,6 +228,9 @@ if (container) {
       card.appendChild(body);
       container.appendChild(card);
     }
+
+    const lucide = (window as unknown as { lucide?: { createIcons: () => void } }).lucide;
+    if (lucide) lucide.createIcons();
   };
 
   fetch(`${base}/items/scorer_courses?filter[active][_eq]=true&fields=slug_id,title_de,title_en,date_iso,time,mode,form_slug_de,form_slug_en,sort&sort=sort&limit=-1`)

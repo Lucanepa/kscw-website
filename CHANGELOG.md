@@ -2,6 +2,12 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [3.6.0] — 2026-05-19
+
+### Added
+- **Schreiberkurs "Zum Kalender hinzufügen"**: jeder Kurs hat jetzt einen Button (mit Kalender-Icon), der einen `.ics`-Termin herunterlädt — mit Titel, Datum/Zeit (Europe/Zurich, sommer-/winterzeitsicher), 3 h Dauer und dem Veranstaltungsort. Der Anmeldebutton hat ebenfalls ein Icon erhalten
+- **Veranstaltungsort auf der Kurskarte**: Präsenz-Kurse zeigen jetzt die Adresse (KSC Wiedikon, Goldbrunnenstrasse 80, 8055 Zürich) direkt auf der Karte an
+
 ## [3.5.0] — 2026-05-19
 
 ### Changed

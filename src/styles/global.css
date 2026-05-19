@@ -2359,9 +2359,17 @@ tr:hover td {
   border: none;
   display: block;
 }
-/* Scorer-course OpnForm sign-up button */
-.scorer-cta {
-  align-self: flex-start;
+/* Scorer-course action buttons (sign-up + add to calendar) */
+.scorer-actions {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  align-items: center;
+}
+.scorer-location {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  margin: 0;
 }
 @media (max-width: 768px) {
   .accordion-header {
