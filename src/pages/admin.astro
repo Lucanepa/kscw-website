@@ -36,6 +36,8 @@ import '../styles/global.css';
     var TURNSTILE_SITE_KEY = '0x4AAAAAACoYmx3xiDfRbmv9';
     var app = document.getElementById('admin-app');
     var currentTab = 'news';
+    var adminAccess = { isSuperuser: false, sections: [] };
+    var SECTION_ORDER = ['news','events','registrations','sponsors','scorer_courses','mixed_turnier'];
     var adminLang = 'en';
     var quillInstance = null;
     var turnstileWidgetId = null;
@@ -68,6 +70,32 @@ import '../styles/global.css';
         return data.data.access_token;
       }
       return auth.access_token;
+    }
+    // Section data goes through the gated endpoint. /users/me,
+    // items/teams, /files and /assets stay direct (see spec).
+    async function wadmin(section, subpath, opts) {
+      var token = await getValidToken();
+      var o = opts || {};
+      var headers = Object.assign({}, o.headers || {}, { 'Authorization': 'Bearer ' + token });
+      return fetch(DIRECTUS_URL + '/kscw/wadmin/' + section + '/' + subpath, Object.assign({}, o, { headers: headers }));
+    }
+    async function loadAccess() {
+      var token = await getValidToken();
+      if (!token) { adminAccess = { isSuperuser: false, sections: [] }; return adminAccess; }
+      try {
+        var res = await fetch(DIRECTUS_URL + '/kscw/wadmin/me', {
+          headers: { 'Authorization': 'Bearer ' + token },
+        });
+        if (!res.ok) { adminAccess = { isSuperuser: false, sections: [] }; return adminAccess; }
+        var j = await res.json();
+        adminAccess = {
+          isSuperuser: !!j.isSuperuser,
+          sections: Array.isArray(j.sections) ? j.sections : [],
+        };
+      } catch (e) {
+        adminAccess = { isSuperuser: false, sections: [] };
+      }
+      return adminAccess;
     }
 
     // ── i18n ─────────────────────────────────────────────────
