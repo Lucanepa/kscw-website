@@ -1785,6 +1785,26 @@ import '../styles/global.css';
 
       var modeKeyMap = { in_person: 'scModeInPerson', recorded: 'scModeRecorded', both: 'scModeBoth' };
 
+      // Courses are separate events on different days, but all their DE/EN
+      // form signups go into one combined table (Lang column distinguishes).
+      var allSources = [];
+      items.forEach(function(sc) {
+        if (sc.form_slug_en) allSources.push({ slug: sc.form_slug_en, lang: 'EN' });
+        if (sc.form_slug_de) allSources.push({ slug: sc.form_slug_de, lang: 'DE' });
+      });
+      if (allSources.length) {
+        var bar = document.createElement('div');
+        bar.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:var(--space-md);';
+        var allBtn = document.createElement('button');
+        allBtn.className = 'admin-btn admin-btn-sm admin-btn-primary';
+        allBtn.textContent = 'All signups (DE + EN)';
+        allBtn.addEventListener('click', function() {
+          openResponsesModal(allSources, 'All scorer-course signups');
+        });
+        bar.appendChild(allBtn);
+        content.appendChild(bar);
+      }
+
       var list = document.createElement('div');
       list.className = 'admin-list';
 
