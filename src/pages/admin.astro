@@ -1434,36 +1434,40 @@ import '../styles/global.css';
     }
 
     async function downloadRegistrationFiles(item) {
-      var token = await getValidToken();
-      var files = [];
-      if (item.id_upload_front) files.push({ id: item.id_upload_front, name: 'ID_front' });
-      if (item.id_upload_back) files.push({ id: item.id_upload_back, name: 'ID_back' });
+      try {
+        var token = await getValidToken();
+        var files = [];
+        if (item.id_upload_front) files.push({ id: item.id_upload_front, name: 'ID_front' });
+        if (item.id_upload_back) files.push({ id: item.id_upload_back, name: 'ID_back' });
 
-      for (var i = 0; i < files.length; i++) {
-        var res = await fetch(DIRECTUS_URL + '/assets/' + files[i].id, {
-          headers: { 'Authorization': 'Bearer ' + token },
-        });
-        var blob = await res.blob();
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = item.nachname + '_' + item.vorname + '_' + files[i].name;
-        a.click();
-        URL.revokeObjectURL(url);
+        for (var i = 0; i < files.length; i++) {
+          var res = await fetch(DIRECTUS_URL + '/assets/' + files[i].id, {
+            headers: { 'Authorization': 'Bearer ' + token },
+          });
+          var blob = await res.blob();
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = item.nachname + '_' + item.vorname + '_' + files[i].name;
+          a.click();
+          URL.revokeObjectURL(url);
 
-        await fetch(DIRECTUS_URL + '/files/' + files[i].id, {
-          method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token },
+          await fetch(DIRECTUS_URL + '/files/' + files[i].id, {
+            method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token },
+          });
+        }
+
+        await wadmin('registrations', 'items/registrations/' + item.id, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id_upload_front: null, id_upload_back: null }),
         });
+
+        closeModal();
+        loadItems();
+      } catch(err) {
+        alert(t('saveError') + (err.message || err));
       }
-
-      await wadmin('registrations', 'items/registrations/' + item.id, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id_upload_front: null, id_upload_back: null }),
-      });
-
-      closeModal();
-      loadItems();
     }
 
     function getRegistrationModalValues() {
