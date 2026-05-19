@@ -65,6 +65,36 @@ const locale = 'de';
           </div>
         </div>
 
+        <!-- Schreiberkurs-Unterlagen -->
+        <div class="card">
+          <div class="card-body" style="display: flex; flex-direction: column; gap: var(--space-md);">
+            <div style="display: flex; align-items: center; gap: var(--space-sm);">
+              <i data-lucide="file-text" style="width: 32px; height: 32px; color: var(--kscw-blue); flex-shrink: 0;"></i>
+              <h3 style="margin: 0;">{t(locale, 'scorerCoursesHandout')}</h3>
+            </div>
+            <p style="color: var(--text-secondary); flex: 1;">{t(locale, 'scorerCoursesHandoutDesc')}</p>
+            <a href="/docs/schreiberwesen.pdf" target="_blank" rel="noopener noreferrer" class="btn btn-blue" style="align-self: flex-start;">
+              <i data-lucide="eye" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 6px;"></i>
+              <span>{t(locale, 'scorerCoursesView')}</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Anleitung E-Learning-Registrierung -->
+        <div class="card">
+          <div class="card-body" style="display: flex; flex-direction: column; gap: var(--space-md);">
+            <div style="display: flex; align-items: center; gap: var(--space-sm);">
+              <i data-lucide="clipboard-list" style="width: 32px; height: 32px; color: var(--kscw-gold); flex-shrink: 0;"></i>
+              <h3 style="margin: 0;">{t(locale, 'scorerCoursesElearningReg')}</h3>
+            </div>
+            <p style="color: var(--text-secondary); flex: 1;">{t(locale, 'scorerCoursesElearningRegDesc')}</p>
+            <a href="/docs/schreiberwesen-elearning-registration.pdf" target="_blank" rel="noopener noreferrer" class="btn btn-gold" style="align-self: flex-start;">
+              <i data-lucide="eye" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 6px;"></i>
+              <span>{t(locale, 'scorerCoursesView')}</span>
+            </a>
+          </div>
+        </div>
+
         <!-- E-Learning -->
         <div class="card">
           <div class="card-body" style="display: flex; flex-direction: column; gap: var(--space-md);">
