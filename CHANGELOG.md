@@ -2,6 +2,14 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [3.5.0] — 2026-05-19
+
+### Changed
+- **Schreiberkurs-Anmeldung**: das Anmeldeformular wird nicht mehr als gequetschtes eingebettetes iframe in der Seite angezeigt. Stattdessen öffnet ein klarer Button ("Zur Anmeldung" / "Sign up for this course") das OpnForm-Formular im Vollbild in einem neuen Tab — deutlich besser auf dem Handy
+
+### Fixed
+- **Admin – Aktiv-Schalter**: das Label "Aktiv" klebte am Toggle, weil eine generischere CSS-Regel das beabsichtigte Flex-Layout überschrieb. Label und Schalter stehen jetzt korrekt links bzw. rechts mit Abstand dazwischen
+
 ## [3.4.1] — 2026-05-14
 
 ### Changed

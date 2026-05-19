@@ -2,8 +2,8 @@
 // Replaces the former build-time array: fetches active courses from the
 // Directus `scorer_courses` collection (public read), applies the same
 // upcoming/null-last filter as getUpcomingScorerCourses, renders a card +
-// embedded OpnForm iframe per course, then fills the live sign-up count
-// per slug via the Directus OpnForm proxy. Admin edits appear on next
+// a sign-up button per course that opens the OpnForm in a new tab.
+// Admin edits appear on next
 // page load — no rebuild. Degrades silently if Directus is unreachable.
 
 import { getUpcomingScorerCourses, localeSlug, normalizeFormSlug, type ScorerCourse } from '../data/scorer-courses';
@@ -17,6 +17,7 @@ if (container) {
   const txt = {
     soon: container.dataset.soon || '',
     opensSoon: container.dataset.opensSoon || '',
+    cta: container.dataset.cta || '',
     mode: {
       in_person: container.dataset.modeInPerson || '',
       recorded: container.dataset.modeRecorded || '',
@@ -77,13 +78,13 @@ if (container) {
       body.appendChild(metaRow);
 
       if (slug) {
-        const frame = el('iframe', {
-          class: 'scorer-iframe',
-          src: `https://forms.kscw.ch/forms/${slug}`,
-          title,
-          loading: 'lazy',
-        });
-        body.appendChild(frame);
+        const cta = el('a', {
+          class: 'btn btn-primary scorer-cta',
+          href: `https://forms.kscw.ch/forms/${slug}`,
+          target: '_blank',
+          rel: 'noopener noreferrer',
+        }, `${txt.cta} ↗`);
+        body.appendChild(cta);
       } else if (course.dateISO) {
         // Date is set but no sign-up form yet — say so without re-claiming
         // the date is TBD. When the date itself is null the header span
