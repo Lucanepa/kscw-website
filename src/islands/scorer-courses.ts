@@ -3,7 +3,8 @@
 // Directus `scorer_courses` collection (public read), applies the same
 // upcoming/null-last filter as getUpcomingScorerCourses, renders a card
 // per course with a sign-up button (opens the OpnForm in a new tab) and
-// an "add to calendar" button that downloads a generated .ics.
+// an "add to calendar" link to a Google Calendar event template (works
+// on every device; a blob: .ics did not on mobile).
 // Admin edits appear on next
 // page load — no rebuild. Degrades silently if Directus is unreachable.
 
@@ -93,70 +94,26 @@ if (container) {
     return new Date(asUTC - (zurichAsUTC - asUTC));
   };
 
-  const icsStamp = (dt: Date): string =>
+  const gcalStamp = (dt: Date): string =>
     dt.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 
-  const escapeICS = (s: string): string =>
-    s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
-
-  // RFC 5545 line folding — split on octet boundaries (UTF-8 safe).
-  const foldICS = (line: string): string => {
-    const enc = new TextEncoder();
-    if (enc.encode(line).length <= 75) return line;
-    const out: string[] = [];
-    let cur = '';
-    let curBytes = 0;
-    for (const ch of line) {
-      const b = enc.encode(ch).length;
-      const limit = out.length === 0 ? 75 : 74; // continuation lines lead with a space
-      if (curBytes + b > limit) {
-        out.push(cur);
-        cur = '';
-        curBytes = 0;
-      }
-      cur += ch;
-      curBytes += b;
-    }
-    out.push(cur);
-    return out.join('\r\n ');
-  };
-
-  const buildICS = (course: ScorerCourse, title: string, signupUrl: string): string => {
+  // Google Calendar "add event" template URL. Works on every device —
+  // desktop and mobile, app or web. A generated .ics handed out as a
+  // page-scoped blob: URL cannot be resolved by the mobile Google
+  // Calendar app, which is why it asked for a Google login and then said
+  // "Termin nicht gefunden".
+  const gcalUrl = (course: ScorerCourse, title: string, signupUrl: string): string => {
     const start = zurichToUTC(course.dateISO as string, course.time || DEFAULT_TIME);
     const end = new Date(start.getTime() + DEFAULT_HOURS * 3600_000);
     const withLocation = course.mode === 'in_person' || course.mode === 'both';
-    const description = signupUrl ? `${title}\n\n${signupUrl}` : title;
-    const lines = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//KSC Wiedikon//Scorer Course//EN',
-      'CALSCALE:GREGORIAN',
-      'METHOD:PUBLISH',
-      'BEGIN:VEVENT',
-      `UID:scorer-${course.id || course.dateISO}@kscw.ch`,
-      `DTSTAMP:${icsStamp(new Date())}`,
-      `DTSTART:${icsStamp(start)}`,
-      `DTEND:${icsStamp(end)}`,
-      `SUMMARY:${escapeICS(title)}`,
-      `DESCRIPTION:${escapeICS(description)}`,
-      ...(withLocation ? [`LOCATION:${escapeICS(KSCW_LOCATION)}`] : []),
-      ...(signupUrl ? [`URL:${escapeICS(signupUrl)}`] : []),
-      'END:VEVENT',
-      'END:VCALENDAR',
-    ];
-    return lines.map(foldICS).join('\r\n');
-  };
-
-  const downloadICS = (course: ScorerCourse, title: string, signupUrl: string) => {
-    const blob = new Blob([buildICS(course, title, signupUrl)], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `kscw-scorer-${course.id || course.dateISO}.ics`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: title,
+      dates: `${gcalStamp(start)}/${gcalStamp(end)}`,
+      details: signupUrl ? `${title}\n\n${signupUrl}` : title,
+    });
+    if (withLocation) params.set('location', KSCW_LOCATION);
+    return `https://www.google.com/calendar/render?${params.toString()}`;
   };
 
   const render = (courses: ScorerCourse[]) => {
@@ -209,9 +166,13 @@ if (container) {
         }
 
         if (course.dateISO) {
-          const calBtn = el('button', { type: 'button', class: 'btn btn-outline' });
+          const calBtn = el('a', {
+            class: 'btn btn-outline',
+            href: gcalUrl(course, title, signupUrl),
+            target: '_blank',
+            rel: 'noopener noreferrer',
+          });
           labelBtn(calBtn, 'calendar-plus', txt.cal);
-          calBtn.addEventListener('click', () => downloadICS(course, title, signupUrl));
           actions.appendChild(calBtn);
         }
 
