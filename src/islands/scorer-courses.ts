@@ -29,6 +29,8 @@ if (container) {
     opensSoon: container.dataset.opensSoon || '',
     cta: container.dataset.cta || '',
     cal: container.dataset.cal || '',
+    docHandout: container.dataset.docHandout || '',
+    docElearning: container.dataset.docElearning || '',
     mode: {
       in_person: container.dataset.modeInPerson || '',
       recorded: container.dataset.modeRecorded || '',
@@ -223,6 +225,32 @@ if (container) {
         body.appendChild(el('p', {
           style: 'color: var(--text-muted); font-style: italic; margin: 0;',
         }, txt.opensSoon));
+      }
+
+      // Always-available info materials (course handout + e-learning
+      // registration guide), hosted under /docs/. Secondary to the
+      // sign-up CTA, so styled as outline links.
+      if (txt.docHandout || txt.docElearning) {
+        const docs = el('div', {
+          style: 'display: flex; flex-wrap: wrap; gap: var(--space-sm);',
+        });
+        const docLink = (href: string, label: string, iconName: string) => {
+          const a = el('a', {
+            class: 'btn btn-outline',
+            href,
+            target: '_blank',
+            rel: 'noopener noreferrer',
+          });
+          labelBtn(a, iconName, label);
+          return a;
+        };
+        if (txt.docHandout) {
+          docs.appendChild(docLink('/docs/schreiberwesen.pdf', txt.docHandout, 'file-text'));
+        }
+        if (txt.docElearning) {
+          docs.appendChild(docLink('/docs/schreiberwesen-elearning-registration.pdf', txt.docElearning, 'clipboard-list'));
+        }
+        body.appendChild(docs);
       }
 
       card.appendChild(body);
