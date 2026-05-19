@@ -438,7 +438,7 @@ import '../styles/global.css';
       } else if (!(await isAuthorized())) {
         renderAccessDenied();
       } else {
-        renderAdmin();
+        await renderAdmin();
       }
     }
 
@@ -653,7 +653,36 @@ import '../styles/global.css';
     }
 
     // ── Admin Dashboard ───────────────────────────────────────
-    function renderAdmin() {
+    async function renderAdmin() {
+      await loadAccess();
+
+      if (!adminAccess.isSuperuser && adminAccess.sections.length === 0) {
+        var shell = document.createElement('div');
+        shell.className = 'admin-shell';
+        var empty = document.createElement('div');
+        empty.className = 'admin-empty';
+        empty.textContent = 'No sections assigned — ask a superuser to grant access.';
+        shell.appendChild(empty);
+        app.replaceChildren(shell);
+        return;
+      }
+
+      var TAB_LABELS = {
+        news: 'News', events: 'Events',
+        registrations: t('registrations'), sponsors: t('sponsors'),
+        scorer_courses: t('scorerCourses'), mixed_turnier: t('mixedTurnier'),
+      };
+      var visibleSections = SECTION_ORDER.filter(function(s) {
+        return adminAccess.isSuperuser || adminAccess.sections.indexOf(s) !== -1;
+      });
+      if (visibleSections.indexOf(currentTab) === -1) {
+        currentTab = visibleSections.length ? visibleSections[0] : '';
+      }
+      var tabsHtml = visibleSections.map(function(s) {
+        return '<button class="admin-tab' + (currentTab === s ? ' active' : '') +
+          '" data-tab="' + s + '">' + escapeHtml(TAB_LABELS[s]) + '</button>';
+      }).join('');
+
       setAppContent(
         '<div class="admin-shell">' +
           '<header class="admin-header">' +
@@ -667,13 +696,8 @@ import '../styles/global.css';
               '</div>' +
             '</div>' +
           '</header>' +
-          '<div class="admin-tabs">' +
-            '<button class="admin-tab' + (currentTab === 'news' ? ' active' : '') + '" data-tab="news">News</button>' +
-            '<button class="admin-tab' + (currentTab === 'events' ? ' active' : '') + '" data-tab="events">Events</button>' +
-            '<button class="admin-tab' + (currentTab === 'registrations' ? ' active' : '') + '" data-tab="registrations">' + t('registrations') + '</button>' +
-            '<button class="admin-tab' + (currentTab === 'sponsors' ? ' active' : '') + '" data-tab="sponsors">' + t('sponsors') + '</button>' +
-            '<button class="admin-tab' + (currentTab === 'scorer_courses' ? ' active' : '') + '" data-tab="scorer_courses">' + t('scorerCourses') + '</button>' +
-            '<button class="admin-tab' + (currentTab === 'mixed_turnier' ? ' active' : '') + '" data-tab="mixed_turnier">' + t('mixedTurnier') + '</button>' +
+          '<div class="admin-tabs">' + tabsHtml +
+          (adminAccess.isSuperuser ? '<button class="admin-tab' + (currentTab === 'admin' ? ' active' : '') + '" data-tab="admin">Admin</button>' : '') +
           '</div>' +
           '<div class="admin-content" id="admin-content"></div>' +
           '<button class="admin-fab" id="fab-btn" title="' + t('create') + '">+</button>' +
