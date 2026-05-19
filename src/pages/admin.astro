@@ -1840,23 +1840,17 @@ import '../styles/global.css';
         var actions = document.createElement('div');
         actions.className = 'admin-list-actions';
 
-        if (sc.form_slug_de) {
-          var respDe = document.createElement('button');
-          respDe.className = 'admin-btn admin-btn-sm';
-          respDe.textContent = t('scResponsesDe');
-          respDe.addEventListener('click', (function(slug, ttl) {
-            return function() { openResponsesModal(slug, ttl); };
-          })(sc.form_slug_de, (sc.title_de || sc.slug_id) + ' (DE)'));
-          actions.appendChild(respDe);
-        }
-        if (sc.form_slug_en) {
-          var respEn = document.createElement('button');
-          respEn.className = 'admin-btn admin-btn-sm';
-          respEn.textContent = t('scResponsesEn');
-          respEn.addEventListener('click', (function(slug, ttl) {
-            return function() { openResponsesModal(slug, ttl); };
-          })(sc.form_slug_en, (sc.title_en || sc.slug_id) + ' (EN)'));
-          actions.appendChild(respEn);
+        var scSources = [];
+        if (sc.form_slug_en) scSources.push({ slug: sc.form_slug_en, lang: 'EN' });
+        if (sc.form_slug_de) scSources.push({ slug: sc.form_slug_de, lang: 'DE' });
+        if (scSources.length) {
+          var respBtn = document.createElement('button');
+          respBtn.className = 'admin-btn admin-btn-sm';
+          respBtn.textContent = 'Responses';
+          respBtn.addEventListener('click', (function(srcs, ttl) {
+            return function() { openResponsesModal(srcs, ttl); };
+          })(scSources, (sc.title_en || sc.title_de || sc.slug_id)));
+          actions.appendChild(respBtn);
         }
 
         var editBtn = document.createElement('button');
@@ -2119,8 +2113,19 @@ import '../styles/global.css';
     }
 
     // ── OpnForm responses (admin) ──────────────────────────────
-    function openResponsesModal(slug, eventTitle) {
-      slug = normalizeFormSlug(slug);
+    // `sources` is either a bare slug string (single form, e.g. events) or
+    // an array of { slug, lang } (e.g. a scorer course's DE+EN form pair).
+    // DE/EN duplicate forms share field IDs, so rows merge cleanly by id;
+    // a Lang column is shown only when more than one source is present.
+    function openResponsesModal(sources, eventTitle) {
+      var srcList = (Array.isArray(sources) ? sources : [{ slug: sources, lang: '' }])
+        .map(function(s) { return { slug: normalizeFormSlug(s && s.slug != null ? s.slug : s), lang: (s && s.lang) || '' }; })
+        .filter(function(s) { return !!s.slug; });
+      // de-dupe by slug
+      var seenSlug = {};
+      srcList = srcList.filter(function(s) { if (seenSlug[s.slug]) return false; seenSlug[s.slug] = 1; return true; });
+      var multi = srcList.length > 1;
+
       var modal = document.getElementById('admin-modal');
       modal.textContent = '';
       var content = document.createElement('div');
@@ -2148,45 +2153,87 @@ import '../styles/global.css';
       modal.appendChild(content);
       modal.style.display = 'flex';
 
-      getValidToken().then(function(token) {
-        return fetch(DIRECTUS_URL + '/kscw/opnform/forms/' + encodeURIComponent(slug) + '/submissions?per_page=100', {
-          headers: { 'Authorization': 'Bearer ' + token },
-        });
-      }).then(function(res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-      }).then(function(payload) {
+      if (!srcList.length) {
         body.textContent = '';
-        // Drop OpnForm presentational blocks (nf-text, nf-divider,
-        // nf-page-break, nf-image, …) — they are layout, not answers.
-        var fields = ((payload && payload.fields) || []).filter(function(f) {
-          return f && typeof f.type === 'string' && f.type.indexOf('nf-') !== 0;
+        var none = document.createElement('div');
+        none.className = 'admin-empty';
+        none.textContent = 'No form linked.';
+        body.appendChild(none);
+        return;
+      }
+
+      getValidToken().then(function(token) {
+        return Promise.all(srcList.map(function(src) {
+          return fetch(DIRECTUS_URL + '/kscw/opnform/forms/' + encodeURIComponent(src.slug) + '/submissions?per_page=100', {
+            headers: { 'Authorization': 'Bearer ' + token },
+          }).then(function(res) {
+            if (!res.ok) return { src: src, error: 'HTTP ' + res.status };
+            return res.json().then(function(p) { return { src: src, payload: p }; });
+          }).catch(function(e) { return { src: src, error: (e && e.message) || 'error' }; });
+        }));
+      }).then(function(results) {
+        body.textContent = '';
+
+        // Unified field set keyed by id (DE/EN share ids); first label wins.
+        var fields = [];
+        var byId = {};
+        var mergedRows = [];
+        var errors = [];
+        results.forEach(function(rr) {
+          if (rr.error) { errors.push(rr.src.slug + ': ' + rr.error); return; }
+          var p = rr.payload || {};
+          (p.fields || []).forEach(function(f) {
+            if (!f || typeof f.type !== 'string' || f.type.indexOf('nf-') === 0) return;
+            if (!byId[f.id]) { byId[f.id] = f; fields.push(f); }
+          });
+          (p.data || []).forEach(function(r) {
+            var d = (r && r.data) || r || {};
+            mergedRows.push({
+              data: d,
+              id: (r && r.id != null) ? r.id : d.id,
+              slug: rr.src.slug,
+              lang: rr.src.lang,
+            });
+          });
         });
-        var rows = (payload && payload.data) || [];
-        var total = payload && payload.total != null ? payload.total : rows.length;
+        mergedRows.sort(function(a, b) {
+          return String(b.data.created_at || '').localeCompare(String(a.data.created_at || ''));
+        });
+        var total = mergedRows.length;
 
         var header = document.createElement('div');
-        header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;';
+        header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;gap:0.75rem;flex-wrap:wrap;';
         var summary = document.createElement('div');
         summary.style.cssText = 'font-size:var(--text-sm);color:var(--text-muted);';
-        summary.textContent = total + ' response' + (total === 1 ? '' : 's');
+        summary.textContent = total + ' response' + (total === 1 ? '' : 's')
+          + (multi ? ' (' + srcList.map(function(s) { return s.lang || s.slug; }).join(' + ') + ')' : '');
         header.appendChild(summary);
         if (total > 0) {
           var csvBtn = document.createElement('button');
           csvBtn.className = 'admin-btn admin-btn-sm admin-btn-primary';
           csvBtn.textContent = 'Export CSV';
           csvBtn.addEventListener('click', function() {
-            exportResponsesCSV(slug, fields, rows);
+            exportResponsesCSV(multi ? 'combined' : srcList[0].slug, fields, mergedRows, multi);
           });
           header.appendChild(csvBtn);
         }
         body.appendChild(header);
 
-        if (!rows.length) {
-          var empty = document.createElement('div');
-          empty.className = 'admin-empty';
-          empty.textContent = 'No signups yet.';
-          body.appendChild(empty);
+        if (errors.length) {
+          var warn = document.createElement('div');
+          warn.className = 'admin-empty';
+          warn.style.cssText = 'color:#dc2626;margin-bottom:0.5rem;';
+          warn.textContent = 'Could not load: ' + errors.join('; ');
+          body.appendChild(warn);
+        }
+
+        if (!mergedRows.length) {
+          if (!errors.length) {
+            var empty = document.createElement('div');
+            empty.className = 'admin-empty';
+            empty.textContent = 'No signups yet.';
+            body.appendChild(empty);
+          }
           return;
         }
 
@@ -2196,10 +2243,11 @@ import '../styles/global.css';
         table.style.cssText = 'width:100%;border-collapse:collapse;font-size:var(--text-sm);';
         var thead = document.createElement('thead');
         var thRow = document.createElement('tr');
-        ['Date'].concat(fields.map(function(f) { return f.name; })).forEach(function(label) {
+        var headLabels = ['Date'].concat(multi ? ['Lang'] : []).concat(fields.map(function(f) { return f.name; }));
+        headLabels.forEach(function(label) {
           var th = document.createElement('th');
           th.textContent = label;
-          th.style.cssText = 'text-align:left;padding:0.5rem 0.75rem;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.04);font-weight:600;';
+          th.style.cssText = 'text-align:left;padding:0.5rem 0.75rem;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.04);font-weight:600;white-space:nowrap;';
           thRow.appendChild(th);
         });
         var thAct = document.createElement('th');
@@ -2208,15 +2256,19 @@ import '../styles/global.css';
         thead.appendChild(thRow);
         table.appendChild(thead);
         var tbody = document.createElement('tbody');
-        rows.forEach(function(r) {
-          // OpnForm nests answers + metadata under r.data; fall back to r
-          // itself if the proxy shape ever flattens.
-          var d = (r && r.data) || r || {};
+        mergedRows.forEach(function(row) {
+          var d = row.data;
           var tr = document.createElement('tr');
           var dateTd = document.createElement('td');
           dateTd.textContent = String(d.created_at || '').substring(0, 16).replace('T', ' ');
           dateTd.style.cssText = 'padding:0.5rem 0.75rem;border-bottom:1px solid var(--border);color:var(--text-muted);white-space:nowrap;';
           tr.appendChild(dateTd);
+          if (multi) {
+            var langTd = document.createElement('td');
+            langTd.textContent = row.lang || '';
+            langTd.style.cssText = 'padding:0.5rem 0.75rem;border-bottom:1px solid var(--border);font-weight:600;white-space:nowrap;';
+            tr.appendChild(langTd);
+          }
           fields.forEach(function(f) {
             var td = document.createElement('td');
             var v = d[f.id];
@@ -2226,8 +2278,7 @@ import '../styles/global.css';
           });
           var actTd = document.createElement('td');
           actTd.style.cssText = 'padding:0.5rem 0.75rem;border-bottom:1px solid var(--border);white-space:nowrap;';
-          var subId = (r && r.id != null) ? r.id : d.id;
-          if (subId != null) {
+          if (row.id != null) {
             var delBtn = document.createElement('button');
             delBtn.className = 'admin-btn admin-btn-sm admin-btn-danger';
             delBtn.textContent = t('delete');
@@ -2235,13 +2286,13 @@ import '../styles/global.css';
               if (!confirm(t('confirmDelete'))) return;
               delBtn.disabled = true;
               getValidToken().then(function(token) {
-                return fetch(DIRECTUS_URL + '/kscw/opnform/forms/' + encodeURIComponent(slug) + '/submissions/' + encodeURIComponent(subId), {
+                return fetch(DIRECTUS_URL + '/kscw/opnform/forms/' + encodeURIComponent(row.slug) + '/submissions/' + encodeURIComponent(row.id), {
                   method: 'DELETE',
                   headers: { 'Authorization': 'Bearer ' + token },
                 });
               }).then(function(res) {
                 if (!res.ok) throw new Error('HTTP ' + res.status);
-                openResponsesModal(slug, eventTitle); // refresh list + count
+                openResponsesModal(sources, eventTitle); // refresh
               }).catch(function(err) {
                 delBtn.disabled = false;
                 alert(t('deleteError') + (err && err.message ? err.message : 'unknown'));
@@ -2264,12 +2315,12 @@ import '../styles/global.css';
       });
     }
 
-    function exportResponsesCSV(slug, fields, rows) {
-      var headers = ['date_iso'].concat(fields.map(function(f) { return f.name; }));
+    function exportResponsesCSV(nameBase, fields, rows, withLang) {
+      var headers = ['date_iso'].concat(withLang ? ['lang'] : []).concat(fields.map(function(f) { return f.name; }));
       var lines = [headers.map(csvEscape).join(',')];
       rows.forEach(function(r) {
         var d = (r && r.data) || r || {};
-        var row = [d.created_at || ''].concat(fields.map(function(f) {
+        var row = [d.created_at || ''].concat(withLang ? [r.lang || ''] : []).concat(fields.map(function(f) {
           var v = d[f.id];
           if (v == null) return '';
           if (Array.isArray(v)) return v.join('; ');
@@ -2282,7 +2333,7 @@ import '../styles/global.css';
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
-      a.download = 'anmeldungen-' + slug + '.csv';
+      a.download = 'anmeldungen-' + nameBase + '.csv';
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }
