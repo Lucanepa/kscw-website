@@ -1333,6 +1333,8 @@ Apply (USER-RUN `[CLI]`): `npm run db:setup-perms:dev` then `:prod`.
 
 For each human becoming `Website Admin`: **first** set their grants via the manager Admin grid, **then** change their Directus role to `Website Admin`. Order matters — grants before the role flip so they never see an empty admin mid-UAT.
 
+> **Deferred from B2 (do in C, before any user is migrated):** the gated empty-state string in `admin.astro` (`'No sections assigned — ask a superuser to grant access.'`, set via `textContent` in `renderAdmin`'s empty-state branch) is hardcoded English. It is unreachable until a non-superuser zero-section user exists (i.e. Phase C). Before migrating users, add it to the existing `i18n` object (DE + EN) and replace the literal with the `t()` lookup, so a German `Website Admin` doesn't see English. Code-review (B2) flagged this IMPORTANT.
+
 ### C3: Acceptance (USER-RUN, dev then prod)
 
 Migrated `Website Admin` user token `$WA`:
