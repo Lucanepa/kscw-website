@@ -75,10 +75,12 @@ import '../styles/global.css';
     // items/teams, /files and /assets stay direct (see spec).
     async function wadmin(section, subpath, opts) {
       var token = await getValidToken();
+      if (!token) { return Promise.reject(new Error('Not authenticated')); }
       var o = opts || {};
       var headers = Object.assign({}, o.headers || {}, { 'Authorization': 'Bearer ' + token });
       return fetch(DIRECTUS_URL + '/kscw/wadmin/' + section + '/' + subpath, Object.assign({}, o, { headers: headers }));
     }
+    // Mutates module-scope adminAccess AND returns it; callers MUST await before reading adminAccess.
     async function loadAccess() {
       var token = await getValidToken();
       if (!token) { adminAccess = { isSuperuser: false, sections: [] }; return adminAccess; }
