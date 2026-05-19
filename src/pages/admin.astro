@@ -752,14 +752,10 @@ import '../styles/global.css';
       // ── Registrations tab ──
       if (currentTab === 'registrations') {
         var regStatusFilter = window._regStatusFilter || 'pending';
-        getValidToken().then(function(token) {
-          var url = DIRECTUS_URL + '/items/registrations'
+        wadmin('registrations', 'items/registrations'
             + '?filter[status][_eq]=' + regStatusFilter
-            + '&sort=-submitted_at&limit=50';
-          return fetch(url, {
-            headers: { 'Authorization': 'Bearer ' + token },
-          });
-        }).then(function(r) { return r.json(); })
+            + '&sort=-submitted_at&limit=50', {})
+          .then(function(r) { return r.json(); })
           .then(function(data) {
             renderRegistrationsList(data.data || [], regStatusFilter);
           })
@@ -775,19 +771,14 @@ import '../styles/global.css';
 
       // ── Mixed Turnier tab ── (combined: website signups + Wiedisync participations)
       if (currentTab === 'mixed_turnier') {
-        getValidToken().then(function(token) {
-          return Promise.all([
-            fetch(DIRECTUS_URL + '/items/mixed_tournament_signups?sort=-date_created&limit=-1', {
-              headers: { 'Authorization': 'Bearer ' + token },
-            }).then(function(r) { return r.json(); }),
-            fetch(DIRECTUS_URL + '/items/participations?filter[activity_type][_eq]=event&filter[activity_id][_eq]=5&fields=id,member,status,note,date_created&limit=-1', {
-              headers: { 'Authorization': 'Bearer ' + token },
-            }).then(function(r) { return r.json(); }),
-            fetch(DIRECTUS_URL + '/items/members?fields=id,first_name,last_name,sex&limit=-1', {
-              headers: { 'Authorization': 'Bearer ' + token },
-            }).then(function(r) { return r.json(); })
-          ]);
-        }).then(function(results) {
+        Promise.all([
+          wadmin('mixed_turnier', 'items/mixed_tournament_signups?sort=-date_created&limit=-1', {})
+            .then(function(r) { return r.json(); }),
+          wadmin('mixed_turnier', 'items/participations?filter[activity_type][_eq]=event&filter[activity_id][_eq]=5&fields=id,member,status,note,date_created&limit=-1', {})
+            .then(function(r) { return r.json(); }),
+          wadmin('mixed_turnier', 'items/members?fields=id,first_name,last_name,sex&limit=-1', {})
+            .then(function(r) { return r.json(); })
+        ]).then(function(results) {
             var signups = results[0].data || [];
             var participations = results[1].data || [];
             var members = results[2].data || [];
@@ -805,11 +796,8 @@ import '../styles/global.css';
 
       // ── Sponsors tab ──
       if (currentTab === 'sponsors') {
-        getValidToken().then(function(token) {
-          return fetch(DIRECTUS_URL + '/items/sponsors?sort=sort_order&limit=-1', {
-            headers: { 'Authorization': 'Bearer ' + token },
-          });
-        }).then(function(r) { return r.json(); })
+        wadmin('sponsors', 'items/sponsors?sort=sort_order&limit=-1', {})
+          .then(function(r) { return r.json(); })
           .then(function(data) {
             renderSponsorsList(data.data || []);
           })
@@ -825,11 +813,8 @@ import '../styles/global.css';
 
       // ── Scorer courses tab ──
       if (currentTab === 'scorer_courses') {
-        getValidToken().then(function(token) {
-          return fetch(DIRECTUS_URL + '/items/scorer_courses?sort=sort,date_iso&limit=-1', {
-            headers: { 'Authorization': 'Bearer ' + token },
-          });
-        }).then(function(r) { return r.json(); })
+        wadmin('scorer_courses', 'items/scorer_courses?sort=sort,date_iso&limit=-1', {})
+          .then(function(r) { return r.json(); })
           .then(function(data) {
             renderScorerCoursesList(data.data || []);
           })
@@ -846,11 +831,8 @@ import '../styles/global.css';
       var collection = currentTab === 'news' ? 'news' : 'events';
       var sort = currentTab === 'news' ? '-published_at' : '-start_date';
 
-      getValidToken().then(function(token) {
-        return fetch(DIRECTUS_URL + '/items/' + collection + '?sort=' + sort + '&limit=50', {
-          headers: { 'Authorization': 'Bearer ' + token },
-        });
-      }).then(function(res) { return res.json(); })
+      wadmin(collection, 'items/' + collection + '?sort=' + sort + '&limit=50', {})
+        .then(function(res) { return res.json(); })
         .then(function(result) {
           var items = result.data || [];
           content.textContent = '';
@@ -927,11 +909,8 @@ import '../styles/global.css';
             editBtn.className = 'admin-btn admin-btn-sm';
             editBtn.textContent = t('edit');
             editBtn.addEventListener('click', function() {
-              getValidToken().then(function(token) {
-                return fetch(DIRECTUS_URL + '/items/' + collection + '/' + item.id, {
-                  headers: { 'Authorization': 'Bearer ' + token },
-                });
-              }).then(function(res) { return res.json(); })
+              wadmin(collection, 'items/' + collection + '/' + item.id, {})
+                .then(function(res) { return res.json(); })
                 .then(function(data) { openModal(data.data); });
             });
             actions.appendChild(editBtn);
@@ -941,15 +920,11 @@ import '../styles/global.css';
             deleteBtn.textContent = t('delete');
             deleteBtn.addEventListener('click', function() {
               if (confirm(t('confirmDelete'))) {
-                getValidToken().then(function(token) {
-                  return fetch(DIRECTUS_URL + '/items/' + collection + '/' + item.id, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': 'Bearer ' + token },
-                  });
-                }).then(function(res) {
-                  if (!res.ok) throw new Error('HTTP ' + res.status);
-                  loadItems();
-                }).catch(function(err) { alert(t('deleteError') + err.message); });
+                wadmin(collection, 'items/' + collection + '/' + item.id, { method: 'DELETE' })
+                  .then(function(res) {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    loadItems();
+                  }).catch(function(err) { alert(t('deleteError') + err.message); });
               }
             });
             actions.appendChild(deleteBtn);
@@ -1398,10 +1373,9 @@ import '../styles/global.css';
       };
 
       try {
-        var token = await getValidToken();
-        var res = await fetch(DIRECTUS_URL + '/items/registrations/' + id, {
+        var res = await wadmin('registrations', 'items/registrations/' + id, {
           method: 'PATCH',
-          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -1427,17 +1401,15 @@ import '../styles/global.css';
           payload.approved_by = user.first_name + ' ' + user.last_name;
         }
 
-        var res = await fetch(DIRECTUS_URL + '/items/registrations/' + id, {
+        var res = await wadmin('registrations', 'items/registrations/' + id, {
           method: 'PATCH',
-          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
 
         if (status === 'rejected') {
-          var itemRes = await fetch(DIRECTUS_URL + '/items/registrations/' + id, {
-            headers: { 'Authorization': 'Bearer ' + token },
-          });
+          var itemRes = await wadmin('registrations', 'items/registrations/' + id, {});
           var itemData = (await itemRes.json()).data;
 
           if (itemData.id_upload_front) {
@@ -1451,9 +1423,7 @@ import '../styles/global.css';
             });
           }
 
-          await fetch(DIRECTUS_URL + '/items/registrations/' + id, {
-            method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token },
-          });
+          await wadmin('registrations', 'items/registrations/' + id, { method: 'DELETE' });
         }
 
         closeModal();
@@ -1486,9 +1456,9 @@ import '../styles/global.css';
         });
       }
 
-      await fetch(DIRECTUS_URL + '/items/registrations/' + item.id, {
+      await wadmin('registrations', 'items/registrations/' + item.id, {
         method: 'PATCH',
-        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id_upload_front: null, id_upload_back: null }),
       });
 
@@ -1833,15 +1803,11 @@ import '../styles/global.css';
         deleteBtn.textContent = t('delete');
         deleteBtn.addEventListener('click', function() {
           if (confirm(t('sponsorConfirmDelete'))) {
-            getValidToken().then(function(token) {
-              return fetch(DIRECTUS_URL + '/items/sponsors/' + sp.id, {
-                method: 'DELETE',
-                headers: { 'Authorization': 'Bearer ' + token },
-              });
-            }).then(function(res) {
-              if (!res.ok) throw new Error('HTTP ' + res.status);
-              loadItems();
-            }).catch(function(err) { alert(t('deleteError') + err.message); });
+            wadmin('sponsors', 'items/sponsors/' + sp.id, { method: 'DELETE' })
+              .then(function(res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                loadItems();
+              }).catch(function(err) { alert(t('deleteError') + err.message); });
           }
         });
         actions.appendChild(deleteBtn);
@@ -1967,15 +1933,11 @@ import '../styles/global.css';
         deleteBtn.textContent = t('delete');
         deleteBtn.addEventListener('click', function() {
           if (confirm(t('scorerCoursesConfirmDelete'))) {
-            getValidToken().then(function(token) {
-              return fetch(DIRECTUS_URL + '/items/scorer_courses/' + sc.id, {
-                method: 'DELETE',
-                headers: { 'Authorization': 'Bearer ' + token },
-              });
-            }).then(function(res) {
-              if (!res.ok) throw new Error('HTTP ' + res.status);
-              loadItems();
-            }).catch(function(err) { alert(t('deleteError') + err.message); });
+            wadmin('scorer_courses', 'items/scorer_courses/' + sc.id, { method: 'DELETE' })
+              .then(function(res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                loadItems();
+              }).catch(function(err) { alert(t('deleteError') + err.message); });
           }
         });
         actions.appendChild(deleteBtn);
@@ -2265,16 +2227,13 @@ import '../styles/global.css';
         return;
       }
 
-      getValidToken().then(function(token) {
-        return Promise.all(srcList.map(function(src) {
-          return fetch(DIRECTUS_URL + '/kscw/opnform/forms/' + encodeURIComponent(src.slug) + '/submissions?per_page=100', {
-            headers: { 'Authorization': 'Bearer ' + token },
-          }).then(function(res) {
+      Promise.all(srcList.map(function(src) {
+        return wadmin('scorer_courses', 'opnform/forms/' + encodeURIComponent(src.slug) + '/submissions?per_page=100', {})
+          .then(function(res) {
             if (!res.ok) return { src: src, error: 'HTTP ' + res.status };
             return res.json().then(function(p) { return { src: src, payload: p }; });
           }).catch(function(e) { return { src: src, error: (e && e.message) || 'error' }; });
-        }));
-      }).then(function(results) {
+      })).then(function(results) {
         body.textContent = '';
 
         // Unified field set keyed by id (DE/EN share ids); first label wins.
@@ -2388,18 +2347,14 @@ import '../styles/global.css';
             delBtn.addEventListener('click', function() {
               if (!confirm(t('confirmDelete'))) return;
               delBtn.disabled = true;
-              getValidToken().then(function(token) {
-                return fetch(DIRECTUS_URL + '/kscw/opnform/forms/' + encodeURIComponent(row.slug) + '/submissions/' + encodeURIComponent(row.id), {
-                  method: 'DELETE',
-                  headers: { 'Authorization': 'Bearer ' + token },
+              wadmin('scorer_courses', 'opnform/forms/' + encodeURIComponent(row.slug) + '/submissions/' + encodeURIComponent(row.id), { method: 'DELETE' })
+                .then(function(res) {
+                  if (!res.ok) throw new Error('HTTP ' + res.status);
+                  openResponsesModal(sources, eventTitle); // refresh
+                }).catch(function(err) {
+                  delBtn.disabled = false;
+                  alert(t('deleteError') + (err && err.message ? err.message : 'unknown'));
                 });
-              }).then(function(res) {
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                openResponsesModal(sources, eventTitle); // refresh
-              }).catch(function(err) {
-                delBtn.disabled = false;
-                alert(t('deleteError') + (err && err.message ? err.message : 'unknown'));
-              });
             });
             actTd.appendChild(delBtn);
           }
@@ -2553,17 +2508,14 @@ import '../styles/global.css';
           }
         }
 
-        var url = existingItem
-          ? DIRECTUS_URL + '/items/' + collection + '/' + existingItem.id
-          : DIRECTUS_URL + '/items/' + collection;
+        var subpath = existingItem
+          ? 'items/' + collection + '/' + existingItem.id
+          : 'items/' + collection;
         var method = existingItem ? 'PATCH' : 'POST';
 
-        var res = await fetch(url, {
+        var res = await wadmin(collection, subpath, {
           method: method,
-          headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
         if (!res.ok) {
