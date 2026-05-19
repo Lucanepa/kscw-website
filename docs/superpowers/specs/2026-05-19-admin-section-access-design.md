@@ -22,8 +22,8 @@ The enforcement boundary lives in **Directus** (`wiedisync`), because `admin.ast
 
 1. **`website_admin_access`** — new Directus collection.
 2. **`/kscw/wadmin` endpoint extension** — new, in `kscw-endpoints`.
-3. **Directus role lockdown** — gated roles lose direct CRUD on section collections.
-4. **`admin.astro` changes** — thin fetch-wrapper + `/me`-driven tabs + superuser Admin tab.
+3. **`Website Admin` role + `KSCW Website Admin` policy** — *Phase C only, separately green-lit.* A new non-`admin_access` role/policy in `setup-permissions.mjs` with **no** direct perms on the six collections + `directus_files` (so `/kscw/wadmin` is its only data path) but `app_access:true` (can still log into the Directus-auth'd admin page). Named users are migrated onto it. Today's admins are all on `admin_access=true` roles (`Superuser`/`Administrator`) that bypass every permission — no policy lockdown can gate them; only moving them off `admin_access` can.
+4. **`admin.astro` changes** — thin fetch-wrapper + `/me`-driven tabs + manager-only Admin tab.
 
 **Mechanism (codebase-fit, decided at planning):** the endpoint does **not** HTTP-proxy Directus and uses **no extra env secret**. It reaches data the way every other `kscw-endpoints` route does — `new ItemsService(collection, { schema, knex: database, accountability: { admin: true } })` (and `FilesService`/`UsersService` likewise). The caller's token is used only to *identify* the caller (id + role); it never grants the data access. Role name is resolved server-side via the `directus_users → directus_roles` join already used in `bugfixes.js` (`.join('directus_roles', 'directus_users.role', 'directus_roles.id').select('directus_roles.name')`), not from `req.accountability` (which carries no role name). Same security guarantee as a service-token proxy; idiomatic and smaller attack surface.
 
@@ -41,24 +41,28 @@ This table is the authorization contract the endpoint enforces (scope-check, Par
 | `mixed_turnier` | `items/mixed_tournament_signups*`, `items/participations*`, `items/members*` |
 | **always-open (not proxied)** | `users/me`, `items/teams` (read) — called directly against Directus |
 
-### `website_admin_access` collection
+### `website_admin_access` — internal config table (NOT a Directus collection)
 
-| Field | Type | Notes |
+Decided at planning: this is a plain Postgres table created by a numbered SQL migration (`directus/scripts/063-website-admin-access.sql`, applied via `npm run db:migrate:*`), **not registered in Directus** (`directus_collections`/`directus_fields`). Consequence: there is **no `/items/website_admin_access` REST surface at all** — it is unreachable except through `/kscw/wadmin`. That is strictly stronger than role-permission lockdown on a Directus collection, and matches the raw-knex config-table pattern already used in `kscw-endpoints` (e.g. `bugfixes.js`).
+
+| Column | Type | Notes |
 |---|---|---|
-| `id` | pk | |
-| `user` | o2o → `directus_users`, **unique** | the gated admin |
-| `sections` | JSON | array of section keys, e.g. `["news","events"]` |
-| `date_created` / `date_updated` | timestamp | standard audit fields |
+| `id` | `serial PRIMARY KEY` | |
+| `user` | `uuid NOT NULL UNIQUE REFERENCES directus_users(id) ON DELETE CASCADE` | the gated admin |
+| `sections` | `jsonb NOT NULL DEFAULT '[]'` | array of section keys, e.g. `["news","events"]` |
+| `date_created` | `timestamptz NOT NULL DEFAULT now()` | |
+| `date_updated` | `timestamptz NOT NULL DEFAULT now()` | |
 
-Direct read/write permitted **only** to role `superuser`. The endpoint reads/writes it via `ItemsService('website_admin_access', { accountability: { admin: true } })`, never the caller's token.
+The endpoint reads/writes it via raw knex (`database('website_admin_access')…`), with admin-accountability `ItemsService` reserved for the six **content** collections (which are real Directus collections needing Directus query semantics).
 
 ## Request lifecycle
 
 ### `GET /kscw/wadmin/me`
 
 1. Resolve caller from `req.accountability.user` (no user → **401**). Look up role name via the `directus_users → directus_roles` join. Unknown user/role → fail closed.
-2. `superuser` → `{ isSuperuser: true, sections: <all 6> }`.
-3. Else read `website_admin_access` where `user = id` (admin-accountability `ItemsService`) → `{ isSuperuser: false, sections: row?.sections ?? [] }`. No row → `[]`.
+2. **Manager** — role name ∈ `{Superuser, Administrator}` (the only `admin_access=true` roles; case-insensitive compare) → `{ isSuperuser: true, sections: <all 6> }`. These are never gated and are the only roles that see the management grid.
+3. **Gated admin** — role name `Website Admin` (the non-`admin_access` role introduced in Phase C; until then no users hold it) → read `website_admin_access` where `user = id` via raw knex → `{ isSuperuser: false, sections: row?.sections ?? [] }`. No row → `[]`.
+4. Any other role → not a website admin → `{ isSuperuser: false, sections: [] }` (frontend renders nothing).
 
 ### Per-section data routes
 
@@ -76,14 +80,16 @@ Concrete REST-shaped routes (not arbitrary subpath proxy). `:collection` is vali
 Per request:
 
 1. Auth caller (`req.accountability.user` → id; role-name join → role).
-2. **Section authorization:** `superuser`, or `:section` ∈ caller's `sections`. Else **403** `{error:'section_not_granted', section}`.
+2. **Section authorization:** manager (step-2 roles), or `:section` ∈ caller's `sections`. Else **403** `{error:'section_not_granted', section}`.
 3. **Scope-check:** `:collection` (or `files`/`opnform`) must be in that section's allowed set (contract table). Else **403** `{error:'resource_out_of_scope'}`. This is the real teeth — it stops a `news`-granted admin reaching `sponsors` via their own grant.
 4. Perform the op through the admin-accountability service. The Directus REST query string (`filter`/`fields`/`sort`/`limit`/`deep`) is parsed into the `ItemsService` query object via Directus's query sanitizer; method/body pass through. Return the service result (or its sanitized error) as JSON.
 
-### Superuser-only management routes
+### Manager-only management routes
 
-- `GET /kscw/wadmin/admins` → `[{ id, name, email, sections[] }]` — `directus_users` in gated roles (`website_admin`/`admin`/`administrator`, resolved via the `directus_roles` join) left-joined to `website_admin_access`. Non-superuser → **403**.
-- `PUT /kscw/wadmin/admins/:id` body `{ sections:[…] }` → upsert that user's `website_admin_access` row via admin-accountability `ItemsService` (create if absent, else update). Non-superuser → **403**.
+"Manager" = role ∈ `{Superuser, Administrator}` (step-2 of `/me`). Non-manager → **403**.
+
+- `GET /kscw/wadmin/admins` → `[{ id, name, email, sections[] }]` — `directus_users` whose role (resolved via the `directus_roles` join) is `Website Admin`, left-joined (raw knex) to `website_admin_access`. Before Phase C this list is empty (no user holds that role yet); the grid still renders, just with no rows.
+- `PUT /kscw/wadmin/admins/:id` body `{ sections:[…] }` → upsert that user's `website_admin_access` row via raw knex (`ON CONFLICT (user) DO UPDATE`). Non-manager → **403**.
 
 ## Error handling
 
@@ -112,30 +118,37 @@ Three deliberately thin changes:
 
 ## Rollout sequence
 
-The scorer-course feature is in **live UAT**; ordering must never lock out a working admin.
+The scorer-course feature is in **live UAT**; ordering must never lock out a working admin. **Decided at planning ("phase it"):** ship the full machinery (A + B) now with no user-identity change; the risky role migration (C) is a separate, explicitly green-lit step. A + B already deliver *real* endpoint enforcement for any non-`admin_access` caller and full UI gating; C extends that hard guarantee to today's admins. The guarantee is deferred, not dropped.
 
-### Phase A — backend, additive, no enforcement
-1. Create `website_admin_access` (prod + dev); direct R/W restricted to `superuser`. *(Directus admin operation — run by the user via Directus UI/admin API, not agent prod SSH.)*
-2. Deploy the `/kscw/wadmin` extension to wiedisync prod via the existing extension-deploy path. Nothing depends on it yet; old direct `/items/*` still works → zero user impact.
-3. **Seed rows granting every current website admin all 6 sections** (incl. whoever runs scorer UAT). The "default = nothing" rule governs *new/ungranted* users only; existing admins must not lose access when enforcement flips.
+### Phase A — backend, additive (this plan)
+1. `directus/scripts/063-website-admin-access.sql` creating the internal table; apply via `npm run db:migrate:dev` then `:prod` *(user-run `[CLI]`; the `db:*` scripts SSH the Hetzner DB container — not agent-run)*.
+2. New `wadmin.js` endpoint + registration in `index.js` + vitest suite. Deploy via `npm run ext:deploy:dev` then `:prod` *(user-run `[CLI]`)*. Nothing depends on it yet; direct `/items/*` still works → zero user impact.
+3. No seeding required — no users hold the gated role yet; managers (`Superuser`/`Administrator`) keep full access automatically (step-2 of `/me`).
 
-### Phase B — frontend cutover, no lockdown yet
-4. Ship `admin.astro` (wrapper + `/me` tabs + Admin tab). Page now routes through wadmin, but direct Directus still works → safe, instantly revertible.
-5. Superuser smoke-test: Admin tab loads; toggling a test admin changes their visible tabs.
+### Phase B — frontend cutover (this plan)
+4. Ship `admin.astro` (wrapper + `/me` tabs + manager-only Admin grid). Today's admins are all managers → they see everything + the grid; zero functional change for them, instantly revertible.
+5. **End-to-end enforcement proof without touching real users:** create one throwaway test user on a non-`admin_access` role, exercise `/kscw/wadmin` (ungranted → 403, grant a section via the grid → 200, revoke → 403), then delete the test user. Proves the boundary is real before any real migration.
 
-### Phase C — flip the real boundary (only risky step, instantly reversible)
-6. Lock down Directus role perms: `website_admin`/`admin`/`administrator` lose direct CRUD on the 6 collections + `files`; `superuser` keeps it.
-7. **Acceptance test (proves hiding ≠ UI-only):** non-superuser admin token → direct `GET /items/scorer_courses` = **403**; same user via `/kscw/wadmin/scorer_courses/…` with grant = **200**; revoke grant = **403**.
+### Phase C — role migration (SEPARATE; needs explicit green-light + the "who" list)
+6. Add `Website Admin` role + `KSCW Website Admin` policy (`admin_access:false`, `app_access:true`, **no** perms on the 6 collections + `directus_files`) to `setup-permissions.mjs`; apply via `npm run db:setup-perms:dev`/`:prod` *(user-run `[CLI]`)*.
+7. User supplies exactly which humans stay manager (`Superuser`/`Administrator`) vs. become `Website Admin`. Migrate the named users' role (Directus user-role change). Pre-seed their `website_admin_access` grants **before** the role flip so they never see an empty admin mid-UAT.
+8. **Acceptance test (proves hiding ≠ UI-only):** a migrated `Website Admin` user → direct `GET /items/scorer_courses` = **403**; via `/kscw/wadmin/scorer_courses/items/scorer_courses` with grant = **200**; revoke grant = **403**.
 
 ### Rollback
-Phase C is a single Directus permission change — re-grant role perms to fully revert. Phases A/B are purely additive (drop the collection / revert the frontend commit).
+- A: drop the table (`DROP TABLE website_admin_access`) + revert the extension commit + redeploy.
+- B: revert the `admin.astro` commit (managers were never gated, so no access lost).
+- C: re-assign the migrated users back to their prior role; the `Website Admin` policy is inert once unused.
 
 ## Testing
 
-- **Endpoint auth matrix:** no token → 401; ungranted section → 403; out-of-scope subpath → 403; superuser → all sections; granted admin → that section only.
-- **Boundary proof (acceptance):** post-Phase-C, a non-superuser admin token cannot read `items/scorer_courses` directly.
-- **Management routes:** non-superuser → 403; superuser `PUT` round-trips and is reflected by `/me` and `GET /admins`.
-- **Frontend:** zero-section user sees empty state; tab list matches grant; Admin-tab toggle persists and re-renders.
+**Phase A — endpoint (vitest, hermetic; mirrors `__tests__/broadcast-helpers.test.js` knex-mock style):**
+- `/me`: no `accountability.user` → 401; role `Superuser`/`Administrator` → `isSuperuser:true` + all 6; role `Website Admin` with a grant row → those sections; with no row → `[]`; any other role → `[]`.
+- Per-section: manager → any section; gated with grant → that section; gated without grant → 403 `section_not_granted`; `:collection` outside the section contract → 403 `resource_out_of_scope`.
+- Management: non-manager → 403; `PUT /admins/:id` upsert is idempotent (insert then update same user) and reflected by a subsequent `/admins`.
+
+**Phase B — frontend (manual, documented script):** manager sees all tabs + Admin grid; the throwaway non-`admin_access` test user with zero grants sees the empty state; with a partial grant sees only those tabs; grid toggle persists across reload.
+
+**Phase C — acceptance:** the boundary-proof in step 8, run against dev first, then prod, on a migrated user.
 
 ## Completion
 
@@ -145,4 +158,5 @@ Per project convention (`CLAUDE.md`): this is a **minor** version bump (new feat
 
 - Per-file ownership/section tagging.
 - Bulk grant/revoke UI, audit log of grant changes, per-section human-readable descriptions.
-- Any non-`superuser` path to the management routes.
+- Any non-manager path to the management routes.
+- Migrating users *automatically* — Phase C role moves are an explicit, human-confirmed list, never inferred.
