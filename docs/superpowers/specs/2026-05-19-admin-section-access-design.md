@@ -25,6 +25,8 @@ The enforcement boundary lives in **Directus** (`wiedisync`), because `admin.ast
 3. **Directus role lockdown** — gated roles lose direct CRUD on section collections.
 4. **`admin.astro` changes** — thin fetch-wrapper + `/me`-driven tabs + superuser Admin tab.
 
+**Mechanism (codebase-fit, decided at planning):** the endpoint does **not** HTTP-proxy Directus and uses **no extra env secret**. It reaches data the way every other `kscw-endpoints` route does — `new ItemsService(collection, { schema, knex: database, accountability: { admin: true } })` (and `FilesService`/`UsersService` likewise). The caller's token is used only to *identify* the caller (id + role); it never grants the data access. Role name is resolved server-side via the `directus_users → directus_roles` join already used in `bugfixes.js` (`.join('directus_roles', 'directus_users.role', 'directus_roles.id').select('directus_roles.name')`), not from `req.accountability` (which carries no role name). Same security guarantee as a service-token proxy; idiomatic and smaller attack surface.
+
 ### Section → backend-resource contract
 
 This table is the authorization contract the endpoint enforces (scope-check, Part: lifecycle step 3):
@@ -48,29 +50,40 @@ This table is the authorization contract the endpoint enforces (scope-check, Par
 | `sections` | JSON | array of section keys, e.g. `["news","events"]` |
 | `date_created` / `date_updated` | timestamp | standard audit fields |
 
-Direct read/write permitted **only** to role `superuser`. The endpoint reads/writes it with the service token, not the caller's token.
+Direct read/write permitted **only** to role `superuser`. The endpoint reads/writes it via `ItemsService('website_admin_access', { accountability: { admin: true } })`, never the caller's token.
 
 ## Request lifecycle
 
 ### `GET /kscw/wadmin/me`
 
-1. Validate caller token → user id + role name. Invalid/expired → **401** (frontend's existing login redirect handles it).
+1. Resolve caller from `req.accountability.user` (no user → **401**). Look up role name via the `directus_users → directus_roles` join. Unknown user/role → fail closed.
 2. `superuser` → `{ isSuperuser: true, sections: <all 6> }`.
-3. Else read `website_admin_access` where `user = id` → `{ isSuperuser: false, sections: row?.sections ?? [] }`. No row → `[]`.
+3. Else read `website_admin_access` where `user = id` (admin-accountability `ItemsService`) → `{ isSuperuser: false, sections: row?.sections ?? [] }`. No row → `[]`.
 
-### `ANY /kscw/wadmin/<section>/<directus-subpath>`
+### Per-section data routes
 
-Example: `GET /kscw/wadmin/news/items/news?filter…`
+Concrete REST-shaped routes (not arbitrary subpath proxy). `:collection` is validated against the section's allowed set before any data access:
 
-1. Auth caller (token → id + role).
-2. **Section authorization:** `superuser`, or `<section>` ∈ caller's `sections`. Else **403** `{error:'section_not_granted', section}`.
-3. **Scope-check:** the `<directus-subpath>` must fall within that section's allowed-resource set (contract table). Else **403** `{error:'resource_out_of_scope'}`. This is the real teeth — it stops a `news`-granted admin tunnelling to `items/sponsors` via their own grant.
-4. Proxy verbatim (method, query, body) to Directus using the **service token** held in the `kscw-endpoints` extension env. Return upstream status + body unchanged.
+- `GET    /kscw/wadmin/:section/items/:collection`        → `ItemsService.readByQuery(query)`
+- `GET    /kscw/wadmin/:section/items/:collection/:id`    → `ItemsService.readOne(id, query)`
+- `POST   /kscw/wadmin/:section/items/:collection`        → `ItemsService.createOne(body)`
+- `PATCH  /kscw/wadmin/:section/items/:collection/:id`    → `ItemsService.updateOne(id, body)`
+- `DELETE /kscw/wadmin/:section/items/:collection/:id`    → `ItemsService.deleteOne(id)`
+- `POST   /kscw/wadmin/:section/files`                    → `FilesService` (multipart upload)
+- `DELETE /kscw/wadmin/:section/files/:id`                → `FilesService.deleteOne(id)`
+- `* /kscw/wadmin/scorer_courses/opnform/forms/:slug/...` → delegate to the existing opnform handlers, section-gated
+
+Per request:
+
+1. Auth caller (`req.accountability.user` → id; role-name join → role).
+2. **Section authorization:** `superuser`, or `:section` ∈ caller's `sections`. Else **403** `{error:'section_not_granted', section}`.
+3. **Scope-check:** `:collection` (or `files`/`opnform`) must be in that section's allowed set (contract table). Else **403** `{error:'resource_out_of_scope'}`. This is the real teeth — it stops a `news`-granted admin reaching `sponsors` via their own grant.
+4. Perform the op through the admin-accountability service. The Directus REST query string (`filter`/`fields`/`sort`/`limit`/`deep`) is parsed into the `ItemsService` query object via Directus's query sanitizer; method/body pass through. Return the service result (or its sanitized error) as JSON.
 
 ### Superuser-only management routes
 
-- `GET /kscw/wadmin/admins` → `[{ id, name, email, sections[] }]` — `directus_users` in gated roles (`website_admin`/`admin`/`administrator`) joined to `website_admin_access`. Superuser token required, else **403**.
-- `PUT /kscw/wadmin/admins/<id>` body `{ sections:[…] }` → upsert that user's `website_admin_access` row. Superuser token required.
+- `GET /kscw/wadmin/admins` → `[{ id, name, email, sections[] }]` — `directus_users` in gated roles (`website_admin`/`admin`/`administrator`, resolved via the `directus_roles` join) left-joined to `website_admin_access`. Non-superuser → **403**.
+- `PUT /kscw/wadmin/admins/:id` body `{ sections:[…] }` → upsert that user's `website_admin_access` row via admin-accountability `ItemsService` (create if absent, else update). Non-superuser → **403**.
 
 ## Error handling
 
@@ -81,7 +94,7 @@ Example: `GET /kscw/wadmin/news/items/news?filter…`
 | Subpath outside section contract | **403** `resource_out_of_scope` |
 | Non-superuser hits management routes | **403** |
 | `website_admin_access` unreachable / ambiguous role / missing row | **fail closed** — zero sections, never fail open |
-| Directus upstream error | pass through status + body |
+| `ItemsService`/`FilesService` throws | log via the endpoint logger; respond **500** `{error:'internal'}` (no Directus internals leaked); Directus `ForbiddenError`/`InvalidPayloadError` mapped to **403**/**400** |
 
 **Fail-closed principle:** any ambiguity = deny.
 
