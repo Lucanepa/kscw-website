@@ -33,13 +33,15 @@ This table is the authorization contract the endpoint enforces (scope-check, Par
 
 | Section | Allowed Directus resources |
 |---|---|
-| `news` | `items/news*`, `files` |
-| `events` | `items/events*`, `files` |
-| `registrations` | `items/registrations*`, `files` |
-| `sponsors` | `items/sponsors*`, `files` |
+| `news` | `items/news*` |
+| `events` | `items/events*` |
+| `registrations` | `items/registrations*` |
+| `sponsors` | `items/sponsors*` |
 | `scorer_courses` | `items/scorer_courses*`, `/kscw/opnform/forms/*` |
 | `mixed_turnier` | `items/mixed_tournament_signups*`, `items/participations*`, `items/members*` |
-| **always-open (not proxied)** | `users/me`, `items/teams` (read) — called directly against Directus |
+| **direct to Directus (not wadmin)** | `users/me`, `items/teams` (read), `/files` (upload/asset) |
+
+**`/files` decision (planning):** file upload stays a **direct** `POST /files` from `admin.astro` to Directus — the established codebase pattern (frontend → Directus `/files`, then pass the returned id; cf. `registration.js`). The extension has **no** multipart-streaming precedent; building one would be speculative, precedent-less code for a manager-only operation while Phase C is deferred. Enforcement for files is therefore not endpoint-mediated; instead the Phase-C `KSCW Website Admin` policy is granted a **narrow `directus_files: create + read`** (no other collection access) so gated admins can still upload. File *deletes* remain the accepted-coarse YAGNI below.
 
 ### `website_admin_access` — internal config table (NOT a Directus collection)
 
@@ -73,9 +75,9 @@ Concrete REST-shaped routes (not arbitrary subpath proxy). `:collection` is vali
 - `POST   /kscw/wadmin/:section/items/:collection`        → `ItemsService.createOne(body)`
 - `PATCH  /kscw/wadmin/:section/items/:collection/:id`    → `ItemsService.updateOne(id, body)`
 - `DELETE /kscw/wadmin/:section/items/:collection/:id`    → `ItemsService.deleteOne(id)`
-- `POST   /kscw/wadmin/:section/files`                    → `FilesService` (multipart upload)
-- `DELETE /kscw/wadmin/:section/files/:id`                → `FilesService.deleteOne(id)`
 - `* /kscw/wadmin/scorer_courses/opnform/forms/:slug/...` → delegate to the existing opnform handlers, section-gated
+
+(`/files` is **not** a wadmin route — see the `/files` decision above.)
 
 Per request:
 
@@ -100,21 +102,21 @@ Per request:
 | Subpath outside section contract | **403** `resource_out_of_scope` |
 | Non-superuser hits management routes | **403** |
 | `website_admin_access` unreachable / ambiguous role / missing row | **fail closed** — zero sections, never fail open |
-| `ItemsService`/`FilesService` throws | log via the endpoint logger; respond **500** `{error:'internal'}` (no Directus internals leaked); Directus `ForbiddenError`/`InvalidPayloadError` mapped to **403**/**400** |
+| `ItemsService` throws | log via the endpoint logger; respond **500** `{error:'internal'}` (no Directus internals leaked); Directus `ForbiddenError`/`InvalidPayloadError` mapped to **403**/**400** |
 
 **Fail-closed principle:** any ambiguity = deny.
 
 ### Accepted boundary (YAGNI)
 
-`files` is shared across the four file-capable sections. File **uploads** (`POST /files`) are gated by the calling section. File **deletes** (`DELETE /files/<id>`) are coarse — any file-capable section can delete any file id, because Directus files carry no section tag and the admin UI effectively only uploads. Per-file ownership tracking is explicitly out of scope.
+`/files` is not endpoint-mediated (see the `/files` decision). Under Phase C the gated `KSCW Website Admin` policy gets a flat `directus_files: create + read` — any gated admin can therefore read/replace any file id (Directus files carry no section tag, and the admin UI effectively only uploads). Per-file ownership tracking and section-scoped file access are explicitly out of scope.
 
 ## Frontend changes (`admin.astro`)
 
 Three deliberately thin changes:
 
-1. **`wadmin()` helper:** `wadmin(section, subpath, opts) → fetch(\`${base}/kscw/wadmin/${section}/${subpath}\`, opts)`, same user-token `Authorization` header as today. Mechanically swap each section's existing `fetch(base+'/items/<c>'…)` / `'/files'` / `'/kscw/opnform/…'` calls to route through `wadmin('<section>', …)`. `/users/me` and `items/teams` stay as direct Directus calls.
-2. **`/me`-driven tabs:** call `GET /kscw/wadmin/me` on load; build the tab bar from returned `sections` instead of the hardcoded list. `currentTab` defaults to the first granted section in the canonical order (`news`, `events`, `registrations`, `sponsors`, `scorer_courses`, `mixed_turnier`), not the literal `'news'`. `!isSuperuser && sections.length === 0` → render empty state *"No sections assigned — ask a superuser to grant access,"* no tabs, no content.
-3. **Superuser-only "Admin" tab:** appears only when `/me` returns `isSuperuser:true`. A grid: one row per gated admin (`id · name · email`), one checkbox column per section. Toggling a checkbox → debounced `PUT /kscw/wadmin/admins/<id>` with a small saved/error indicator. No bulk-apply, no per-section descriptions.
+1. **`wadmin()` helper:** `wadmin(section, subpath, opts) → fetch(\`${DIRECTUS_URL}/kscw/wadmin/${section}/${subpath}\`, opts)`, same `Authorization: Bearer <getValidToken()>` header as today. Mechanically swap each section's existing `fetch(DIRECTUS_URL+'/items/<c>'…)` and `'/kscw/opnform/…'` calls to route through `wadmin('<section>', …)`. `/users/me`, `items/teams`, **and `/files` upload** stay as direct Directus calls (per the `/files` decision).
+2. **`/me`-driven tabs:** call `GET /kscw/wadmin/me` on load; build the tab bar from returned `sections` instead of the hardcoded six (`admin.astro:641-646`). `currentTab` defaults to the first granted section in the canonical order (`news`, `events`, `registrations`, `sponsors`, `scorer_courses`, `mixed_turnier`), not the literal `'news'` (`admin.astro:38`). `!isSuperuser && sections.length === 0` → render empty state *"No sections assigned — ask a superuser to grant access,"* no tabs, no content.
+3. **Manager-only "Admin" tab:** appears only when `/me` returns `isSuperuser:true`. A grid: one row per `Website Admin` user (`name · email`), one checkbox column per section. Toggling a checkbox → debounced `PUT /kscw/wadmin/admins/<id>` with a small saved/error indicator. Before Phase C the grid has no rows (no user holds the role). No bulk-apply, no per-section descriptions.
 
 ## Rollout sequence
 
@@ -130,7 +132,7 @@ The scorer-course feature is in **live UAT**; ordering must never lock out a wor
 5. **End-to-end enforcement proof without touching real users:** create one throwaway test user on a non-`admin_access` role, exercise `/kscw/wadmin` (ungranted → 403, grant a section via the grid → 200, revoke → 403), then delete the test user. Proves the boundary is real before any real migration.
 
 ### Phase C — role migration (SEPARATE; needs explicit green-light + the "who" list)
-6. Add `Website Admin` role + `KSCW Website Admin` policy (`admin_access:false`, `app_access:true`, **no** perms on the 6 collections + `directus_files`) to `setup-permissions.mjs`; apply via `npm run db:setup-perms:dev`/`:prod` *(user-run `[CLI]`)*.
+6. Add `Website Admin` role + `KSCW Website Admin` policy to `setup-permissions.mjs`: `admin_access:false`, `app_access:true`, **no** perms on the 6 content collections, plus a single flat `directus_files: create + read` (so direct uploads from `admin.astro` keep working). Apply via `npm run db:setup-perms:dev`/`:prod` *(user-run `[CLI]`)*.
 7. User supplies exactly which humans stay manager (`Superuser`/`Administrator`) vs. become `Website Admin`. Migrate the named users' role (Directus user-role change). Pre-seed their `website_admin_access` grants **before** the role flip so they never see an empty admin mid-UAT.
 8. **Acceptance test (proves hiding ≠ UI-only):** a migrated `Website Admin` user → direct `GET /items/scorer_courses` = **403**; via `/kscw/wadmin/scorer_courses/items/scorer_courses` with grant = **200**; revoke grant = **403**.
 
