@@ -2,6 +2,16 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [3.7.0] — 2026-05-20
+
+### Added
+- **Admin – Bereichsberechtigungen pro Person**: Manager (Superuser/Administrator) sehen im Admin-Bereich einen neuen Tab "Admin". Dort lässt sich pro Website-Admin auswählen, welche Bereiche (News, Events, Anmeldungen, Sponsoren, Schreiberkurse, Mixed-Turnier) für diese Person sichtbar und bearbeitbar sind. Die Trennung wird nicht nur in der UI angezeigt — der Server lehnt Direktzugriffe auf nicht freigegebene Bereiche ab (echte Berechtigungsprüfung, kein reines UI-Verstecken)
+
+### Fixed
+- **Schreiberkurse "Zum Kalender hinzufügen"**: der Link funktioniert jetzt auch auf dem Handy. Statt einer `.ics`-Datei (die auf Mobilgeräten in Google Calendar einen "Termin nicht gefunden"-Fehler nach dem Login auslöste) öffnet sich jetzt direkt das Google-Kalender-Erstellungsformular mit Titel, Datum/Zeit und Ort vorausgefüllt
+- **Admin – Geburtsdatum-Anzeige**: Geburtsdaten werden jetzt im Schweizer Format `tt.mm.jjjj` angezeigt (ohne Uhrzeit-Anhang), statt des rohen ISO-Strings mit Zeitzone
+- **Admin – Export "Anmeldungen"**: der Export erzeugt jetzt tab-getrennte Dateien (`.tsv`) statt komma-getrennt. Adressen mit Kommas brechen den CSV-Import dadurch nicht mehr
+
 ## [3.6.0] — 2026-05-19
 
 ### Added

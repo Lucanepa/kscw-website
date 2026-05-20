@@ -130,8 +130,26 @@ const locale = 'en';
         <h2 class="changelog-heading">
           <i data-lucide="scroll-text"></i>
           {t(locale, 'changelogTitle')}
-          <span class="changelog-badge">v3.6.0</span>
+          <span class="changelog-badge">v3.7.0</span>
         </h2>
+
+        <div class="changelog-entry">
+          <div class="changelog-meta">v3.7.0 — 2026-05-20</div>
+          <div class="changelog-group">
+            <h3>Added</h3>
+            <ul>
+              <li><strong>Admin – per-user section permissions</strong>: managers now see a new "Admin" tab in the admin area. There you can choose, per Website Admin, which sections (News, Events, Registrations, Sponsors, Scorer Courses, Mixed Tournament) that person can see and edit — with real backend permission checks (not just UI hiding)</li>
+            </ul>
+          </div>
+          <div class="changelog-group">
+            <h3>Fixed</h3>
+            <ul>
+              <li><strong>Scorer course "Add to calendar"</strong>: the link now works on mobile too. Instead of an `.ics` file, it opens Google Calendar's event-creation form pre-filled with title, date/time and venue — the "Termin nicht gefunden" error after Google login is gone</li>
+              <li><strong>Admin – birthdate display</strong>: birthdates now render in Swiss `dd.mm.yyyy` format (no time component), instead of the raw ISO string with timezone</li>
+              <li><strong>Admin – "Registrations" export</strong>: the export now produces tab-separated files (`.tsv`) instead of comma-separated. Addresses containing commas no longer break the import</li>
+            </ul>
+          </div>
+        </div>
 
         <div class="changelog-entry">
           <div class="changelog-meta">v3.6.0 — 2026-05-19</div>

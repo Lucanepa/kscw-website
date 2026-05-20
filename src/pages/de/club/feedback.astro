@@ -130,8 +130,26 @@ const locale = 'de';
         <h2 class="changelog-heading">
           <i data-lucide="scroll-text"></i>
           {t(locale, 'changelogTitle')}
-          <span class="changelog-badge">v3.6.0</span>
+          <span class="changelog-badge">v3.7.0</span>
         </h2>
+
+        <div class="changelog-entry">
+          <div class="changelog-meta">v3.7.0 — 2026-05-20</div>
+          <div class="changelog-group">
+            <h3>Neu</h3>
+            <ul>
+              <li><strong>Admin – Bereichsberechtigungen pro Person</strong>: Manager sehen jetzt im Admin-Bereich einen neuen Tab "Admin". Dort lässt sich pro Website-Admin auswählen, welche Bereiche (News, Events, Anmeldungen, Sponsoren, Schreiberkurse, Mixed-Turnier) für diese Person sichtbar und bearbeitbar sind — mit echter Berechtigungsprüfung auf dem Server (kein reines UI-Verstecken)</li>
+            </ul>
+          </div>
+          <div class="changelog-group">
+            <h3>Behoben</h3>
+            <ul>
+              <li><strong>Schreiberkurse "Zum Kalender hinzufügen"</strong>: der Link funktioniert jetzt auch auf dem Handy. Statt einer `.ics`-Datei öffnet sich jetzt direkt das Google-Kalender-Erstellungsformular mit Titel, Datum/Zeit und Ort vorausgefüllt — der "Termin nicht gefunden"-Fehler nach dem Google-Login ist damit weg</li>
+              <li><strong>Admin – Geburtsdatum-Anzeige</strong>: Geburtsdaten werden jetzt im Schweizer Format `tt.mm.jjjj` angezeigt (ohne Uhrzeit), statt des rohen ISO-Strings mit Zeitzone</li>
+              <li><strong>Admin – Export "Anmeldungen"</strong>: der Export erzeugt jetzt tab-getrennte Dateien (`.tsv`) statt komma-getrennt. Adressen mit Kommas brechen den Import damit nicht mehr</li>
+            </ul>
+          </div>
+        </div>
 
         <div class="changelog-entry">
           <div class="changelog-meta">v3.6.0 — 2026-05-19</div>
