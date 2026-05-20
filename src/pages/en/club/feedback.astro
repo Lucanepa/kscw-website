@@ -130,8 +130,22 @@ const locale = 'en';
         <h2 class="changelog-heading">
           <i data-lucide="scroll-text"></i>
           {t(locale, 'changelogTitle')}
-          <span class="changelog-badge">v3.7.0</span>
+          <span class="changelog-badge">v3.8.0</span>
         </h2>
+
+        <div class="changelog-entry">
+          <div class="changelog-meta">v3.8.0 — 2026-05-20</div>
+          <div class="changelog-group">
+            <h3>Added</h3>
+            <ul>
+              <li><strong>Hero animations on the homepage</strong>: drifting blue/gold radial glows behind the hero, a subtle gold shimmer sweeping through the "KSC Wiedikon" title, and the sport buttons now pulse in their respective sport colors on hover — all pure CSS, no extra JavaScript</li>
+              <li><strong>Scroll progress bar</strong>: a thin blue-to-gold bar at the very top of the viewport now shows how far down the current page you've scrolled</li>
+              <li><strong>Softer section reveals</strong>: new variant that fades sections in with a gentle blur (not just opacity) as they enter the viewport</li>
+              <li><strong>Livelier number counters</strong>: the counting statistics (e.g. on "About us") now get a brief gold glow while they animate up</li>
+              <li>All new animations respect <code>prefers-reduced-motion</code> — users who have reduced motion enabled in their OS see the page completely still</li>
+            </ul>
+          </div>
+        </div>
 
         <div class="changelog-entry">
           <div class="changelog-meta">v3.7.0 — 2026-05-20</div>

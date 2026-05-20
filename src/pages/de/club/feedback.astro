@@ -130,8 +130,22 @@ const locale = 'de';
         <h2 class="changelog-heading">
           <i data-lucide="scroll-text"></i>
           {t(locale, 'changelogTitle')}
-          <span class="changelog-badge">v3.7.0</span>
+          <span class="changelog-badge">v3.8.0</span>
         </h2>
+
+        <div class="changelog-entry">
+          <div class="changelog-meta">v3.8.0 — 2026-05-20</div>
+          <div class="changelog-group">
+            <h3>Neu</h3>
+            <ul>
+              <li><strong>Hero-Animationen auf der Startseite</strong>: sanft driftende Hintergrundverläufe in Vereinsblau und Gold, ein dezenter Goldglanz im Schriftzug "KSC Wiedikon", pulsierende Sportbuttons beim Überfahren — alles rein in CSS, ohne zusätzliches JavaScript</li>
+              <li><strong>Scroll-Fortschrittsbalken</strong>: ein dünner blau-goldener Balken oben am Bildschirmrand zeigt jetzt, wie weit man auf der aktuellen Seite gescrollt hat</li>
+              <li><strong>Sanftere Sektions-Einblendungen</strong>: neue Variante, die Inhalte beim Reinscrollen mit einem leichten Weichzeichner einblendet (statt nur Opazität)</li>
+              <li><strong>Belebte Zahlen-Counter</strong>: hochzählende Statistiken (z.B. auf "Über uns") bekommen während der Animation einen kurzen goldenen Glow</li>
+              <li>Alle neuen Animationen respektieren <code>prefers-reduced-motion</code> — wer im Betriebssystem reduzierte Bewegung eingestellt hat, sieht die Seite unverändert ruhig</li>
+            </ul>
+          </div>
+        </div>
 
         <div class="changelog-entry">
           <div class="changelog-meta">v3.7.0 — 2026-05-20</div>

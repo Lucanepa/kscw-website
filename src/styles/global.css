@@ -2217,6 +2217,29 @@ tr:hover td {
   .sponsor-track {
     animation: none;
   }
+  .hero::before,
+  .sport-btn--vb:hover,
+  .sport-btn--bb:hover {
+    animation: none;
+  }
+  .hero h1 {
+    background: none;
+    color: var(--text-on-blue);
+    -webkit-text-fill-color: var(--text-on-blue);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    filter: none;
+    animation: none;
+  }
+  .fade-in.fade-in--blur {
+    filter: none;
+  }
+  .scroll-progress-bar {
+    transition: none;
+  }
+  .stat-number.counting {
+    text-shadow: none;
+    transform: none;
+  }
 }
 
 /* ── Angled Section Divider ────────────────────────────────── */
@@ -3696,4 +3719,116 @@ button:focus-visible {
 
 .scoreboard-sub-table td:nth-child(2) {
   text-align: left;
+}
+
+/* ─────────────────────────────────────────────────────────── */
+/* P1 — Hero animation pack (CSS-only, no JS, no new deps)     */
+/* ─────────────────────────────────────────────────────────── */
+
+/* Stacked aurora glows behind the existing solid blue */
+.hero {
+  background:
+    radial-gradient(ellipse 60% 50% at 75% 25%, rgba(255, 200, 50, 0.20), transparent 60%),
+    radial-gradient(ellipse 55% 60% at 20% 85%, rgba(107, 116, 184, 0.45), transparent 60%),
+    var(--kscw-blue);
+}
+
+/* Gentle drift on the gold sliver */
+.hero::before {
+  animation: hero-gold-drift 14s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+@keyframes hero-gold-drift {
+  0%   { transform: rotate(-12deg) translateX(0);    opacity: 0.10; }
+  100% { transform: rotate(-8deg)  translateX(-5%);  opacity: 0.20; }
+}
+
+/* Aurora shimmer through the H1 — white-dominant, gold highlights */
+.hero h1 {
+  background: linear-gradient(
+    100deg,
+    #ffffff 0%,
+    #ffffff 25%,
+    var(--kscw-gold-light) 45%,
+    #ffffff 55%,
+    #ffffff 75%,
+    var(--kscw-gold-light) 95%,
+    #ffffff 100%
+  );
+  background-size: 200% 100%;
+  background-position: 0% 50%;
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+  animation: hero-aurora 8s ease-in-out infinite;
+}
+@keyframes hero-aurora {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+/* Sport buttons: pulsating glow on hover (preserves existing designs) */
+.sport-btn--vb:hover {
+  animation: sport-btn-pulse-vb 1.6s ease-in-out infinite;
+}
+.sport-btn--bb:hover {
+  animation: sport-btn-pulse-bb 1.6s ease-in-out infinite;
+}
+@keyframes sport-btn-pulse-vb {
+  0%, 100% { box-shadow: 0 6px 24px rgba(255, 225, 77, 0.45); }
+  50%      { box-shadow: 0 10px 36px rgba(255, 225, 77, 0.75); }
+}
+@keyframes sport-btn-pulse-bb {
+  0%, 100% { box-shadow: 0 6px 24px rgba(232, 113, 33, 0.45); }
+  50%      { box-shadow: 0 10px 36px rgba(232, 113, 33, 0.75); }
+}
+
+/* ─────────────────────────────────────────────────────────── */
+/* P2 — Scroll progress, blur-fade variant, counter polish     */
+/* ─────────────────────────────────────────────────────────── */
+
+/* Scroll progress bar — fixed to top of viewport on every page */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 1000;
+  pointer-events: none;
+  background: transparent;
+}
+.scroll-progress-bar {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, var(--kscw-blue), var(--kscw-gold));
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 80ms linear;
+  box-shadow: 0 0 8px rgba(255, 200, 50, 0.4);
+}
+
+/* Blur-fade variant of the existing .fade-in reveal */
+.fade-in.fade-in--blur {
+  filter: blur(8px);
+  transition:
+    opacity var(--transition-slow),
+    transform var(--transition-slow),
+    filter var(--transition-slow);
+}
+.fade-in.fade-in--blur.visible {
+  filter: blur(0);
+}
+
+/* Stat counter polish — gentle glow while the number is counting up */
+.stat-number {
+  display: inline-block;
+  transition: text-shadow 600ms ease-out, transform 600ms ease-out;
+}
+.stat-number.counting {
+  text-shadow: 0 0 18px rgba(255, 200, 50, 0.55);
+  transform: scale(1.04);
 }

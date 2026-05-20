@@ -62,6 +62,9 @@ const altLocale = locale === 'de' ? 'en' : 'de';
   </script>
 </head>
 <body>
+  <div class="scroll-progress" aria-hidden="true">
+    <div class="scroll-progress-bar"></div>
+  </div>
   <Header locale={locale} />
   <main>
     <slot />
@@ -71,5 +74,6 @@ const altLocale = locale === 'de' ? 'en' : 'de';
   <script is:inline>lucide.createIcons();</script>
   <script src="../islands/nav-mobile.ts"></script>
   <script src="../islands/theme-toggle.ts"></script>
+  <script src="../islands/scroll-progress.ts"></script>
 </body>
 </html>

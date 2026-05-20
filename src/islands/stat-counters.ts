@@ -17,6 +17,7 @@ if (statElements.length) {
 
     const duration = 1500;
     let startTime: number | null = null;
+    el.classList.add('counting');
 
     function step(timestamp: number) {
       if (!startTime) startTime = timestamp;
@@ -25,7 +26,12 @@ if (statElements.length) {
       const easedProgress = 1 - Math.pow(1 - progress, 3);
       const currentValue = Math.round(easedProgress * targetValue);
       el.textContent = currentValue + (progress === 1 ? suffix : '');
-      if (progress < 1) requestAnimationFrame(step);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        // Hold the glow briefly so it's perceptible, then fade out via CSS transition.
+        setTimeout(() => el.classList.remove('counting'), 250);
+      }
     }
 
     requestAnimationFrame(step);

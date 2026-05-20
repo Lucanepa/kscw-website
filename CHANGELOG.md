@@ -2,6 +2,15 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [3.8.0] — 2026-05-20
+
+### Added
+- **Hero-Animationen**: die Startseite hat jetzt ein animiertes Hero — sanft driftende Hintergrundverläufe in Vereinsblau und Gold, ein dezenter Goldglanz zieht durch den Schriftzug "KSC Wiedikon", und die Volleyball/Basketball-Buttons pulsieren beim Überfahren in ihrer jeweiligen Sportfarbe
+- **Scroll-Fortschrittsbalken**: ganz oben am Bildschirmrand zeigt ein dünner blau-goldener Balken jetzt an, wie weit man auf der aktuellen Seite gescrollt hat
+- **Sanftere Einblendungen**: neue `fade-in--blur`-Variante, die Inhalte beim Reinscrollen mit einem leichten Weichzeichner einblendet
+- **Belebte Zahlen-Counter**: die hochzählenden Statistiken (z.B. auf "Über uns") bekommen während der Animation einen kurzen goldenen Glow — die Counter wirken dadurch deutlich lebendiger
+- Sämtliche neuen Animationen respektieren `prefers-reduced-motion` und schalten sich für Nutzer:innen mit reduzierter Bewegung automatisch ab
+
 ## [3.7.0] — 2026-05-20
 
 ### Added
