@@ -22,8 +22,8 @@ const badgeText = getBadgeText(team.league, team.chipLabel);
 const trainingText = formatTrainings(team.trainings, locale);
 
 const cardClass = hasPhoto
-  ? 'card team-card team-card--photo'
-  : 'card team-card card-accent';
+  ? 'card team-card team-card--photo tilt-3d'
+  : 'card team-card card-accent tilt-3d';
 
 const cardStyle = hasPhoto ? undefined : `--card-accent: ${team.chipBg};`;
 const altText = locale === 'de' ? 'Teamfoto' : 'Team photo';

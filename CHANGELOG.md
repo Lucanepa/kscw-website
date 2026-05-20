@@ -2,6 +2,13 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [3.9.0] — 2026-05-20
+
+### Added
+- **Cursor-Spotlight auf Karten**: News- und Event-Karten auf der Startseite zeigen jetzt einen sanften goldenen Lichtkegel, der dem Mauszeiger folgt — gibt der Übersicht spürbar Tiefe
+- **3D-Tilt auf Team-Karten**: alle Team-Karten (Volleyball & Basketball) kippen beim Überfahren leicht in Richtung des Mauszeigers (max. 6° auf beiden Achsen). Subtil, aber lebendig. Auf Touch-Geräten unverändert
+- Beide Effekte respektieren `prefers-reduced-motion` und sind als Opt-in-Klassen umgesetzt (`.card-glow-grid` / `.tilt-3d`)
+
 ## [3.8.0] — 2026-05-20
 
 ### Added

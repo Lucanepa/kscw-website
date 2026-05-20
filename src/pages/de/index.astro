@@ -81,7 +81,7 @@ try {
         actionHref={`/${locale}/news/`}
         actionLabel={t(locale, 'homeAllNews')}
       />
-      <div class="grid grid-2" id="news-grid">
+      <div class="grid grid-2 card-glow-grid" id="news-grid">
         <p id="news-empty">Keine News vorhanden.</p>
       </div>
     </div>
@@ -92,7 +92,7 @@ try {
     <section class="section" id="events">
       <div class="container">
         <SectionHeader title={t(locale, 'homeEvents')} />
-        <div class="grid grid-3">
+        <div class="grid grid-3 card-glow-grid">
           {upcomingEvents.map(ev => (
             <article class={`card event-card fade-in${ev.description ? ' event-card--clickable' : ''}`}>
               <div class="card-body">

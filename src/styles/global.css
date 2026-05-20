@@ -2240,6 +2240,12 @@ tr:hover td {
     text-shadow: none;
     transform: none;
   }
+  .card-glow-grid > .card::after {
+    display: none;
+  }
+  .tilt-3d {
+    transition: none;
+  }
 }
 
 /* ── Angled Section Divider ────────────────────────────────── */
@@ -3831,4 +3837,51 @@ button:focus-visible {
 .stat-number.counting {
   text-shadow: 0 0 18px rgba(255, 200, 50, 0.55);
   transform: scale(1.04);
+}
+
+/* ─────────────────────────────────────────────────────────── */
+/* P3 — Card-glow grid + 3D tilt                               */
+/* ─────────────────────────────────────────────────────────── */
+
+/* Cursor-following gold spotlight on cards in a .card-glow-grid container.
+   Driven by --mouse-x / --mouse-y set by src/islands/card-glow.ts. */
+.card-glow-grid > .card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.card-glow-grid > .card > * {
+  position: relative;
+  z-index: 1;
+}
+.card-glow-grid > .card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    420px circle at var(--mouse-x, -200px) var(--mouse-y, -200px),
+    rgba(255, 200, 50, 0.18),
+    transparent 55%
+  );
+  opacity: 0;
+  transition: opacity 220ms ease-out;
+  pointer-events: none;
+  z-index: 0;
+}
+.card-glow-grid > .card:hover::after {
+  opacity: 1;
+}
+
+/* 3D tilt — applied via .tilt-3d class. The island sets `transform` inline on
+   pointermove and clears it on pointerleave, so the existing CSS :hover rule
+   takes over for non-tilt states. */
+.tilt-3d {
+  transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow var(--transition-base);
+}
+.tilt-3d:hover {
+  /* Override existing translateY hover when tilt is active; the island writes
+     transform inline, but on pointerleave we fall back to CSS. */
+  box-shadow: var(--shadow-xl);
 }
