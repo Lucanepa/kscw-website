@@ -745,7 +745,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 
 ## Task A6: `wadmin.js` manager-only management routes (W)
 
-`GET /wadmin/admins` lists `Website Admin` users + grants; `PUT /wadmin/admins/:id` upserts a grant row. Manager-only.
+`GET /wadmin/admins` lists `Website Admin` users + grants; `PATCH /wadmin/admins/:id` upserts a grant row. Manager-only. (PATCH not PUT: Directus's default `CORS_METHODS` excludes PUT, so PUT preflight is rejected cross-origin.)
 
 **Files:**
 - Modify: `directus/extensions/kscw-endpoints/src/wadmin.js`
@@ -841,7 +841,7 @@ In `registerWadmin`, replace `// Management routes — Task A6.`:
     }
   })
 
-  router.put('/wadmin/admins/:id', async (req, res) => {
+  router.patch('/wadmin/admins/:id', async (req, res) => {
     const userId = req.accountability?.user
     if (!(await isManagerUser(database, userId))) {
       return res.status(403).json({ error: 'manager_required' })

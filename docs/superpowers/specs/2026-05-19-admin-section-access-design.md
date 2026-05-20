@@ -91,7 +91,7 @@ Per request:
 "Manager" = role ∈ `{Superuser, Administrator}` (step-2 of `/me`). Non-manager → **403**.
 
 - `GET /kscw/wadmin/admins` → `[{ id, name, email, sections[] }]` — `directus_users` whose role (resolved via the `directus_roles` join) is `Website Admin`, left-joined (raw knex) to `website_admin_access`. Before Phase C this list is empty (no user holds that role yet); the grid still renders, just with no rows.
-- `PUT /kscw/wadmin/admins/:id` body `{ sections:[…] }` → upsert that user's `website_admin_access` row via raw knex (`ON CONFLICT (user) DO UPDATE`). Non-manager → **403**.
+- `PATCH /kscw/wadmin/admins/:id` body `{ sections:[…] }` → upsert that user's `website_admin_access` row via raw knex (`ON CONFLICT (user) DO UPDATE`). Non-manager → **403**. (PATCH not PUT — Directus's default `CORS_METHODS` is `GET,POST,PATCH,DELETE`; PUT preflight is rejected cross-origin.)
 
 ## Error handling
 
@@ -116,7 +116,7 @@ Three deliberately thin changes:
 
 1. **`wadmin()` helper:** `wadmin(section, subpath, opts) → fetch(\`${DIRECTUS_URL}/kscw/wadmin/${section}/${subpath}\`, opts)`, same `Authorization: Bearer <getValidToken()>` header as today. Mechanically swap each section's existing `fetch(DIRECTUS_URL+'/items/<c>'…)` and `'/kscw/opnform/…'` calls to route through `wadmin('<section>', …)`. `/users/me`, `items/teams`, **and `/files` upload** stay as direct Directus calls (per the `/files` decision).
 2. **`/me`-driven tabs:** call `GET /kscw/wadmin/me` on load; build the tab bar from returned `sections` instead of the hardcoded six (`admin.astro:641-646`). `currentTab` defaults to the first granted section in the canonical order (`news`, `events`, `registrations`, `sponsors`, `scorer_courses`, `mixed_turnier`), not the literal `'news'` (`admin.astro:38`). `!isSuperuser && sections.length === 0` → render empty state *"No sections assigned — ask a superuser to grant access,"* no tabs, no content.
-3. **Manager-only "Admin" tab:** appears only when `/me` returns `isSuperuser:true`. A grid: one row per `Website Admin` user (`name · email`), one checkbox column per section. Toggling a checkbox → debounced `PUT /kscw/wadmin/admins/<id>` with a small saved/error indicator. Before Phase C the grid has no rows (no user holds the role). No bulk-apply, no per-section descriptions.
+3. **Manager-only "Admin" tab:** appears only when `/me` returns `isSuperuser:true`. A grid: one row per `Website Admin` user (`name · email`), one checkbox column per section. Toggling a checkbox → debounced `PATCH /kscw/wadmin/admins/<id>` with a small saved/error indicator. Before Phase C the grid has no rows (no user holds the role). No bulk-apply, no per-section descriptions.
 
 ## Rollout sequence
 
@@ -146,7 +146,7 @@ The scorer-course feature is in **live UAT**; ordering must never lock out a wor
 **Phase A — endpoint (vitest, hermetic; mirrors `__tests__/broadcast-helpers.test.js` knex-mock style):**
 - `/me`: no `accountability.user` → 401; role `Superuser`/`Administrator` → `isSuperuser:true` + all 6; role `Website Admin` with a grant row → those sections; with no row → `[]`; any other role → `[]`.
 - Per-section: manager → any section; gated with grant → that section; gated without grant → 403 `section_not_granted`; `:collection` outside the section contract → 403 `resource_out_of_scope`.
-- Management: non-manager → 403; `PUT /admins/:id` upsert is idempotent (insert then update same user) and reflected by a subsequent `/admins`.
+- Management: non-manager → 403; `PATCH /admins/:id` upsert is idempotent (insert then update same user) and reflected by a subsequent `/admins`.
 
 **Phase B — frontend (manual, documented script):** manager sees all tabs + Admin grid; the throwaway non-`admin_access` test user with zero grants sees the empty state; with a partial grant sees only those tabs; grid toggle persists across reload.
 

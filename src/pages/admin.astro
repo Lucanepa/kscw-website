@@ -2895,7 +2895,7 @@ import '../styles/global.css';
       try {
         var token = await getValidToken();
         var res = await fetch(DIRECTUS_URL + '/kscw/wadmin/admins/' + encodeURIComponent(uid), {
-          method: 'PUT',
+          method: 'PATCH',
           headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
           body: JSON.stringify({ sections: sections }),
         });
