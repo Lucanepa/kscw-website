@@ -2,6 +2,13 @@
 
 All notable changes to the KSC Wiedikon website are documented in this file.
 
+## [3.10.0] — 2026-05-20
+
+### Added
+- **Sparkles-Hero auf den Sport-Seiten**: über `/de/volleyball/`, `/en/volleyball/`, `/de/basketball/` und `/en/basketball/` zieht im Hero-Bereich jetzt ein dezenter Schwarm goldener (Volleyball, gelb-tönig) bzw. orangener (Basketball) Lichtpunkte langsam nach oben — pure Canvas, pausiert automatisch wenn die Sektion aus dem Viewport scrollt
+- **Tracing-Beam auf "Über uns"**: ab 1280px Bildschirmbreite verläuft links neben dem Inhalt ein vertikaler blau-goldener Balken, der mit dem Scroll-Fortschritt mitwächst — ein pulsierender goldener Punkt sitzt oben am Anfang
+- Beide Effekte respektieren `prefers-reduced-motion` (Sparkles rendern einen statischen Frame, der Tracing-Beam bleibt voll gefüllt) und kosten zusammen unter 2 KB JavaScript
+
 ## [3.9.0] — 2026-05-20
 
 ### Added

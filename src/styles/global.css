@@ -2246,6 +2246,9 @@ tr:hover td {
   .tilt-3d {
     transition: none;
   }
+  .tracing-beam-dot {
+    animation: none;
+  }
 }
 
 /* ── Angled Section Divider ────────────────────────────────── */
@@ -3884,4 +3887,83 @@ button:focus-visible {
   /* Override existing translateY hover when tilt is active; the island writes
      transform inline, but on pointerleave we fall back to CSS. */
   box-shadow: var(--shadow-xl);
+}
+
+/* ─────────────────────────────────────────────────────────── */
+/* P4 — Tracing beam + sparkles canvas                          */
+/* ─────────────────────────────────────────────────────────── */
+
+/* Tracing beam — vertical scroll-tracking bar on the left of a wrapper.
+   Hidden below the threshold to avoid overlapping main content. */
+.tracing-beam-wrapper {
+  position: relative;
+}
+.tracing-beam {
+  position: absolute;
+  top: 0;
+  left: 18px;
+  bottom: 0;
+  width: 2px;
+  display: none;
+  pointer-events: none;
+  z-index: 5;
+}
+@media (min-width: 1280px) {
+  .tracing-beam {
+    display: block;
+  }
+}
+.tracing-beam::before {
+  /* Track (faint background line over the whole wrapper) */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--border);
+  opacity: 0.45;
+  border-radius: 2px;
+}
+.tracing-beam::after {
+  /* Filled portion driven by --beam-progress (0..1) */
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: calc(var(--beam-progress, 0) * 100%);
+  background: linear-gradient(180deg, var(--kscw-blue) 0%, var(--kscw-gold) 100%);
+  border-radius: 2px;
+  box-shadow: 0 0 12px rgba(255, 200, 50, 0.45);
+}
+.tracing-beam-dot {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--kscw-gold);
+  animation: tracing-beam-pulse 2.6s ease-in-out infinite;
+  box-shadow: 0 0 0 4px rgba(255, 200, 50, 0.18),
+              0 0 14px rgba(255, 200, 50, 0.55);
+}
+@keyframes tracing-beam-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(255, 200, 50, 0.18), 0 0 14px rgba(255, 200, 50, 0.55);
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(255, 200, 50, 0.08), 0 0 22px rgba(255, 200, 50, 0.75);
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+}
+
+/* Sparkles canvas — sits inside .page-header behind h1/p (which are z-index:1) */
+.sparkles-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
 }

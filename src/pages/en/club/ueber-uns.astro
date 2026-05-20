@@ -12,6 +12,11 @@ const locale = 'en';
   pageTitle={t(locale, 'aboutTitle')}
   pageSubtitle={t(locale, 'aboutSubtitle')}
 >
+  <div class="tracing-beam-wrapper">
+    <div class="tracing-beam" aria-hidden="true">
+      <div class="tracing-beam-dot"></div>
+    </div>
+
   <!-- History + Map -->
   <section class="section">
     <div class="container">
@@ -160,6 +165,8 @@ const locale = 'en';
       </div>
     </div>
   </section>
+
+  </div><!-- /tracing-beam-wrapper -->
 
   <!-- CTA -->
   <CTA

@@ -8,12 +8,31 @@ interface Props {
   locale: Locale;
   pageTitle: string;
   pageSubtitle?: string;
+  /** Render a twinkling sparkles canvas behind the page-header. */
+  sparklesHero?: boolean;
+  /** Override default sparkle color (CSS rgba string, alpha must be 1). */
+  sparkleColor?: string;
 }
 
-const { title, description, locale, pageTitle, pageSubtitle } = Astro.props;
+const {
+  title,
+  description,
+  locale,
+  pageTitle,
+  pageSubtitle,
+  sparklesHero = false,
+  sparkleColor,
+} = Astro.props;
 ---
 <BaseLayout title={title} description={description} locale={locale}>
   <section class="page-header">
+    {sparklesHero && (
+      <canvas
+        class="sparkles-canvas"
+        data-color={sparkleColor ?? 'rgba(255, 220, 130, 1)'}
+        aria-hidden="true"
+      ></canvas>
+    )}
     <div class="container">
       <h1>{pageTitle}</h1>
       {pageSubtitle && <p class="page-subtitle">{pageSubtitle}</p>}
