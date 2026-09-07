@@ -4097,7 +4097,7 @@ const teamTableJson = JSON.stringify(teamTable);
             .concat(multi ? [t('scColLang')] : [])
             .concat([t('scColFirstName'), t('scColLastName'),
                      t('scColStreet'), t('scColZip'), t('scColCity'), t('scPresent'),
-                     t('scExamPassed'), t('scSvLicense'), t('scNotes')])
+                     t('scExamPassed'), t('scExamUploaded'), t('scSvLicense'), t('scNotes')])
             .concat(extraFields.map(extraHeader));
           var rows = exportMetas.map(function(m) {
             var d = m.row.data, st = m.state;
@@ -4116,6 +4116,12 @@ const teamTableJson = JSON.stringify(teamTable);
                 addr.city,
                 !!st.present,
                 examResultLabel(st.exam_result),
+                // Whether a scoresheet EXISTS at all — the question this column answers is
+                // "who still owes one", so it says Yes for a correction, for a sheet the
+                // admin uploaded on someone's behalf and for a failed exam alike. The
+                // verdict is the column to its left; conflating the two would hide every
+                // sheet that arrived but has not been marked yet.
+                !!(st.exam_file || st.exam_file_corrected),
                 m.svInp ? m.svInp.value.trim() : (st.sv_license || m.formSv || ''),
                 m.noteInp ? m.noteInp.value : (st.notes || ''),
               ])
