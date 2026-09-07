@@ -21,9 +21,17 @@ interface Props {
    *  which this component has no roster to work out. Two different ranges for the
    *  same team, one link apart, is worse than stating it in one place. */
   showBirthYears?: boolean;
+  /**
+   * The team is full (teams.open_for_players === false) — the card says so and its
+   * page offers no way to get in touch.
+   *
+   * A separate prop rather than a field read off `team`: the card takes a TeamData,
+   * while the live open/full flag rides on the richer Team the listing pages build.
+   */
+  full?: boolean;
 }
 
-const { team, locale, basePath, moreText, moreTextKey, showBirthYears } = Astro.props;
+const { team, locale, basePath, moreText, moreTextKey, showBirthYears, full } = Astro.props;
 
 const birthYearsAge = showBirthYears ? youthAge(team.teamName ?? team.chipLabel) : null;
 
@@ -67,6 +75,7 @@ const altText = t(locale, 'teamPhotoAlt');
       <h3>{team.displayName}</h3>
     </div>
     {badgeText && <span class="badge badge-blue">{badgeText}</span>}
+    {full && <span class="badge badge-team-full" data-i18n="teamFullBadge">{t(locale, 'teamFullBadge')}</span>}
     {birthYearsAge !== null && (
       <p class="team-card-meta mt-sm">
         <BirthYears sport={team.sport} age={birthYearsAge} team={team.teamName} />

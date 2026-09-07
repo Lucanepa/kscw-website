@@ -90,9 +90,8 @@
   function fetchTeams(sport, callback) {
     if (teamCache[sport]) return callback(teamCache[sport]);
 
-    // List all active teams for the sport. Teams not currently recruiting
-    // (open_for_players === false) stay selectable, but show an info note so
-    // the visitor knows the team is full / not looking for players.
+    // List all active teams for the sport, full ones included: populateTeams()
+    // decides which of them a visitor may actually pick (open_for_players).
     var url = DIRECTUS_URL + '/items/teams'
       + '?filter[sport][_eq]=' + sport
       + '&filter[active][_eq]=true'
@@ -138,10 +137,24 @@
     teamSelect.appendChild(makeOption('', i18n.t('generalTeamGeneral') + ' (' + sportLabel + ')', false, false));
 
     // Each team. Keep a lookup so the change handler can read open_for_players.
+    //
+    // A FULL team is not offered at all. It used to be listed and then refused on
+    // selection, which put a team in front of a visitor for the sole purpose of
+    // telling them no — and contradicted its own page, which shows no contact
+    // button at all. "Allgemein" stays in the list for everything that is not a
+    // join enquiry.
+    //
+    // The exception is a closed BASKETBALL YOUTH team, which is kept precisely
+    // because selecting it is useful: it hands over the club-wide waiting list
+    // (see updateRecruitingNote), which is the one real next step for a family
+    // whose child's age group is full.
     currentSport = sport;
     currentTeamsById = {};
     for (var i = 0; i < teams.length; i++) {
       var t = teams[i];
+      var isFull = t.open_for_players === false;
+      var isYouthBB = sport === 'basketball' && YOUTH_CODE.test(t.name || '');
+      if (isFull && !isYouthBB) continue;
       var label = t.name + (t.league ? ' — ' + t.league : '');
       teamSelect.appendChild(makeOption(t.id, label, false, false));
       currentTeamsById[t.id] = t;
@@ -168,11 +181,15 @@
 
   // ── Team-status note (full / not recruiting) ──────────────────────
   // Shown under the team dropdown. Three states, driven by the selected team:
-  //   • has a waitlist_url  → team is FULL: show a link to its waiting list and
-  //     BLOCK the contact submit — a full team must not generate a coach / BB
-  //     youth-coordinator email (the /kscw/contact backend enforces the same).
-  //   • open_for_players === false (no waitlist) → not actively recruiting:
-  //     advisory note only, submit stays enabled.
+  //   • closed BASKETBALL YOUTH team → the club-wide waiting list is the only
+  //     path: show the link and BLOCK the contact submit, so no coach / BB
+  //     youth-coordinator mail is generated (the /kscw/contact backend enforces
+  //     the same).
+  //   • any other team with open_for_players === false → FULL: note + BLOCK.
+  //     This used to be advisory only, with the submit left enabled, which made
+  //     the team page's hidden "get in touch" button pointless — the dropdown
+  //     here was a second door into the same mailbox. A general enquiry still
+  //     has one: the "Allgemein" option, which the note points at.
   //   • otherwise → hidden, submit enabled.
   // Created lazily so we don't have to touch the kontakt markup.
   var recruitingNote = null;
@@ -230,9 +247,9 @@
       note.style.display = '';
       setSubmitBlocked(true);
     } else if (team && team.open_for_players === false) {
-      note.textContent = i18n.t('contactTeamNotRecruiting', { team: team.name });
+      note.textContent = i18n.t('contactTeamFullNoContact', { team: team.name });
       note.style.display = '';
-      setSubmitBlocked(false);
+      setSubmitBlocked(true);
     } else {
       note.style.display = 'none';
       setSubmitBlocked(false);
@@ -343,8 +360,14 @@
     })
       .then(function (r) {
         if (!r.ok) return r.json().then(function (d) {
-          // Team went full between page load and submit (stale cached page) —
-          // the backend rejects it; surface the waiting-list hint, not a raw error.
+          // Team went full between page load and submit (stale cached page) — the
+          // backend rejects it. Two rejections, told apart by the error CODE and
+          // never by reading a waitlist column (see the 2026-08-18 note in
+          // tests/unit/youth-basketball.test.ts): 'team_full' is the basketball
+          // youth case, which has a waiting list to offer, and 'team_closed' is
+          // any other full team, where naming one would point the sender at a
+          // form that is not theirs.
+          if (d && d.error === 'team_closed') throw new Error(i18n.t('contactTeamFullNoWaitlist'));
           if (d && d.error === 'team_full') throw new Error(i18n.t('contactTeamFullError'));
           throw new Error(d.message || i18n.t('contactError'));
         });

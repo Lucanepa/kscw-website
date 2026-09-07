@@ -34,6 +34,9 @@ const age = team ? youthAge(team.name) : null
         </span>
         <div class="team-hero-title-row">
           <h1>{team.fullName}</h1>
+          {!team.openForPlayers && (
+            <span class="hero-team-full" data-i18n="teamFullBadge">{t('de', 'teamFullBadge')}</span>
+          )}
         </div>
         <p class="team-league">
           {team.league}{team.season && (

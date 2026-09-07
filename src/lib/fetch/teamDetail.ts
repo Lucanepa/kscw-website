@@ -48,6 +48,16 @@ export interface TeamDetail {
    * prospective member actually wants to read.
    */
   trainings: TrainingSlot[]
+  /**
+   * `teams.open_for_players` — false when the team is full / not taking players.
+   *
+   * The single authority for open-vs-full (the same flag the Nachwuchs page and
+   * the contact form read). It rides along here so the "Team voll" badge is in
+   * the HTML the crawler and the no-JS visitor get, instead of appearing a
+   * Directus round trip later; public/js/team-page.js re-renders it from live
+   * data and reconciles any drift since the last build.
+   */
+  openForPlayers: boolean
 }
 
 /** 'HH:MM:SS' → 'HH:MM'. Times arrive from Postgres with seconds. */
@@ -107,6 +117,10 @@ export async function getTeamDetail(directusId: string): Promise<TeamDetail | nu
       season: String(raw.season || ''),
       picture: raw.team_picture ? String(raw.team_picture) : '',
       trainings: weeklyPattern(raw.upcoming_trainings),
+      // Only an explicit `true` is open. A missing or null column fails CLOSED —
+      // a full team that still showed a "get in touch" button would send a
+      // prospective player at a team that cannot take them.
+      openForPlayers: raw.open_for_players === true,
     }
   } catch (err) {
     console.warn(`[teamDetail] ${directusId} unavailable — page ships without a hero:`, err)

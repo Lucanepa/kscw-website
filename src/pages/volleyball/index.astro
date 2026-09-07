@@ -15,7 +15,7 @@ try {
   allTeams = await getActiveTeams();
 } catch {
   // Fallback to static defs with empty dynamic data
-  allTeams = allTeamDefs.map(d => ({ ...d, league: d.fallbackLeague || '', photoUrl: '', season: '' }));
+  allTeams = allTeamDefs.map(d => ({ ...d, league: d.fallbackLeague || '', photoUrl: '', season: '', openForPlayers: true }));
 }
 const vb = (cat: string) =>
   allTeams
@@ -47,7 +47,7 @@ const moreText = t(locale, 'vbMore');
       <SectionHeader title={t(locale, 'vbWomen')} titleKey="vbWomen" />
       <div class="grid grid-4">
         {women.map((team: TeamData) => (
-          <TeamCard team={team} locale={locale} basePath={basePath} moreText={moreText} moreTextKey="vbMore" />
+          <TeamCard team={team} full={!team.openForPlayers} locale={locale} basePath={basePath} moreText={moreText} moreTextKey="vbMore" />
         ))}
       </div>
     </div>
@@ -59,7 +59,7 @@ const moreText = t(locale, 'vbMore');
       <SectionHeader title={t(locale, 'vbMen')} titleKey="vbMen" />
       <div class="grid grid-4">
         {men.map((team: TeamData) => (
-          <TeamCard team={team} locale={locale} basePath={basePath} moreText={moreText} moreTextKey="vbMore" />
+          <TeamCard team={team} full={!team.openForPlayers} locale={locale} basePath={basePath} moreText={moreText} moreTextKey="vbMore" />
         ))}
       </div>
     </div>
@@ -71,7 +71,7 @@ const moreText = t(locale, 'vbMore');
       <SectionHeader title={t(locale, 'vbYouth')} titleKey="vbYouth" />
       <div class={`grid grid-${Math.min(youth.length, 4)}`}>
         {youth.map((team: TeamData) => (
-          <TeamCard team={team} locale={locale} basePath={basePath} moreText={moreText} moreTextKey="vbMore" showBirthYears />
+          <TeamCard team={team} full={!team.openForPlayers} locale={locale} basePath={basePath} moreText={moreText} moreTextKey="vbMore" showBirthYears />
         ))}
       </div>
     </div>

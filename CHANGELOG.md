@@ -2,6 +2,16 @@
 
 All notable changes to the KSC Wiedikon website. This file is the curated, user-facing release record (semver); the same notes appear on the site's feedback page (DE + EN). For commit-level detail see `git log`.
 
+## [1.28.0] — 2026-09-07
+
+### Ein volles Team sagt es — und sammelt keine Anfragen mehr ein, die es nur absagen kann
+- Ein volles Team trug bisher trotzdem den goldenen Knopf **«Kontakt aufnehmen»** — direkt unter dem Satz, dass es voll sei. Wer ihn drückte, schrieb Trainer:innen, die nur absagen konnten. Der Knopf erscheint bei einem vollen Team nicht mehr; die Seite sagt stattdessen klar, dass das Team voll ist.
+- Neu steht ein goldenes **«Team voll»** direkt neben dem Teamnamen — auf der Teamseite und auf den Übersichtsseiten **Volleyball** und **Basketball**. Es ist dasselbe Abzeichen wie im Nachwuchs, damit ein Signal überall dasselbe heisst.
+- Im **Kontaktformular** taucht ein volles Team gar nicht mehr in der Team-Auswahl auf. Für alles, was keine Anfrage nach einem Platz im Team ist, bleibt **«Allgemein (Volleyball)»** bzw. **«Allgemein (Basketball)»**.
+- Volle **Nachwuchs-Basketballteams** bleiben in der Auswahl: Dort führt sie weiterhin zur **Warteliste**, und die ist für eine Familie der eigentliche nächste Schritt.
+- Damit ändert sich eine Regel aus **1.26.0**: Aktiv- und Volleyballteams, die niemanden suchten, blieben dort bewusst direkt kontaktierbar. Neu heisst «offen für neue Spieler:innen» für **alle** Teams dasselbe — ist der Schalter aus, ist das Team voll.
+- Der Schalter bleibt derselbe: Trainer:innen legen ihn in der Vereinsplattform um. Auf der **Teamseite** wirkt das sofort, die **Übersichtskarten** ziehen mit dem nächsten Seitenaufbau nach.
+
 ## [1.27.2] — 2026-08-27
 
 ### Auf der Teamseite sagt jede Spielzeile, um welches Team es geht

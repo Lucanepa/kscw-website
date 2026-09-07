@@ -14,7 +14,7 @@ let allTeams: Team[];
 try {
   allTeams = await getActiveTeams();
 } catch {
-  allTeams = allTeamDefs.map(d => ({ ...d, league: d.fallbackLeague || '', photoUrl: '', season: '' }));
+  allTeams = allTeamDefs.map(d => ({ ...d, league: d.fallbackLeague || '', photoUrl: '', season: '', openForPlayers: true }));
 }
 const bb = (cat: string) =>
   allTeams
@@ -46,7 +46,7 @@ const moreText = t(locale, 'bbMore');
       <SectionHeader title={t(locale, 'bbWomen')} titleKey="bbWomen" />
       <div class="grid grid-4">
         {women.map((team: TeamData) => (
-          <TeamCard team={team} locale={locale} basePath={basePath} moreText={moreText} moreTextKey="bbMore" />
+          <TeamCard team={team} full={!team.openForPlayers} locale={locale} basePath={basePath} moreText={moreText} moreTextKey="bbMore" />
         ))}
       </div>
     </div>
@@ -58,7 +58,7 @@ const moreText = t(locale, 'bbMore');
       <SectionHeader title={t(locale, 'bbMen')} titleKey="bbMen" />
       <div class="grid grid-4">
         {men.map((team: TeamData) => (
-          <TeamCard team={team} locale={locale} basePath={basePath} moreText={moreText} moreTextKey="bbMore" />
+          <TeamCard team={team} full={!team.openForPlayers} locale={locale} basePath={basePath} moreText={moreText} moreTextKey="bbMore" />
         ))}
       </div>
     </div>
@@ -70,7 +70,7 @@ const moreText = t(locale, 'bbMore');
       <SectionHeader title={t(locale, 'bbYouth')} titleKey="bbYouth" />
       <div class="grid grid-4">
         {youth.map((team: TeamData) => (
-          <TeamCard team={team} locale={locale} basePath={basePath} moreText={moreText} moreTextKey="bbMore" />
+          <TeamCard team={team} full={!team.openForPlayers} locale={locale} basePath={basePath} moreText={moreText} moreTextKey="bbMore" />
         ))}
       </div>
     </div>

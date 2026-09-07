@@ -1023,6 +1023,23 @@ button.nav-link {
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 999px;
 }
+/* "Team voll" — the gold badge a full team wears next to its name. Same shape and
+   colour as the Nachwuchs cards' badge (YouthMeta.astro), so one club-wide signal
+   means one thing. Rendered at build time by TeamHero.astro and again from live
+   Directus by public/js/team-page.js; the two must stay identical or the swap
+   becomes a visible jump. */
+.hero-team-full {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: var(--kscw-gold);
+  color: var(--text-on-gold);
+}
 .team-league {
   font-size: var(--text-lg);
   opacity: 0.85;
@@ -1281,6 +1298,10 @@ img.roster-avatar[src*="kscw_weiss"] {
    text lands on grey rather than on the gold tint set here. Kept in step with
    .light .game-cup-icon below, which deliberately uses the same value. */
 .badge-gold { background: rgba(255, 200, 50, 0.15); color: #836408; }
+/* "Team voll" on a team card. Solid gold, not a tint like its neighbours: this is
+   the one badge that changes what a reader can do next, and it is the same pill the
+   hero (.hero-team-full) and the Nachwuchs cards wear. */
+.badge-team-full { background: var(--kscw-gold); color: var(--text-on-gold); }
 .badge-success { background: rgba(5, 150, 105, 0.1); color: var(--success); }
 .badge-danger { background: rgba(220, 38, 38, 0.1); color: var(--danger); }
 
@@ -3056,7 +3077,8 @@ button:focus-visible {
   opacity: 0.7;
   font-style: italic;
 }
-/* Note on a closed team's CTA — team isn't currently recruiting. */
+/* The body of a full team's CTA — it carries the whole message, since a full
+   team's section has no button under it. */
 .cta-section .cta-not-recruiting {
   max-width: 600px;
   margin-left: auto;

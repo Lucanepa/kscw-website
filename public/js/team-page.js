@@ -100,6 +100,16 @@
     h1.textContent = teamData.full_name || teamData.name || TEAM;
     titleRow.appendChild(h1);
 
+    // A full team says so next to its name. Mirrors TeamHero.astro — the build
+    // ships the same badge, so this render is a no-op swap rather than a jump.
+    if (raw && !raw.open_for_players) {
+      var fullBadge = document.createElement('span');
+      fullBadge.className = 'hero-team-full';
+      fullBadge.setAttribute('data-i18n', 'teamFullBadge');
+      fullBadge.textContent = i18n.t('teamFullBadge');
+      titleRow.appendChild(fullBadge);
+    }
+
     // Team-level recruiting positions — only when open for players + populated.
     var recruitText = (raw && raw.open_for_players)
       ? positionText(Array.isArray(raw.recruiting_positions) ? raw.recruiting_positions : [])
@@ -185,9 +195,17 @@
     var sport = raw.sport || '';
     if (sport !== 'volleyball' && sport !== 'basketball') return;
 
-    // Open teams get the recruiting CTA (positions + trial trainings). Closed
-    // teams still get a contact button, but with a note next to it that the
-    // team is full / not currently looking for players.
+    // teams.open_for_players is the single authority for open-vs-full — the same
+    // flag the Nachwuchs page (YouthMeta.astro) and the contact form read.
+    //
+    // Open  → the recruiting CTA: positions, trial trainings, contact button.
+    // Full  → the notice that the team is full, and NOTHING to click. A full team
+    //         must not collect "can I join?" mail it can only answer with no; the
+    //         button used to render here regardless, under a note saying the team
+    //         was full. /club/kontakt refuses the same team (public/js/contact-form.js).
+    //
+    // Anything other than an explicit true is full: a missing column must not put
+    // a prospective player in touch with a team that cannot take them.
     var isOpen = !!raw.open_for_players;
 
     // Route to the central contact form, prefilled with sport + team.
@@ -207,7 +225,7 @@
     var h2 = document.createElement('h2');
     h2.textContent = isOpen
       ? i18n.t('teamCTA', { team: teamData.name || TEAM })
-      : i18n.t('teamContactTitle', { team: teamData.name || TEAM });
+      : i18n.t('teamFullTitle', { team: teamData.name || TEAM });
     inner.appendChild(h2);
 
     if (isOpen) {
@@ -278,11 +296,14 @@
       inner.appendChild(trialBox);
     }
 
-    var btn = document.createElement('a');
-    btn.href = contactHref;
-    btn.className = 'btn btn-gold';
-    btn.textContent = i18n.t('teamCTAButton');
-    inner.appendChild(btn);
+    // Full team → no button. The section exists to say so, not to open a channel.
+    if (isOpen) {
+      var btn = document.createElement('a');
+      btn.href = contactHref;
+      btn.className = 'btn btn-gold';
+      btn.textContent = i18n.t('teamCTAButton');
+      inner.appendChild(btn);
+    }
 
     section.appendChild(inner);
     container.appendChild(section);

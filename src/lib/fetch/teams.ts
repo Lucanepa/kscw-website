@@ -13,10 +13,26 @@ interface DirectusTeam {
   color: string; team_picture: string | null; full_name: string; season: string;
   /** Weekly training summary from live hall slots (Mon→Sun). */
   trainings?: LiveTraining[];
+  /**
+   * `teams.open_for_players` — false when the team is full.
+   *
+   * Optional because the field is a later addition to /kscw/public/teams: a
+   * Directus still running the previous extension build simply omits it, and an
+   * older payload must not repaint the whole site.
+   */
+  open_for_players?: boolean;
 }
 
 export interface Team extends TeamDef {
   league: string; photoUrl: string; season: string;
+  /**
+   * False only when Directus says so. Fails OPEN — the opposite of the team
+   * detail page, and deliberately: there the flag guards a contact channel, so an
+   * unknown value must not put someone in touch with a full team. Here it only
+   * paints a badge, and a missing field would otherwise stamp "Team voll" across
+   * every card on the site. Silence is the safe failure for a label.
+   */
+  openForPlayers: boolean;
 }
 
 // Memoised for the build: the nav (Header), listing pages and detail-page
@@ -48,8 +64,37 @@ async function fetchActiveTeamsRaw(): Promise<DirectusTeam[]> {
   }
 }
 
+/**
+ * Fill in `open_for_players` when /kscw/public/teams does not carry it yet.
+ *
+ * The field is a later addition to that endpoint, so a Directus still running the
+ * previous extension build answers without it — and the "Team voll" badge would
+ * simply never appear. The raw `teams` collection exposes the flag to the public
+ * role on PROD, which is the build that serves kscw.ch, so one extra read closes
+ * the gap until the extension ships. On dev `/items` is a restricted resource and
+ * this read fails; that is the fail-open path, and it costs a badge, not a page.
+ */
+async function backfillOpenFlags(items: DirectusTeam[]): Promise<void> {
+  if (!items.length || items.some((t) => typeof t.open_for_players === 'boolean')) return
+  try {
+    const rows = await directusFetch<{ id: number; open_for_players: boolean | null }[]>(
+      '/items/teams?fields=id,open_for_players&limit=-1',
+    )
+    const byId = new Map(rows.map((r) => [r.id, r.open_for_players]))
+    for (const t of items) {
+      const flag = byId.get(t.id)
+      if (typeof flag === 'boolean') t.open_for_players = flag
+    }
+  } catch {
+    // Deliberately silent-ish: every team simply stays unbadged, which is the
+    // state this site shipped in for years. A console line keeps it findable.
+    console.warn('[teams] open_for_players unavailable — no team shows a "full" badge.')
+  }
+}
+
 async function fetchActiveTeams(): Promise<Team[]> {
   const items = await fetchActiveTeamsRaw()
+  await backfillOpenFlags(items)
   const mapped = items
     .map(t => {
       // Match priority: team_id (season-stable external id, used by basketball) →
@@ -88,6 +133,7 @@ async function fetchActiveTeams(): Promise<Team[]> {
         // trainings, so a team with none shows no training line (and the whole-
         // fetch-failed fallback path below renders none too).
         trainings: Array.isArray(t.trainings) ? t.trainings : [],
+        openForPlayers: t.open_for_players !== false,
       }
     })
     .filter((t): t is Team => t !== null)
