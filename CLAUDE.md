@@ -2,6 +2,21 @@
 
 Astro static site for KSC Wiedikon volleyball club. Directus API backend, Cloudflare Pages hosting.
 
+## No VolleyManager credentials here — deliberately
+
+This site only *links* to volleyball.ch and reads league/team data through Directus.
+It holds no VolleyManager login and must not get one.
+
+There is exactly ONE VolleyManager account, shared by **wiedisync** and **svrz_rc**,
+and VM keeps the active role per *account* rather than per session — so a third
+consumer switching roles would make the other two read under the wrong role, which
+for club-scoped resources returns a 200 with the **wrong rows** rather than an error.
+
+If this site ever genuinely needs VolleyManager data, get it from Directus (which
+wiedisync already syncs) rather than logging in here. If that is somehow impossible,
+read the window tables in `~/repos/wiedisync/INFRA.md` and
+`~/repos/svrz_rc/infrastructure.md` first, and add your window to **both** of them.
+
 ## Commands
 ```bash
 npm run dev          # local dev server (localhost:4321)
