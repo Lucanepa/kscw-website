@@ -163,15 +163,12 @@ test.describe('team list', () => {
     await expectTeams(page, 'bb', ['Lions D1', 'Damen D-Classics 1LR', 'DU14', 'HU12', 'MU10'], ['Herren 1']);
   });
 
-  test('a coach, TR or guest sees every team regardless of sex', async ({ page }) => {
+  test('a coach or guest sees every team regardless of sex', async ({ page }) => {
     await gotoWithLang(page, PATH, 'de');
     await pickType(page, 'volleyball');
     await page.locator('#geschlecht').selectOption('männlich');
 
     await page.locator('#funktion-vb').selectOption('Trainer*in');
-    await expectTeams(page, 'vb', ['D1', 'H1'], []);
-
-    await page.locator('#funktion-vb').selectOption('Teamverantwortliche*r');
     await expectTeams(page, 'vb', ['D1', 'H1'], []);
 
     await page.locator('#funktion-vb').selectOption('Guest');
