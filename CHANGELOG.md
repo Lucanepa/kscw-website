@@ -2,6 +2,12 @@
 
 All notable changes to the KSC Wiedikon website. This file is the curated, user-facing release record (semver); the same notes appear on the site's feedback page (DE + EN). For commit-level detail see `git log`.
 
+## [1.28.2] — 2026-09-11
+
+### Die Volleyball-Tabelle nennt nur noch den Gesamtbeitrag
+- Die Spalte **«Davon Lizenz»** ist weg. Zwei Beträge nebeneinander liessen offen, ob die Lizenz zum Beitrag dazukommt — sie ist enthalten, und die Tabelle zeigt jetzt nur den Betrag, der auf der Rechnung steht.
+- Die Swiss-Volley-Lizenzgebühren stehen weiterhin in der eigenen Tabelle direkt darunter.
+
 ## [1.28.1] — 2026-09-11
 
 ### Die Beitragstabellen passen wieder aufs Handy
