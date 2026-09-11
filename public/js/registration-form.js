@@ -1091,6 +1091,17 @@
         el.style.display = 'none';
         el.querySelectorAll('[required]').forEach(function (r) { r.removeAttribute('required'); });
       });
+      // Hidden is not cleared: a Schiedsrichter/Schreiber tick made as a player
+      // would otherwise ride into payload.lizenz and the fee table's referee
+      // note for a guest, who is never licensed. Only the licence controls —
+      // the BB situation radios drive the document set through change handlers
+      // a programmatic uncheck would not re-run, and the guest gate skips them.
+      fieldset.querySelectorAll(
+        '.js-guest-hide input[name="lizenz_vb"], .js-guest-hide input[name="bb_scorer_licence"], .js-guest-hide input[name="bb_referee"]'
+      ).forEach(function (el) { el.checked = false; });
+      // What setupRefToggle does on an uncheck, which this one never fires.
+      var refLevel = document.getElementById('vb-ref-level');
+      if (sport === 'volleyball' && refLevel) refLevel.selectedIndex = 0;
     }
   }
 
@@ -1106,6 +1117,10 @@
     updateAhvRequired();
     // So does the federation-of-origin star (volleyball non-guests only).
     updateFedRequiredStar();
+    // And the category list (coach → Gratis only, guest → no intro tier, guest
+    // prices) plus the fee table — before the team fetch, which is async.
+    syncFeeOptions(sport);
+    renderFeeSummary();
 
     // A guest picks a team like a player, just at a reduced fee (no licence).
     var showTeam = isGuest || funktion === 'Spieler*in' || funktion === 'Trainer*in' || funktion === 'Teamverantwortliche*r';
@@ -1128,6 +1143,194 @@
       }
     });
   }
+
+  // ── Fee summary ───────────────────────────────────────────
+  // The category labels carry a price, but not the bill. The invoice is produced
+  // by feeBreakdown() in wiedisync clubdesk-update.js, which adds CHF 100 to a
+  // member with scorer duty and no licence, takes CHF 110 off a guest and bills a
+  // coach as Gratis — none of which the form used to show, so an applicant
+  // budgeting "VB Erwerbstätige (CHF 440)" could be invoiced 540. The table below
+  // is filled from public/js/registration-fees.js (window.KSCW_FEES), a mirror of
+  // that engine loaded before this file, and lists the same positions in the same
+  // order as the invoice (finance.js): club fee, federation licence, surcharge,
+  // guest reduction, total.
+  //
+  // Guarded end to end: a cached HTML page can be older than this script (the
+  // ?v= cache-buster is ignored by the host), so window.KSCW_FEES or the
+  // #fee-summary block may be missing — then nothing here runs, and the form
+  // works as it did before.
+
+  function membershipType() {
+    var r = form.querySelector('input[name="membership_type"]:checked');
+    var v = r ? r.value : '';
+    return (v === 'volleyball' || v === 'basketball' || v === 'passive') ? v : '';
+  }
+
+  function feeSelectFor(sport) {
+    if (sport === 'volleyball') return document.getElementById('vb-fee');
+    if (sport === 'basketball') return document.getElementById('bb-fee');
+    if (sport === 'passive') return document.getElementById('passive-fee');
+    return null;
+  }
+
+  function funktionFor(sport) {
+    var el = sport === 'volleyball' ? funktionVb : sport === 'basketball' ? funktionBb : null;
+    return el ? el.value : '';
+  }
+
+  // A dictionary value, or null when the engine has none for the key (dictionary
+  // not loaded yet, or a key this deploy does not ship) — never the raw key.
+  function trKey(key) {
+    if (!window.i18n || typeof window.i18n.t !== 'function') return null;
+    var v = window.i18n.t(key);
+    return (typeof v === 'string' && v !== key) ? v : null;
+  }
+
+  // A guest's option reads "… — als Gast (CHF 330)": the select and the table must
+  // name the same number. Every fee option ships with a data-i18n key; the guest
+  // label is that key + 'Guest'. The KEY is swapped, not just the text, because
+  // the language toggle re-applies whatever key sits on the node (CLAUDE.md
+  // load-order rule 3) — text alone would flip back to the member label on the
+  // next toggle. The shipped key is kept in data-i18n-base so it can be restored.
+  function relabelFeeOption(opt, guest) {
+    var base = opt.getAttribute('data-i18n-base');
+    if (!base) {
+      base = opt.getAttribute('data-i18n');
+      if (!base) return;
+      opt.setAttribute('data-i18n-base', base);
+    }
+    var key = guest ? base + 'Guest' : base;
+    opt.setAttribute('data-i18n', key);
+    // Written every call, not only when the key changes: a German page gets no
+    // DOM pass from i18n.js, so a swap made before the dictionary landed (trKey
+    // null) is repaired only by the i18nApplied re-run wired below.
+    var text = trKey(key);
+    if (text !== null) opt.textContent = text;
+  }
+
+  // Show only the categories this function may pick (KSCW_FEES.categoriesFor:
+  // coach → Gratis; guest → the sport minus the intro tier; anyone else → the
+  // whole sport). Both `hidden` and `disabled`: Safari ignores `hidden` on an
+  // <option>, `disabled` is what keeps it unpickable there. A selection that is
+  // no longer allowed falls back to the placeholder; a coach is moved onto Gratis
+  // so the payload's beitragskategorie carries what the engine will bill.
+  function syncFeeOptions(sport) {
+    var FEES = window.KSCW_FEES;
+    var sel = feeSelectFor(sport);
+    if (!FEES || !sel) return;
+    var funktion = funktionFor(sport);
+    var allowed = FEES.categoriesFor(sport, funktion);
+    var isGuest = funktion === 'Guest';
+    for (var i = 0; i < sel.options.length; i++) {
+      var opt = sel.options[i];
+      if (!opt.value) continue;                      // the placeholder stays as shipped
+      var ok = allowed.indexOf(opt.value) !== -1;
+      opt.hidden = !ok;
+      opt.disabled = !ok;
+      relabelFeeOption(opt, isGuest && ok);
+    }
+    if (funktion === 'Trainer*in' && sel.querySelector('option[value="Gratis"]')) sel.value = 'Gratis';
+    else if (sel.value && allowed.indexOf(sel.value) === -1) sel.selectedIndex = 0;
+  }
+
+  function setFeeRow(rowId, cellId, amount, show) {
+    var row = document.getElementById(rowId);
+    var cell = document.getElementById(cellId);
+    if (row) row.style.display = show ? '' : 'none';
+    if (cell) cell.textContent = amount;
+  }
+
+  function chf(n) { return 'CHF ' + String(n); }
+
+  function renderFeeSummary() {
+    var FEES = window.KSCW_FEES;
+    var box = document.getElementById('fee-summary');
+    if (!FEES || !box) return;
+
+    var sport = membershipType();
+    var sel = feeSelectFor(sport);
+    var category = sel ? sel.value : '';
+    if (!category) { box.style.display = 'none'; return; }
+
+    // The licence flags the engine reads: scorer_vb for volleyball, any OTR/OTN
+    // for basketball. A referee is waived too (club policy, registration-fees.js).
+    var scorer = false;
+    var referee = false;
+    if (sport === 'volleyball') {
+      scorer = !!form.querySelector('input[name="lizenz_vb"][value="Schreiber"]:checked');
+      var vbRef = document.getElementById('vb-ref-check');
+      referee = !!(vbRef && vbRef.checked);
+    } else if (sport === 'basketball') {
+      var bbScorer = form.querySelector('input[name="bb_scorer_licence"]:checked');
+      scorer = !!(bbScorer && bbScorer.value);
+      var bbRef = document.getElementById('bb-ref-check');
+      referee = !!(bbRef && bbRef.checked);
+    } else if (sport === 'passive') {
+      var pLic = form.querySelectorAll('input[name="lizenz_passive"]:checked');
+      for (var i = 0; i < pLic.length; i++) {
+        if (/Schiedsrichter$/.test(pLic[i].value)) referee = true;
+      }
+    }
+    // A guest's licence controls are hidden (applyGuestVisibility clears them on
+    // the switch, but a browser restoring form state does not go through it) and
+    // the engine has no referee rule for a guest at all: base − 110, full stop.
+    if (funktionFor(sport) === 'Guest') { scorer = false; referee = false; }
+
+    var b = FEES.breakdown({
+      category: category,
+      funktion: funktionFor(sport),
+      dob: val('geburtsdatum'),
+      scorer: scorer,
+      referee: referee
+    });
+    if (!b) { box.style.display = 'none'; return; }
+
+    // Same positions as the invoice: club fee + licence sum back to the category
+    // base; the two adjustments follow; then the total.
+    setFeeRow('fee-row-membership', 'fee-amount-membership', chf(b.clubFee), true);
+    setFeeRow('fee-row-licence', 'fee-amount-licence', chf(b.licence), b.licence > 0);
+    setFeeRow('fee-row-surcharge', 'fee-amount-surcharge', chf(b.surcharge), b.surcharge > 0);
+    setFeeRow('fee-row-guest', 'fee-amount-guest', '\u2212 ' + chf(b.guestDiscount), b.guestDiscount > 0);
+    setFeeRow('fee-row-total', 'fee-amount-total', chf(b.total), true);
+
+    var coachNote = document.getElementById('fee-note-coach');
+    var refNote = document.getElementById('fee-note-referee');
+    if (coachNote) coachNote.style.display = b.coachWaiver ? '' : 'none';
+    if (refNote) refNote.style.display = b.refereeNote ? '' : 'none';
+    box.style.display = '';
+  }
+
+  // Both selects and the table in one go — for the moments the function selects
+  // are reset without a change event (type switch, form.reset(), page load).
+  function refreshFees() {
+    syncFeeOptions('volleyball');
+    syncFeeOptions('basketball');
+    renderFeeSummary();
+  }
+
+  // Attached after onTypeChange's listener, so the reset funktion is what is read.
+  typeRadios.forEach(function (r) { r.addEventListener('change', refreshFees); });
+  ['vb-fee', 'bb-fee', 'passive-fee'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('change', renderFeeSummary);
+  });
+  if (geburtsdatumEl) {
+    geburtsdatumEl.addEventListener('change', renderFeeSummary);
+    geburtsdatumEl.addEventListener('input', renderFeeSummary);
+  }
+  // Every licence control: VB toggles (scorer + referee), BB scorer radios, BB
+  // referee toggle, and the passive toggles.
+  form.querySelectorAll(
+    'input[name="lizenz_vb"], input[name="bb_scorer_licence"], input[name="bb_referee"], input[name="lizenz_passive"]'
+  ).forEach(function (el) { el.addEventListener('change', renderFeeSummary); });
+
+  // Page load: covers a browser restoring form state. The ?type= prefill runs
+  // later (end of file) and calls refreshFees() itself — it invokes onTypeChange()
+  // directly, so the membership_type listener above never fires for it.
+  refreshFees();
+  // The load-time repair signal (CLAUDE.md load-order rule 3): a guest relabel
+  // made before the dictionary was in i18n.js's cache wrote a key but no text.
+  document.addEventListener('i18nApplied', refreshFees);
 
   // ── Team fetching ─────────────────────────────────────────
   var teamCache = {};   // sport -> teams[] once loaded
@@ -1814,6 +2017,9 @@
         var bbTw = document.getElementById('bb-team-wrapper');
         if (vbTw) vbTw.style.display = 'none';
         if (bbTw) bbTw.style.display = 'none';
+        // form.reset() blanked the function selects without a change event —
+        // restore the full category lists and hide the fee table.
+        refreshFees();
         if (window.turnstile && turnstileWidgetId !== null) {
           window.turnstile.reset(turnstileWidgetId);
         }
@@ -2310,6 +2516,10 @@
     if (radio) {
       radio.checked = true;
       onTypeChange();
+      // onTypeChange() resets the sport's funktion without a change event; the
+      // fee selects and table rendered at init from restored form state would
+      // otherwise keep guest labels and a guest total under a blank function.
+      refreshFees();
     }
   }
 })();

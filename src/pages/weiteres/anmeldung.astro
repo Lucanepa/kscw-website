@@ -222,6 +222,9 @@ const KS_OTHER = [
               <option value="VB Schüler*in Meisterschaft" data-i18n="registrationVBFeeHighSchool">{t(locale, 'registrationVBFeeHighSchool')}</option>
               <option value="VB Student*in Meisterschaft" data-i18n="registrationVBFeeStudent">{t(locale, 'registrationVBFeeStudent')}</option>
               <option value="VB Erwerbstätige" data-i18n="registrationVBFeeWorking">{t(locale, 'registrationVBFeeWorking')}</option>
+              <!-- Coach only: registration-form.js reveals it for "Trainer*in" and hides
+                   the rest (the engine bills a coach of an active team as Gratis). -->
+              <option value="Gratis" data-i18n="registrationFeeGratisCoach" hidden disabled>{t(locale, 'registrationFeeGratisCoach')}</option>
             </select>
           </div>
 
@@ -314,6 +317,8 @@ const KS_OTHER = [
               <option value="BB Lernende/Studierende" data-i18n="registrationBBFeeStudent">{t(locale, 'registrationBBFeeStudent')}</option>
               <option value="BB Jugend Meisterschaft" data-i18n="registrationBBFeeJunior">{t(locale, 'registrationBBFeeJunior')}</option>
               <option value="BB Minis Turnier" data-i18n="registrationBBFeeMinis">{t(locale, 'registrationBBFeeMinis')}</option>
+              <!-- Coach only — see the volleyball select. -->
+              <option value="Gratis" data-i18n="registrationFeeGratisCoach" hidden disabled>{t(locale, 'registrationFeeGratisCoach')}</option>
             </select>
           </div>
 
@@ -577,6 +582,48 @@ const KS_OTHER = [
           </label>
         </div>
 
+        <!-- Fee summary. The category labels carry a price, but not the bill: the
+             engine (wiedisync clubdesk-update.js feeBreakdown) adds CHF 100 to a
+             member with scorer duty and no licence, takes CHF 110 off a guest and
+             bills a coach as Gratis — none of which the form showed. An applicant
+             budgeting "VB Erwerbstätige (CHF 440)" could be invoiced 540. Filled by
+             registration-form.js from public/js/registration-fees.js, a mirror of
+             that engine; hidden until a category is chosen. -->
+        <div id="fee-summary" class="fee-summary" style="display: none;" aria-live="polite">
+          <div id="fee-summary-title" class="fee-summary-title" data-i18n="registrationFeeSummaryTitle">{t(locale, 'registrationFeeSummaryTitle')}</div>
+          <!-- Named by the visible title, so a screen reader announces the table
+               as the season fee rather than "table, 2 columns, 5 rows". -->
+          <table class="fee-table" aria-labelledby="fee-summary-title">
+            <tbody>
+              <tr id="fee-row-membership">
+                <th scope="row" data-i18n="registrationFeeRowMembership">{t(locale, 'registrationFeeRowMembership')}</th>
+                <td id="fee-amount-membership"></td>
+              </tr>
+              <tr id="fee-row-licence" style="display: none;">
+                <th scope="row" data-i18n="registrationFeeRowLicence">{t(locale, 'registrationFeeRowLicence')}</th>
+                <td id="fee-amount-licence"></td>
+              </tr>
+              <tr id="fee-row-surcharge" style="display: none;">
+                <th scope="row"><span data-i18n="registrationFeeRowSurcharge">{t(locale, 'registrationFeeRowSurcharge')}</span><br><small data-i18n="registrationFeeSurchargeHint">{t(locale, 'registrationFeeSurchargeHint')}</small></th>
+                <td id="fee-amount-surcharge"></td>
+              </tr>
+              <tr id="fee-row-guest" style="display: none;">
+                <th scope="row" data-i18n="registrationFeeRowGuest">{t(locale, 'registrationFeeRowGuest')}</th>
+                <td id="fee-amount-guest"></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr id="fee-row-total">
+                <th scope="row" data-i18n="registrationFeeRowTotal">{t(locale, 'registrationFeeRowTotal')}</th>
+                <td id="fee-amount-total"></td>
+              </tr>
+            </tfoot>
+          </table>
+          <p id="fee-note-coach" style="display: none;" data-i18n="registrationFeeCoachNote">{t(locale, 'registrationFeeCoachNote')}</p>
+          <p id="fee-note-referee" style="display: none;" data-i18n="registrationFeeRefereeNote">{t(locale, 'registrationFeeRefereeNote')}</p>
+          <p class="fee-summary-note" data-i18n="registrationFeeSummaryNote">{t(locale, 'registrationFeeSummaryNote')}</p>
+        </div>
+
         <!-- Turnstile -->
         <div id="turnstile-container" class="form-group"></div>
 
@@ -597,6 +644,9 @@ const KS_OTHER = [
   <!-- Must precede registration-form.js: it reads window.KSCW_FEDERATIONS at
        start-up to label the federation-of-origin picker. -->
   <script is:inline src={versionedAsset('js/federations.js')}></script>
+  <!-- Must precede registration-form.js too: it reads window.KSCW_FEES when
+       filling the fee summary and filtering the category select. -->
+  <script is:inline src={versionedAsset('js/registration-fees.js')}></script>
   <script is:inline src={versionedAsset('js/registration-form.js')}></script>
   <script src="../../islands/scroll-animations.ts"></script>
 </PageLayout>
@@ -1024,5 +1074,75 @@ const KS_OTHER = [
   }
   .bb-doc-download:hover {
     text-decoration: underline;
+  }
+  /* Fee summary — what the invoice will say, filled by registration-form.js */
+  .fee-summary {
+    margin-bottom: var(--space-md);
+    padding: var(--space-md);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md, 8px);
+    background: var(--bg-light);
+  }
+  .fee-summary-title {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-sm);
+  }
+  .fee-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+  }
+  .fee-table th,
+  .fee-table td {
+    padding: 0.375rem 0;
+    vertical-align: top;
+    border-bottom: 1px solid var(--border);
+  }
+  /* global.css styles every <th> as a column header — display font, uppercase,
+     letter-spaced and nowrap. These are row labels: body font, sentence case,
+     and they must WRAP, or the surcharge hint pushes the amounts off-screen. */
+  .fee-table th {
+    font-family: inherit;
+    font-size: var(--text-sm);
+    text-transform: none;
+    letter-spacing: normal;
+    white-space: normal;
+    text-align: left;
+    font-weight: normal;
+    color: var(--text-secondary);
+    padding-right: var(--space-md);
+  }
+  .fee-table th small {
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+  }
+  .fee-table td {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-primary);
+  }
+  .fee-table tr:hover td {
+    background: transparent;
+  }
+  .fee-table tfoot th,
+  .fee-table tfoot td {
+    border-bottom: none;
+    border-top: 2px solid var(--border);
+    padding-top: var(--space-sm);
+    font-weight: 700;
+    color: var(--accent-text, #4A55A2);
+  }
+  .fee-summary p {
+    margin: var(--space-sm) 0 0;
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    line-height: 1.5;
+  }
+  .fee-summary .fee-summary-note {
+    font-size: var(--text-xs, 0.75rem);
+    color: var(--text-secondary);
   }
 </style>
