@@ -203,6 +203,33 @@ test.describe('scorer registrations', () => {
     await expect(row(page, 'Bernasconi').getByRole('button', { name: /Formular:/ })).toHaveCount(0);
   });
 
+  test('correcting an answer in the expanded row is saved as an override', async ({ page }) => {
+    const { writes } = await stub(page);
+    await openRegistrations(page);
+
+    // The save reads the participant's original off rowMeta.row — a field that was
+    // simply never set, so every edit here threw before it reached Directus.
+    const errors: string[] = [];
+    page.on('pageerror', (e) => errors.push(String(e)));
+
+    await row(page, 'Bernasconi').locator('td.reg-c-arrow').click();
+    const detail = page.locator('tr.reg-detail-row').filter({ hasText: 'Vorname' }).first();
+    const ort = detail.locator('div').filter({ hasText: /^Ort:/ }).locator('input');
+    await ort.fill('Wädenswil ZH');
+    await ort.blur();
+
+    await expect.poll(() => writes.length).toBe(1);
+    const body = writes[0].body as Record<string, string>;
+    expect(writes[0].url).toContain('items/scorer_course_attendance');
+    expect(body.sub_key).toBe(`${SLUG}:s1`);
+    expect(JSON.parse(body.field_overrides)).toEqual({ [FIELD.ort]: 'Wädenswil ZH' });
+    expect(errors).toEqual([]);
+
+    // The badge names it a correction, and the collapsed row follows without a reopen.
+    await expect(detail).toContainText('(korrigiert)');
+    await expect(row(page, 'Bernasconi').locator('td.reg-c-addr')).toContainText('8003 Wädenswil ZH');
+  });
+
   test('a signup added by hand lands in Directus, not in the form', async ({ page }) => {
     const { writes } = await stub(page);
     await openRegistrations(page);
