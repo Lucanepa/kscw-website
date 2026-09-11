@@ -2,6 +2,13 @@
 
 All notable changes to the KSC Wiedikon website. This file is the curated, user-facing release record (semver); the same notes appear on the site's feedback page (DE + EN). For commit-level detail see `git log`.
 
+## [1.28.1] — 2026-09-11
+
+### Die Beitragstabellen passen wieder aufs Handy
+- Auf **Mitgliedschaft** liefen die drei Beitragstabellen am Handy über den rechten Bildschirmrand hinaus: Vom Beitrag war nur noch «CHF 2» zu sehen, und die Spalte **«Davon Lizenz»** fehlte ganz. Die Tabellen waren breiter als der Bildschirm, ohne dass etwas darauf hinwies.
+- Neu passen sie sich der Breite an: Auf schmalen Telefonen steht bei Volleyball die Kategorie oben und darunter auf einer eigenen Zeile **Beitrag** und **Davon Lizenz**, je mit Beschriftung. Die Lizenz- und Basketballtabellen behalten ihre zwei Spalten mit engeren Zellen und leicht kleinerer Schrift.
+- Am Computer sieht die Seite aus wie bisher.
+
 ## [1.28.0] — 2026-09-07
 
 ### Ein volles Team sagt es — und sammelt keine Anfragen mehr ein, die es nur absagen kann
