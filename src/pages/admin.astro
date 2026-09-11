@@ -4450,7 +4450,7 @@ const teamTableJson = JSON.stringify(teamTable);
             sv_license: srv.sv_license || '',
             notes: srv.notes || '',
           };
-          var rowMeta = { slug: row.slug, id: row.id, key: key, state: state };
+          var rowMeta = { slug: row.slug, id: row.id, key: key, state: state, row: row };
 
           var tr = document.createElement('tr');
           tr.className = 'reg-row';
