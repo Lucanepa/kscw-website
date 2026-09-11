@@ -72,7 +72,6 @@ const locale = 'de';
             <tr style="background: var(--kscw-blue); color: white;">
               <th style="font-weight: 600;" data-i18n="membershipCategory">{t(locale, 'membershipCategory')}</th>
               <th style="font-weight: 600;" data-i18n="membershipFee">{t(locale, 'membershipFee')}</th>
-              <th style="font-weight: 600;" data-i18n="membershipColLicence">{t(locale, 'membershipColLicence')}</th>
             </tr>
           </thead>
           <tbody>
@@ -81,40 +80,35 @@ const locale = 'de';
                 <strong data-i18n="membershipCategoryTournamentKWI">{t(locale, 'membershipCategoryTournamentKWI')}</strong><br>
                 <span style="color: var(--text-secondary);" data-i18n="membershipCategoryTournamentKWIDesc">{t(locale, 'membershipCategoryTournamentKWIDesc')}</span>
               </td>
-              <td style="font-weight: 700; color: var(--accent-text);"><span class="fee-label" data-i18n="membershipFee">{t(locale, 'membershipFee')}</span>CHF 110</td>
-              <td style="color: var(--text-secondary); white-space: nowrap;"><span class="fee-label" data-i18n="membershipColLicence">{t(locale, 'membershipColLicence')}</span>CHF 60*</td>
+              <td style="font-weight: 700; color: var(--accent-text);">CHF 110</td>
             </tr>
             <tr style="border-bottom: 1px solid var(--border);">
               <td>
                 <strong data-i18n="membershipCategoryTournament">{t(locale, 'membershipCategoryTournament')}</strong><br>
                 <span style="color: var(--text-secondary);" data-i18n="membershipCategoryTournamentDesc">{t(locale, 'membershipCategoryTournamentDesc')}</span>
               </td>
-              <td style="font-weight: 700; color: var(--accent-text);"><span class="fee-label" data-i18n="membershipFee">{t(locale, 'membershipFee')}</span>CHF 210</td>
-              <td style="color: var(--text-secondary); white-space: nowrap;"><span class="fee-label" data-i18n="membershipColLicence">{t(locale, 'membershipColLicence')}</span>CHF 60*</td>
+              <td style="font-weight: 700; color: var(--accent-text);">CHF 210</td>
             </tr>
             <tr style="border-bottom: 1px solid var(--border);">
               <td>
                 <strong data-i18n="membershipCategoryHighSchool">{t(locale, 'membershipCategoryHighSchool')}</strong><br>
                 <span style="color: var(--text-secondary);" data-i18n="membershipCategoryHighSchoolDesc">{t(locale, 'membershipCategoryHighSchoolDesc')}</span>
               </td>
-              <td style="font-weight: 700; color: var(--accent-text);"><span class="fee-label" data-i18n="membershipFee">{t(locale, 'membershipFee')}</span>CHF 310</td>
-              <td style="color: var(--text-secondary); white-space: nowrap;"><span class="fee-label" data-i18n="membershipColLicence">{t(locale, 'membershipColLicence')}</span>CHF 60</td>
+              <td style="font-weight: 700; color: var(--accent-text);">CHF 310</td>
             </tr>
             <tr style="border-bottom: 1px solid var(--border);">
               <td>
                 <strong data-i18n="membershipCategoryStudent">{t(locale, 'membershipCategoryStudent')}</strong><br>
                 <span style="color: var(--text-secondary);" data-i18n="membershipCategoryStudentDesc">{t(locale, 'membershipCategoryStudentDesc')}</span>
               </td>
-              <td style="font-weight: 700; color: var(--accent-text);"><span class="fee-label" data-i18n="membershipFee">{t(locale, 'membershipFee')}</span>CHF 380</td>
-              <td style="color: var(--text-secondary); white-space: nowrap;"><span class="fee-label" data-i18n="membershipColLicence">{t(locale, 'membershipColLicence')}</span>CHF 110</td>
+              <td style="font-weight: 700; color: var(--accent-text);">CHF 380</td>
             </tr>
             <tr style="border-bottom: 1px solid var(--border);">
               <td>
                 <strong data-i18n="membershipCategoryWorking">{t(locale, 'membershipCategoryWorking')}</strong><br>
                 <span style="color: var(--text-secondary);" data-i18n="membershipCategoryWorkingDesc">{t(locale, 'membershipCategoryWorkingDesc')}</span>
               </td>
-              <td style="font-weight: 700; color: var(--accent-text);"><span class="fee-label" data-i18n="membershipFee">{t(locale, 'membershipFee')}</span>CHF 440</td>
-              <td style="color: var(--text-secondary); white-space: nowrap;"><span class="fee-label" data-i18n="membershipColLicence">{t(locale, 'membershipColLicence')}</span>CHF 110</td>
+              <td style="font-weight: 700; color: var(--accent-text);">CHF 440</td>
             </tr>
             <!-- Passivmitglied is club-wide, not a volleyball category — it is listed in
                  BOTH sport tables so a reader never has to look in the other sport to
@@ -124,8 +118,7 @@ const locale = 'de';
                 <strong data-i18n="membershipCategoryPassive">{t(locale, 'membershipCategoryPassive')}</strong><br>
                 <span style="color: var(--text-secondary);" data-i18n="membershipCategoryPassiveDesc">{t(locale, 'membershipCategoryPassiveDesc')}</span>
               </td>
-              <td style="font-weight: 700; color: var(--accent-text);"><span class="fee-label" data-i18n="membershipFee">{t(locale, 'membershipFee')}</span>CHF 40</td>
-              <td style="color: var(--text-secondary); white-space: nowrap;"><span class="fee-label" data-i18n="membershipColLicence">{t(locale, 'membershipColLicence')}</span>—</td>
+              <td style="font-weight: 700; color: var(--accent-text);">CHF 40</td>
             </tr>
           </tbody>
         </table>
@@ -137,11 +130,6 @@ const locale = 'de';
         <p style="margin-top: var(--space-sm); font-size: 0.875rem; color: var(--accent-text); font-weight: 600;">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline; vertical-align: middle; margin-right: 4px;"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
           <span data-i18n="membershipFeesNoteScorer">{t(locale, 'membershipFeesNoteScorer')}</span>
-        </p>
-        <!-- The asterisk on the two entry tiers: their licence share is the
-             normal arrangement, not a fixed rule the club is bound to. -->
-        <p style="margin-top: var(--space-sm); font-size: 0.8125rem; color: var(--text-secondary);">
-          <span data-i18n="membershipFeesNoteLicenceStandard">{t(locale, 'membershipFeesNoteLicenceStandard')}</span>
         </p>
         </div>
 
@@ -446,8 +434,7 @@ const locale = 'de';
   .fee-bb td:nth-child(2) {
     font-size: 1.125rem;
   }
-  /* Phones: tighter cells and a smaller amount so the three volleyball columns fit a
-     375px viewport without breaking the category text mid-word. */
+  /* Phones: tighter cells and a smaller amount so the category text keeps its width. */
   @media (max-width: 639px) {
     .fee-block th,
     .fee-block td,
@@ -468,63 +455,8 @@ const locale = 'de';
     .fee-bb td:nth-child(2) {
       font-size: 1rem;
     }
-    .fee-vb td:nth-child(3) {
-      font-size: 0.875rem;
-    }
     .fee-block td:first-child span {
       font-size: 0.8125rem;
-    }
-  }
-  /* Column labels repeated inside the amount cells — only shown when the volleyball
-     table stacks (below), where the header row is hidden. */
-  .fee-label {
-    display: none;
-  }
-  /* Narrow phones: three columns leave the German categories ("Mittelschüler:innen",
-     "Fachhochschulen") ~120px and they broke mid-word. Stack each row instead — the
-     category on top, both amounts on a row beneath with their column label above. */
-  @media (max-width: 479px) {
-    .fee-vb thead {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip: rect(0 0 0 0);
-      white-space: nowrap;
-    }
-    .fee-vb tbody {
-      display: block;
-    }
-    .fee-vb tr {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      column-gap: var(--space-md);
-      padding: var(--space-sm) var(--space-md);
-    }
-    .fee-vb td {
-      display: block;
-      padding: 0;
-      border-bottom: 0;
-    }
-    .fee-vb td:first-child {
-      grid-column: 1 / -1;
-      margin-bottom: var(--space-sm);
-    }
-    .fee-vb td:nth-child(2) {
-      text-align: left;
-    }
-    .fee-vb td:nth-child(3) {
-      text-align: right;
-    }
-    .fee-vb .fee-label {
-      display: block;
-      font-family: var(--font-display);
-      font-weight: 600;
-      font-size: 0.6875rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-      margin-bottom: 2px;
     }
   }
   .reg-wrap {
