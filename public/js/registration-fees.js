@@ -10,6 +10,10 @@
  * finance.js, whose licence split comes from migration
  *   wiedisync/directus/scripts/323-dues-rate-licence-split.sql
  * (the federation licence is a portion INSIDE the fee, never on top of it).
+ * Basketball's licence portion is NOT in that migration (it seeds BB at 0 —
+ * "nobody has given the club a figure"): Swiss Basketball prices the licence by
+ * the player's AGE BAND, not by anything a club category can carry, so it is
+ * derived below from the birthdate and the season (BB_LICENCE).
  *
  * This file MIRRORS that engine; it does not consult it, because the public page
  * is static and the engine needs a member row. So every number and every rule
@@ -34,9 +38,11 @@
   // base    = CD_BEITRAG_MAP (the WITH-licence amount, i.e. the invoice total
   //           before adjustments; every BB category rose CHF 10 on 2026-08-10)
   // licence = migration 323 licence_chf: Swiss Volley RLL 110 for adults and
-  //           students, JLL 60 for the school tiers and KWI, 0 for every BB
-  //           category (nobody has given the club a Swiss Basketball figure)
-  //           and for Passiv/Gratis. It is carved OUT of base, never added.
+  //           students, JLL 60 for the school tiers and KWI, 0 for Passiv/Gratis.
+  //           It is carved OUT of base, never added. Basketball carries
+  //           licenceByAge instead: the amount comes from BB_LICENCE and the
+  //           applicant's birthdate (see bbLicence), because one category
+  //           ("BB Jugend Meisterschaft" spans U14–U20) holds four prices.
   // tier    = which surcharge set the engine holds the category in:
   //           'adult' → SURCHARGE_ADULT (inherently U16+, surcharged on a missing
   //           licence regardless of birthdate); 'youth' → SURCHARGE_YOUTH (only
@@ -47,12 +53,12 @@
     'VB Schüler*in Meisterschaft':     { sport: 'volleyball', base: 310, licence: 60,  tier: 'youth' },
     'VB Student*in Meisterschaft':     { sport: 'volleyball', base: 380, licence: 110, tier: 'adult' },
     'VB Erwerbstätige':                { sport: 'volleyball', base: 440, licence: 110, tier: 'adult' },
-    'BB Erwerbstätige 1. Liga':        { sport: 'basketball', base: 570, licence: 0,   tier: 'adult' },
-    'BB Lernende/Studierende 1. Liga': { sport: 'basketball', base: 470, licence: 0,   tier: 'adult' },
-    'BB Erwerbstätige':                { sport: 'basketball', base: 520, licence: 0,   tier: 'adult' },
-    'BB Lernende/Studierende':         { sport: 'basketball', base: 420, licence: 0,   tier: 'adult' },
-    'BB Jugend Meisterschaft':         { sport: 'basketball', base: 320, licence: 0,   tier: 'youth' },
-    'BB Minis Turnier':                { sport: 'basketball', base: 220, licence: 0,   tier: 'youth' },
+    'BB Erwerbstätige 1. Liga':        { sport: 'basketball', base: 570, licenceByAge: true, tier: 'adult' },
+    'BB Lernende/Studierende 1. Liga': { sport: 'basketball', base: 470, licenceByAge: true, tier: 'adult' },
+    'BB Erwerbstätige':                { sport: 'basketball', base: 520, licenceByAge: true, tier: 'adult' },
+    'BB Lernende/Studierende':         { sport: 'basketball', base: 420, licenceByAge: true, tier: 'adult' },
+    'BB Jugend Meisterschaft':         { sport: 'basketball', base: 320, licenceByAge: true, tier: 'youth' },
+    'BB Minis Turnier':                { sport: 'basketball', base: 220, licenceByAge: true, tier: 'youth' },
     'Passivmitglied':                  { sport: 'passive',    base: 40,  licence: 0,   tier: 'none' },
     'Gratis':                          { sport: 'passive',    base: 0,   licence: 0,   tier: 'none' }
   };
@@ -70,6 +76,46 @@
     if (!isFinite(y) || y % 1 !== 0 || y < 1900) return null;
     if (typeof refYear !== 'number' || !isFinite(refYear)) refYear = new Date().getFullYear();
     return (refYear - y) >= 15;
+  }
+
+  // Swiss Basketball "Lizenzen und Eintrittsfinanzen 2026-27" (resource center →
+  // Lizenzen → Preise & Beiträge; the FR directory carries the current sheet,
+  // lizenzen-2026-27.pdf, dated 2026-07-22 — the DE one still shows 2025-26):
+  // « Spieler » Lizenz, regional. KSCW's 1. Liga is 1. Liga REGIONAL, so the
+  // NL1 supplement (+10) never applies. ⚠ Every band rose for 2026/27 (senior
+  // 120→150, U20 95→115, U18 70→90, U16 60→80, U14 35→55, U12 30→40) — when
+  // Swiss Basketball publishes the next sheet, this table is what moves.
+  var BB_LICENCE = { senior: 150, U20: 115, U18: 90, U16: 80, U14: 55, U12: 40 };
+
+  // The season a date belongs to, named by its first calendar year (2026 =
+  // 2026/27): categories shift on 1 August. Mirror of birth-years.js /
+  // src/lib/birthYears.ts — UTC so the page and CI never disagree.
+  function seasonStartYear(now) {
+    var d = now || new Date();
+    return d.getUTCMonth() >= 7 ? d.getUTCFullYear() : d.getUTCFullYear() - 1;
+  }
+
+  // Basketball age band for a birthdate in a season. birthYears.ts (basketball
+  // OFFSET 1): U12 in 2026/27 = born 2015–2016, U14 = 2013–2014 … i.e. a band
+  // U<n> holds season − birthYear in [n−2, n−1]; anyone older than U20 is a
+  // senior; U10/U8/U6 share the U12 price. Unknown birthdate → null.
+  function bbAgeBand(dobIso, seasonYear) {
+    if (!dobIso) return null;
+    var y = Number(String(dobIso).slice(0, 4));
+    if (!isFinite(y) || y % 1 !== 0 || y < 1900) return null;
+    if (typeof seasonYear !== 'number' || !isFinite(seasonYear)) seasonYear = seasonStartYear();
+    var d = seasonYear - y;
+    if (d <= 11) return 'U12';
+    if (d <= 13) return 'U14';
+    if (d <= 15) return 'U16';
+    if (d <= 17) return 'U18';
+    if (d <= 19) return 'U20';
+    return 'senior';
+  }
+
+  function bbLicence(dobIso, seasonYear) {
+    var band = bbAgeBand(dobIso, seasonYear);
+    return band ? BB_LICENCE[band] : null;
   }
 
   // Which categories a person with this function may pick.
@@ -103,8 +149,11 @@
   //                  referee_vb → 'VB SC': a VB referee is automatically a
   //                  scorer) and in the treasurer billing a referee as Gratis,
   //                  which is what the referee note promises.
-  //   opts.refYear   calendar year for the age gate (tests pass it; the page
-  //                  omits it)
+  //   opts.refYear   calendar year for the surcharge age gate (tests pass it;
+  //                  the page omits it)
+  //   opts.seasonYear season for the basketball licence band (same — the two
+  //                  differ on purpose: the engine gates the surcharge by
+  //                  calendar year, Swiss Basketball bands by season)
   // Returns null for an unknown category — never a guessed amount.
   function breakdown(opts) {
     opts = opts || {};
@@ -121,7 +170,13 @@
     // finance.js zeroes a guest's licence portion: a guest holds no licence at
     // all, the CHF 110 reduction IS the licence coming off, and printing both
     // would show it twice. So a guest's line 1 is the full base.
-    var licence = guest ? 0 : cat.licence;
+    // Basketball's portion follows the applicant's age band; without a birthdate
+    // it is simply not shown (0, row hidden) rather than guessed. Never more
+    // than the fee it is carved out of (the DB CHECK on licence_chf, mirrored).
+    var licence = guest ? 0
+      : cat.licenceByAge ? (bbLicence(opts.dob, opts.seasonYear) || 0)
+      : cat.licence;
+    if (licence > base) licence = base;
     var referee = opts.referee === true;
     var scorer = opts.scorer === true;
 
@@ -159,8 +214,12 @@
     NO_LICENCE_SURCHARGE: NO_LICENCE_SURCHARGE,
     GUEST_DISCOUNT: GUEST_DISCOUNT,
     CATEGORIES: CATEGORIES,
+    BB_LICENCE: BB_LICENCE,
     categoriesFor: categoriesFor,
     isU16Plus: isU16Plus,
+    seasonStartYear: seasonStartYear,
+    bbAgeBand: bbAgeBand,
+    bbLicence: bbLicence,
     breakdown: breakdown
   };
 })();

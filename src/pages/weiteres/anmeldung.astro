@@ -599,12 +599,27 @@ const KS_OTHER = [
                 <th scope="row" data-i18n="registrationFeeRowMembership">{t(locale, 'registrationFeeRowMembership')}</th>
                 <td id="fee-amount-membership"></td>
               </tr>
+              <!-- Each sport has its own wording for the same two positions: the
+                   federation differs, and basketball's CHF 100 is the Offiziellen-
+                   Pflicht (waived by an OTR/OTN table-official licence), not a
+                   Schreiber licence. Both variants ship in the markup and
+                   registration-form.js shows the one for the chosen sport, so the
+                   language toggle owns every label as usual. -->
               <tr id="fee-row-licence" style="display: none;">
-                <th scope="row" data-i18n="registrationFeeRowLicence">{t(locale, 'registrationFeeRowLicence')}</th>
+                <th scope="row">
+                  <span class="fee-vb" data-i18n="registrationFeeRowLicence">{t(locale, 'registrationFeeRowLicence')}</span>
+                  <span class="fee-bb" style="display: none;" data-i18n="registrationFeeRowLicenceBB">{t(locale, 'registrationFeeRowLicenceBB')}</span>
+                </th>
                 <td id="fee-amount-licence"></td>
               </tr>
               <tr id="fee-row-surcharge" style="display: none;">
-                <th scope="row"><span data-i18n="registrationFeeRowSurcharge">{t(locale, 'registrationFeeRowSurcharge')}</span><br><small data-i18n="registrationFeeSurchargeHint">{t(locale, 'registrationFeeSurchargeHint')}</small></th>
+                <th scope="row">
+                  <span class="fee-vb" data-i18n="registrationFeeRowSurcharge">{t(locale, 'registrationFeeRowSurcharge')}</span>
+                  <span class="fee-bb" style="display: none;" data-i18n="registrationFeeRowSurchargeBB">{t(locale, 'registrationFeeRowSurchargeBB')}</span>
+                  <br>
+                  <small class="fee-vb" data-i18n="registrationFeeSurchargeHint">{t(locale, 'registrationFeeSurchargeHint')}</small>
+                  <small class="fee-bb" style="display: none;" data-i18n="registrationFeeSurchargeHintBB">{t(locale, 'registrationFeeSurchargeHintBB')}</small>
+                </th>
                 <td id="fee-amount-surcharge"></td>
               </tr>
               <tr id="fee-row-guest" style="display: none;">

@@ -16,7 +16,8 @@ import { resolve } from 'node:path';
 
 type Tier = 'intro' | 'youth' | 'adult' | 'none';
 type Sport = 'volleyball' | 'basketball' | 'passive';
-interface Category { sport: Sport; base: number; licence: number; tier: Tier }
+interface Category { sport: Sport; base: number; licence?: number; licenceByAge?: true; tier: Tier }
+type BbBand = 'U12' | 'U14' | 'U16' | 'U18' | 'U20' | 'senior';
 interface Breakdown {
   category: string; base: number; licence: number; clubFee: number;
   surcharge: number; guestDiscount: number; total: number;
@@ -26,11 +27,15 @@ interface Fees {
   NO_LICENCE_SURCHARGE: number;
   GUEST_DISCOUNT: number;
   CATEGORIES: Record<string, Category>;
+  BB_LICENCE: Record<BbBand, number>;
   categoriesFor(sport: Sport, funktion: string): string[];
   isU16Plus(dobIso: string, refYear?: number): boolean | null;
+  seasonStartYear(now?: Date): number;
+  bbAgeBand(dobIso: string, seasonYear?: number): BbBand | null;
+  bbLicence(dobIso: string, seasonYear?: number): number | null;
   breakdown(opts: {
     category: string; funktion?: string; dob?: string;
-    scorer?: boolean; referee?: boolean; refYear?: number;
+    scorer?: boolean; referee?: boolean; refYear?: number; seasonYear?: number;
   }): Breakdown | null;
 }
 
@@ -45,6 +50,8 @@ function loadFees(): Fees {
 
 const fees = loadFees();
 const REF_YEAR = 2026;
+// Season 2026/27 — the sheet the BB licence bands are copied from.
+const SEASON = 2026;
 
 describe('constants mirror the engine', () => {
   it('NO_LICENCE_SURCHARGE 100, GUEST_DISCOUNT 110', () => {
@@ -55,25 +62,29 @@ describe('constants mirror the engine', () => {
 
 describe('CATEGORIES', () => {
   // clubdesk-update.js CD_BEITRAG_MAP (base) — BB amounts are the post-2026-08-10
-  // ones — and migration 323 licence_chf (licence: RLL 110, JLL 60, BB 0).
-  const ENGINE: Array<[string, Sport, number, number, Tier]> = [
-    ['VB Turnier KWI',                  'volleyball', 110, 60,  'intro'],
-    ['VB Schüler*in Turnier',           'volleyball', 210, 60,  'youth'],
-    ['VB Schüler*in Meisterschaft',     'volleyball', 310, 60,  'youth'],
-    ['VB Student*in Meisterschaft',     'volleyball', 380, 110, 'adult'],
-    ['VB Erwerbstätige',                'volleyball', 440, 110, 'adult'],
-    ['BB Erwerbstätige 1. Liga',        'basketball', 570, 0,   'adult'],
-    ['BB Lernende/Studierende 1. Liga', 'basketball', 470, 0,   'adult'],
-    ['BB Erwerbstätige',                'basketball', 520, 0,   'adult'],
-    ['BB Lernende/Studierende',         'basketball', 420, 0,   'adult'],
-    ['BB Jugend Meisterschaft',         'basketball', 320, 0,   'youth'],
-    ['BB Minis Turnier',                'basketball', 220, 0,   'youth'],
-    ['Passivmitglied',                  'passive',    40,  0,   'none'],
-    ['Gratis',                          'passive',    0,   0,   'none'],
+  // ones — and migration 323 licence_chf (licence: RLL 110, JLL 60). Basketball
+  // has no per-category licence there (seeded 0 — Swiss Basketball prices by
+  // age band, see BB_LICENCE below), so those rows carry 'age' instead.
+  const ENGINE: Array<[string, Sport, number, number | 'age', Tier]> = [
+    ['VB Turnier KWI',                  'volleyball', 110, 60,    'intro'],
+    ['VB Schüler*in Turnier',           'volleyball', 210, 60,    'youth'],
+    ['VB Schüler*in Meisterschaft',     'volleyball', 310, 60,    'youth'],
+    ['VB Student*in Meisterschaft',     'volleyball', 380, 110,   'adult'],
+    ['VB Erwerbstätige',                'volleyball', 440, 110,   'adult'],
+    ['BB Erwerbstätige 1. Liga',        'basketball', 570, 'age', 'adult'],
+    ['BB Lernende/Studierende 1. Liga', 'basketball', 470, 'age', 'adult'],
+    ['BB Erwerbstätige',                'basketball', 520, 'age', 'adult'],
+    ['BB Lernende/Studierende',         'basketball', 420, 'age', 'adult'],
+    ['BB Jugend Meisterschaft',         'basketball', 320, 'age', 'youth'],
+    ['BB Minis Turnier',                'basketball', 220, 'age', 'youth'],
+    ['Passivmitglied',                  'passive',    40,  0,     'none'],
+    ['Gratis',                          'passive',    0,   0,     'none'],
   ];
 
-  it.each(ENGINE)('%s → %s, base %i, licence %i, tier %s', (name, sport, base, licence, tier) => {
-    expect(fees.CATEGORIES[name]).toEqual({ sport, base, licence, tier });
+  it.each(ENGINE)('%s → %s, base %i, licence %s, tier %s', (name, sport, base, licence, tier) => {
+    expect(fees.CATEGORIES[name]).toEqual(
+      licence === 'age' ? { sport, base, licenceByAge: true, tier } : { sport, base, licence, tier },
+    );
   });
 
   it('holds exactly the engine categories, in select order', () => {
@@ -82,9 +93,56 @@ describe('CATEGORIES', () => {
 
   it('never carves a licence larger than the fee (migration 323 CHECK)', () => {
     for (const c of Object.values(fees.CATEGORIES)) {
+      if (c.licenceByAge) continue;
       expect(c.licence).toBeGreaterThanOrEqual(0);
-      expect(c.licence).toBeLessThanOrEqual(c.base);
+      expect(c.licence!).toBeLessThanOrEqual(c.base);
     }
+  });
+});
+
+describe('Swiss Basketball licence by age band', () => {
+  // "Lizenzen und Eintrittsfinanzen 2026-27" (swiss.basketball resource center,
+  // Lizenzen → Preise & Beiträge, PDF of 2026-07-22), « Spieler » Lizenz,
+  // regional — literal figures, not recomputed.
+  it('BB_LICENCE is the 2026/27 sheet', () => {
+    expect(fees.BB_LICENCE).toEqual({ senior: 150, U20: 115, U18: 90, U16: 80, U14: 55, U12: 40 });
+  });
+
+  it('seasons start on 1 August (UTC), named by the first calendar year', () => {
+    expect(fees.seasonStartYear(new Date('2026-07-31T23:59:59Z'))).toBe(2025);
+    expect(fees.seasonStartYear(new Date('2026-08-01T00:00:00Z'))).toBe(2026);
+    expect(fees.seasonStartYear(new Date('2027-03-01T12:00:00Z'))).toBe(2026);
+  });
+
+  // Bands per src/lib/birthYears.ts for 2026/27: U12 = 2015–2016, U14 = 2013–2014,
+  // U16 = 2011–2012, U18 = 2009–2010, U20 = 2007–2008, senior from 2006.
+  it.each<[string, BbBand, number]>([
+    ['2017-05-05', 'U12', 40],   // U10 — shares the U12 price
+    ['2016-12-31', 'U12', 40],
+    ['2015-01-01', 'U12', 40],
+    ['2014-12-31', 'U14', 55],
+    ['2013-01-01', 'U14', 55],
+    ['2012-12-31', 'U16', 80],
+    ['2011-01-01', 'U16', 80],
+    ['2010-12-31', 'U18', 90],
+    ['2009-01-01', 'U18', 90],
+    ['2008-12-31', 'U20', 115],
+    ['2007-01-01', 'U20', 115],
+    ['2006-12-31', 'senior', 150],
+    ['1990-01-01', 'senior', 150],
+  ])('born %s in 2026/27 → %s, CHF %i', (dob, band, chf) => {
+    expect(fees.bbAgeBand(dob, SEASON)).toBe(band);
+    expect(fees.bbLicence(dob, SEASON)).toBe(chf);
+  });
+
+  it('the band moves with the season, not the calendar year', () => {
+    expect(fees.bbAgeBand('2015-01-01', 2027)).toBe('U14');
+  });
+
+  it('unknown birthdate → null, never a guessed band', () => {
+    expect(fees.bbAgeBand('', SEASON)).toBeNull();
+    expect(fees.bbAgeBand('garbage', SEASON)).toBeNull();
+    expect(fees.bbLicence('', SEASON)).toBeNull();
   });
 });
 
@@ -236,21 +294,61 @@ describe('categoriesFor', () => {
 });
 
 describe('basketball', () => {
-  it('BB Erwerbstätige, no scorer licence → 620 with no licence portion', () => {
-    const b = fees.breakdown({ category: 'BB Erwerbstätige', funktion: 'Spieler*in', dob: '1990-01-01', scorer: false, referee: false, refYear: REF_YEAR });
-    expect(b?.licence).toBe(0);
-    expect(b?.clubFee).toBe(520);
+  const bb = (o: { category: string; funktion?: string; dob: string; scorer?: boolean; referee?: boolean }) =>
+    fees.breakdown({ funktion: 'Spieler*in', scorer: false, referee: false, ...o, refYear: REF_YEAR, seasonYear: SEASON });
+
+  it('BB Erwerbstätige, adult, no table-official licence → 370 + 150 + 100 = 620', () => {
+    const b = bb({ category: 'BB Erwerbstätige', dob: '1990-01-01' });
+    expect(b?.licence).toBe(150);
+    expect(b?.clubFee).toBe(370);
     expect(b?.surcharge).toBe(100);
     expect(b?.total).toBe(620);
   });
-  it('BB Erwerbstätige with a table-official licence → 520', () => {
-    const b = fees.breakdown({ category: 'BB Erwerbstätige', funktion: 'Spieler*in', dob: '1990-01-01', scorer: true, referee: false, refYear: REF_YEAR });
+  it('BB Erwerbstätige with a table-official licence → 520; the licence split stays', () => {
+    const b = bb({ category: 'BB Erwerbstätige', dob: '1990-01-01', scorer: true });
+    expect(b?.total).toBe(520);
+    expect(b?.licence).toBe(150);
+  });
+  it('the licence follows the AGE, not the category: a U18 in an adult category → 90', () => {
+    const b = bb({ category: 'BB Lernende/Studierende', dob: '2009-06-01' });
+    expect(b?.licence).toBe(90);
+    expect(b?.clubFee).toBe(330);
+    // Adult category → surcharged regardless of birthdate (SURCHARGE_ADULT).
+    expect(b?.surcharge).toBe(100);
     expect(b?.total).toBe(520);
   });
-  it('BB Minis Turnier, born 2016 → 220', () => {
-    const b = fees.breakdown({ category: 'BB Minis Turnier', funktion: 'Spieler*in', dob: '2016-03-15', scorer: false, referee: false, refYear: REF_YEAR });
+  it('BB Jugend Meisterschaft, U16 (born 2011) → 240 + 80, surcharged (U16+ by calendar year)', () => {
+    const b = bb({ category: 'BB Jugend Meisterschaft', dob: '2011-03-01' });
+    expect(b?.licence).toBe(80);
+    expect(b?.clubFee).toBe(240);
+    expect(b?.surcharge).toBe(100);
+    expect(b?.total).toBe(420);
+  });
+  it('BB Jugend Meisterschaft, U14 (born 2013) → 265 + 55, no surcharge', () => {
+    const b = bb({ category: 'BB Jugend Meisterschaft', dob: '2013-03-01' });
+    expect(b?.licence).toBe(55);
+    expect(b?.clubFee).toBe(265);
+    expect(b?.surcharge).toBe(0);
+    expect(b?.total).toBe(320);
+  });
+  it('BB Minis Turnier, born 2016 → 180 + 40 = 220', () => {
+    const b = bb({ category: 'BB Minis Turnier', dob: '2016-03-15' });
+    expect(b?.licence).toBe(40);
+    expect(b?.clubFee).toBe(180);
     expect(b?.surcharge).toBe(0);
     expect(b?.total).toBe(220);
+  });
+  it('no birthdate → no licence line (0), the whole base on line 1, total unchanged', () => {
+    const b = bb({ category: 'BB Erwerbstätige', dob: '' });
+    expect(b?.licence).toBe(0);
+    expect(b?.clubFee).toBe(520);
+    expect(b?.total).toBe(620);
+  });
+  it('a guest never gets a licence line, whatever the age', () => {
+    const b = bb({ category: 'BB Erwerbstätige', funktion: 'Guest', dob: '1990-01-01' });
+    expect(b?.licence).toBe(0);
+    expect(b?.guestDiscount).toBe(110);
+    expect(b?.total).toBe(410);
   });
 });
 

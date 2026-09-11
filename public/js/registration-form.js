@@ -1285,6 +1285,14 @@
     });
     if (!b) { box.style.display = 'none'; return; }
 
+    // The federation and the officials rule are the sport's own: "Swiss
+    // Basketball Lizenz" and "Offiziellen-Lizenz (OTR/OTN)" for basketball,
+    // Swiss Volley / Schreiberlizenz for everyone else (passive never shows
+    // either row). Both variants are in the markup; show the right one.
+    var isBB = sport === 'basketball';
+    box.querySelectorAll('.fee-vb').forEach(function (el) { el.style.display = isBB ? 'none' : ''; });
+    box.querySelectorAll('.fee-bb').forEach(function (el) { el.style.display = isBB ? '' : 'none'; });
+
     // Same positions as the invoice: club fee + licence sum back to the category
     // base; the two adjustments follow; then the total.
     setFeeRow('fee-row-membership', 'fee-amount-membership', chf(b.clubFee), true);

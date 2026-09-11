@@ -52,6 +52,11 @@ const THIS_YEAR = new Date().getFullYear();
 const DOB_ADULT = '1990-01-01';
 const DOB_YOUTH_U16 = `${THIS_YEAR - 15}-01-01`;   // turns 15 this year → U16+
 const DOB_YOUTH_UNDER = `${THIS_YEAR - 14}-01-01`; // one year younger → not yet
+// Swiss Basketball prices the licence by SEASON age band (seasons turn on
+// 1 August; U14 = born season−13..season−12 per src/lib/birthYears.ts), so the
+// basketball probe is derived from the season, not the calendar year.
+const SEASON = new Date().getUTCMonth() >= 7 ? new Date().getUTCFullYear() : new Date().getUTCFullYear() - 1;
+const DOB_BB_U14 = `${SEASON - 13}-06-01`;         // oldest U14 Jahrgang → CHF 55, and never U16+ by calendar year
 
 test.beforeEach(async ({ page }) => {
   // Routes match last-registered first: the Directus catch-all goes in before
@@ -322,18 +327,30 @@ test.describe('fee table', () => {
     await expect(fee.coachNote(page)).toBeVisible();
   });
 
-  test('basketball: no licence portion, surcharge waived by an OTR licence', async ({ page }) => {
+  test('basketball: Swiss Basketball licence by age, Offiziellen wording, surcharge waived by an OTR licence', async ({ page }) => {
     await gotoWithLang(page, PATH, 'de');
     await pickType(page, 'basketball');
     await page.locator('#funktion-bb').selectOption('Spieler*in');
-    await page.locator('#geburtsdatum').fill(DOB_ADULT);
     await page.locator('#bb-fee').selectOption('BB Erwerbstätige');
 
-    // Every BB category carries licence 0 — the whole fee is club fee.
+    // Without a birthdate the licence band is unknown: one line, nothing guessed.
     await expect(fee.summary(page)).toBeVisible();
     await expect(fee.membership(page)).toHaveText('CHF 520');
     await expect(fee.licenceRow(page)).toBeHidden();
+    await expect(fee.total(page)).toHaveText('CHF 620');
+
+    // Adult → Regionale Senioren CHF 150 (2026/27 sheet), carved out of the 520.
+    await page.locator('#geburtsdatum').fill(DOB_ADULT);
+    await expect(fee.membership(page)).toHaveText('CHF 370');
+    await expect(fee.licenceRow(page)).toBeVisible();
+    // Both sports' labels sit in the markup; only the basketball ones may show.
+    await expect(fee.licenceRow(page).locator('.fee-bb')).toHaveText('Swiss Basketball Lizenz');
+    await expect(fee.licenceRow(page).locator('.fee-vb')).toBeHidden();
+    await expect(fee.licence(page)).toHaveText('CHF 150');
     await expect(fee.surchargeRow(page)).toBeVisible();
+    await expect(fee.surchargeRow(page).locator('span.fee-bb')).toHaveText('Zuschlag ohne Offiziellen-Lizenz (OTR/OTN)');
+    await expect(fee.surchargeRow(page).locator('small.fee-bb')).toContainText('Tischoffiziellen-Lizenz (OTR 1, OTR 2 oder OTN)');
+    for (const el of await fee.surchargeRow(page).locator('.fee-vb').all()) await expect(el).toBeHidden();
     await expect(fee.surcharge(page)).toHaveText('CHF 100');
     await expect(fee.total(page)).toHaveText('CHF 620');
 
@@ -345,6 +362,29 @@ test.describe('fee table', () => {
     await pickRadioCard(page, 'bb_scorer_licence', '');
     await expect(fee.surchargeRow(page)).toBeVisible();
     await expect(fee.total(page)).toHaveText('CHF 620');
+  });
+
+  test('basketball youth: the licence follows the age band, the surcharge the U16 gate', async ({ page }) => {
+    await gotoWithLang(page, PATH, 'de');
+    await pickType(page, 'basketball');
+    await page.locator('#funktion-bb').selectOption('Spieler*in');
+    await page.locator('#geburtsdatum').fill(DOB_BB_U14);
+    await page.locator('#bb-fee').selectOption('BB Jugend Meisterschaft');
+
+    // U14 → CHF 55 of the 320; under the U16 gate → no surcharge.
+    await expect(fee.membership(page)).toHaveText('CHF 265');
+    await expect(fee.licence(page)).toHaveText('CHF 55');
+    await expect(fee.surchargeRow(page)).toBeHidden();
+    await expect(fee.total(page)).toHaveText('CHF 320');
+
+    // The sport's wording goes back to volleyball's when the sport does.
+    await pickType(page, 'volleyball');
+    await page.locator('#funktion-vb').selectOption('Spieler*in');
+    await page.locator('#vb-fee').selectOption('VB Erwerbstätige');
+    await expect(fee.licenceRow(page).locator('.fee-vb')).toHaveText('Swiss Volley Lizenz');
+    await expect(fee.licenceRow(page).locator('.fee-bb')).toBeHidden();
+    await expect(fee.surchargeRow(page).locator('span.fee-vb')).toHaveText('Zuschlag ohne Schreiberlizenz');
+    await expect(fee.surchargeRow(page).locator('span.fee-bb')).toBeHidden();
   });
 
   test('passive: flat fee, nothing else on the table', async ({ page }) => {
@@ -374,6 +414,9 @@ test.describe('language', () => {
     await gotoWithLang(page, PATH, 'en');
     await expect(page.locator('#vb-fee option[value="VB Erwerbstätige"]')).toHaveText('VB Working Adults (CHF 440)');
     await expect(page.locator('#vb-fee option[value="VB Schüler*in Turnier"]')).toHaveText('VB High School Student Tournament (CHF 210)');
+    // Basketball carries the same sport prefix as volleyball.
+    await expect(page.locator('#bb-fee option[value="BB Erwerbstätige"]')).toHaveText('BB Working Adults (CHF 520)');
+    await expect(page.locator('#bb-fee option[value="BB Minis Turnier"]')).toHaveText('BB Minis Tournament — up to U12 (CHF 220)');
 
     await pickType(page, 'volleyball');
     await page.locator('#funktion-vb').selectOption('Guest');
